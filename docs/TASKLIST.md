@@ -23,8 +23,8 @@
 - [x] Ogólna eliminacja `MODEL_OUTPUT_TRUNCATED` w typowych przypadkach: zwiększony budżet, podział dużego źródła, kontrola kompletności fragmentów.
 - [x] Wstępny podział dla gęstych stron PDF/Office przed wywołaniem modelu.
 - [x] Osobny strukturalny odczyt XLSX bez generowania ogromnego Markdown pustych komórek (zachowuje współrzędne).
-- [x] 118 testów backendowych; test E2E na syntetycznym XLSX HTTP 200, poprawny COI JSON.
-- [ ] Powtórzyć test na binarnym pliku użytkownika oraz złożonym PDF; porównać rzeczywiste pola.
+- [x] 119 testów backendowych; testy E2E na syntetycznym XLSX i PDF: oba HTTP 200, poprawny COI JSON.
+- [ ] Powtórzyć test na binarnym pliku użytkownika; syntetyczny złożony PDF został już przetestowany E2E, ale nie dowodzi jakości na każdym skanie.
 - [ ] Sprawdzić wydajność i ewentualne limity czasu OpenRouter przy 100+ polach.
 
 ## Bieżące wykonanie i najbliższe zadania — 21.11.2026
