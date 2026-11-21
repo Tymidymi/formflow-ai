@@ -3,6 +3,8 @@ import base64
 import json
 import os
 import re
+import time
+from .conversion_audit import record
 from urllib.parse import urlsplit
 
 import httpx
@@ -54,7 +56,9 @@ Never output a FINISH page; exporter creates it.
 """
 
 class AIProviderError(Exception):
-    pass
+    def __init__(self, message: str, code: str="AI_PROVIDER_ERROR"):
+        super().__init__(message)
+        self.code=code
 
 def enabled() -> bool:
     mode=os.environ.get("FORMFLOW_AI_PROVIDER","").lower()
@@ -68,7 +72,8 @@ def decode_json(s: str) -> dict:
     try:
         data=json.loads(s)
     except (ValueError,TypeError) as exc:
-        raise AIProviderError("Model nie zwrócił poprawnego JSON.") from exc
+        raise AIProviderError("Model nie zwrócił poprawnego JSON.",
+                              code="MODEL_INVALID_JSON") from exc
     if not isinstance(data,dict) or not isinstance(data.get("pages"),list):
         raise AIProviderError("Model nie zwrócił prawidłowej struktury stron.")
     return data
@@ -95,33 +100,75 @@ async def generate(text: str, images: list[tuple[str,bytes]] | None = None) -> t
             image_count+=1
     if len(user_content)==1 and len(text.strip())<40:
         raise AIProviderError("Brak wystarczającej treści do analizy.")
+    max_tokens=6500
     data={
-        "model":model, "temperature":0.1, "max_tokens":4000,
+        "model":model, "temperature":0.1, "max_tokens":max_tokens,
         "response_format":{"type":"json_object"},
         "messages":[{"role":"system","content":PROMPT},
                     {"role":"user","content":user_content if len(user_content)>1 else user_content[0]["text"]}]
     }
+    started=time.monotonic()
+    record("model_request",model=model,max_tokens=max_tokens,
+           images_sent=image_count)
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(110, connect=10),follow_redirects=False) as client:
             response=await client.post(base+"/chat/completions",json=data,headers={
                 "Authorization":"Bearer "+os.environ["OPENROUTER_API_KEY"].strip(),
                 "Content-Type":"application/json","X-Title":"FormFlow AI development"})
     except httpx.TimeoutException as exc:
-        raise AIProviderError("Przekroczono czas oczekiwania na model.") from exc
+        record("model_network_failure",error_code="MODEL_TIMEOUT",
+               elapsed_ms=round((time.monotonic()-started)*1000))
+        raise AIProviderError("Przekroczono czas oczekiwania na model.",
+                              code="MODEL_TIMEOUT") from exc
     except httpx.HTTPError as exc:
-        raise AIProviderError("Błąd połączenia z OpenRouter.") from exc
+        record("model_network_failure",error_code="MODEL_NETWORK_ERROR",
+               elapsed_ms=round((time.monotonic()-started)*1000))
+        raise AIProviderError("Błąd połączenia z OpenRouter.",
+                              code="MODEL_NETWORK_ERROR") from exc
+    elapsed=round((time.monotonic()-started)*1000)
     if response.status_code!=200:
         status=response.status_code
+        record("model_http_failure",provider_http_status=status,
+               elapsed_ms=elapsed,error_code="PROVIDER_HTTP_ERROR")
         messages={401:"Niepoprawny klucz OpenRouter",402:"Brak środków OpenRouter",
                   429:"Limit zapytań OpenRouter"}
-        raise AIProviderError(messages.get(status,"Błąd OpenRouter")+" (HTTP "+str(status)+").")
+        raise AIProviderError(messages.get(status,"Błąd OpenRouter")+" (HTTP "+str(status)+").",
+                              code="PROVIDER_HTTP_ERROR")
     try:
         result=response.json()
-        content=result["choices"][0]["message"]["content"]
+        choice=result["choices"][0]
+        content=choice["message"]["content"]
         if isinstance(content,list):
             content="".join(p.get("text","") for p in content if isinstance(p,dict))
-        semantic=decode_json(content)
-    except (KeyError,IndexError,TypeError) as exc:
-        raise AIProviderError("Nie można odczytać odpowiedzi modelu.") from exc
+        if not isinstance(content,str):
+            raise TypeError("Missing model content.")
+        finish=choice.get("finish_reason") or "unknown"
+        usage=result.get("usage") or {}
+        common={"finish_reason":finish,"model":model,
+                "response_chars":len(content),"elapsed_ms":elapsed,
+                "prompt_tokens":usage.get("prompt_tokens"),
+                "completion_tokens":usage.get("completion_tokens"),
+                "total_tokens":usage.get("total_tokens"),
+                "max_tokens":max_tokens,
+                "provider_request_id":result.get("id")}
+        record("model_response",**common)
+        if finish=="length":
+            record("model_invalid_json",error_code="MODEL_OUTPUT_TRUNCATED",**common)
+            raise AIProviderError(
+                "Odpowiedź modelu została ucięta (limit długości). Spróbuj ponownie.",
+                code="MODEL_OUTPUT_TRUNCATED")
+        try:
+            semantic=decode_json(content)
+        except AIProviderError as exc:
+            cause=exc.__cause__
+            record("model_invalid_json",error_code=exc.code,
+                   json_error_line=getattr(cause,"lineno",None),
+                   json_error_column=getattr(cause,"colno",None),**common)
+            raise
+    except (KeyError,IndexError,TypeError,ValueError) as exc:
+        record("model_invalid_envelope",error_code="MODEL_RESPONSE_FORMAT",
+               elapsed_ms=elapsed)
+        raise AIProviderError("Nie można odczytać odpowiedzi modelu.",
+                              code="MODEL_RESPONSE_FORMAT") from exc
     return semantic,{"model":model,"usage":result.get("usage",{}),
                      "images_sent":image_count}

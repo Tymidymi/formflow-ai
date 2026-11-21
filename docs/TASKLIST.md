@@ -1,6 +1,6 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v1.1.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v1.2.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
@@ -229,3 +229,17 @@ Szczegóły: [V10_GUIDED_WIZARD.md](V10_GUIDED_WIZARD.md).
 - [ ] **P1:** source grounding w postaci współrzędnych pól i podświetlenia w oryginale; obecny raport jest tekstowy.
 
 Status regulaminowy OpenRouter: **bez zmian — zgłoszenie planowane z API, mimo zakazu zewnętrznych API**.
+
+
+## Etap v1.2.0 — diagnostyka i niezawodność Qwen (21.11.2026)
+
+- [x] Audyt obecnych błędów — poprzednio nie było przydatnych logów, tylko komunikaty startu Uvicorn.
+- [x] Trwały audyt konwersji na prywatnym VPS z rotacją, bez dokumentów, nazw plików, danych osobowych i surowych odpowiedzi modelu.
+- [x] Korelacja wszystkich zdarzeń przez `request_id` / nagłówek `X-Request-ID` oraz numer zgłoszenia w komunikacie błędu.
+- [x] Klasyfikacja `MODEL_OUTPUT_TRUNCATED` (finish_reason=length), `MODEL_INVALID_JSON` (wiersz/kolumna), timeoutów, HTTP i błędów formatu odpowiedzi.
+- [x] Zwiększenie limitu odpowiedzi Qwen z 4000 do 6500 tokenów bez automatycznych płatnych retry.
+- [x] Testy prywatności metadanych, dobrego i uszkodzonego JSON-a oraz zgodności request_id.
+- [ ] Pomiar prawdziwej przyczyny niepowodzenia dla dokumentu „Wniosek o wydanie zezwolenia na zajęcie pasa drogowego.pdf” **po ponownej próbie**, bo stara próba nie była zalogowana.
+- [ ] Opcjonalny mechanizm poprawy/skrócenia zbyt długich odpowiedzi w jednym zgłoszeniu, po ocenie kosztu i jakości.
+
+Dokumentacja: [V12_CONVERSION_LOGGING.md](V12_CONVERSION_LOGGING.md).

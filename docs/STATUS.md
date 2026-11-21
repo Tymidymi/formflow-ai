@@ -151,3 +151,14 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 
 - Uzupełnienie wyników v1.1: COI #3 — informacje o opłatach jako read-only, brak edytowalnego podpisu; COI #4 — odzysk 4 numerowanych potwierdzeń na realnej ścieżce Qwen/COI po korekcie parsera.
 - Ostateczna liczba testów backend v1.1: **70/70**.
+
+
+## Etap v1.2.0 — 21 listopada 2026
+
+- Dodane prywatne, trwałe, rotowane JSONL logi metadanych konwersji do `data/private/logs`.
+- Frontend pokazuje numer zgłoszenia, backend spina nim wszystkie zdarzenia AI, od ekstrakcji do kodu HTTP.
+- Przy błędach JSON Qwen zapisuje finish_reason, liczby tokenów oraz wiersz/kolumnę błędu składni, nigdy surowe dane.
+- Limit generacji zwiększony z 4000 do 6500; brak automatycznej ponownej płatnej próby.
+- Przeszłych błędów nie da się odtworzyć bez historycznych logów. Kolejne zgłoszenia będą miały identyfikatory.
+- Pełny opis: [V12_CONVERSION_LOGGING.md](V12_CONVERSION_LOGGING.md).
+- Test live: zdarzenia zapisują się w prywatnym pliku, znajdują po request_id, zachowują się po restarcie; uszkodzony PDF ma odrębny kod DOCUMENT_REJECTED.

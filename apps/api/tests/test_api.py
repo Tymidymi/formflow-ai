@@ -8,7 +8,7 @@ from app.coi_builder import convert
 client=TestClient(app)
 
 def test_health():
-    assert client.get("/healthz").json()["version"]=="1.1.0"
+    assert client.get("/healthz").json()["version"]=="1.2.0"
 
 def test_validation_pdf_signature():
     r=client.post("/api/v1/forms/inspect",files={"file":("test.pdf",b"%PDF-1.7\n%%EOF\n","application/pdf")})

@@ -109,9 +109,14 @@ function showPreview(form,details){
   window.FormFlowPreview.open(form,{...details,wizardMode:true,scrollIntoView:false});
 }
 function errorFromAPI(data,response){
-  if(typeof data?.detail==="string")return data.detail;
-  if(Array.isArray(data?.detail))return data.detail.map(x=>x.msg||String(x)).join("; ");
-  return "Wystąpił błąd („"+response.status+"”). Spróbuj ponownie.";
+  let message="Wystąpił błąd („"+response.status+"”). Spróbuj ponownie.";
+  if(typeof data?.detail==="string")message=data.detail;
+  else if(Array.isArray(data?.detail))message=data.detail.map(x=>x.msg||String(x)).join("; ");
+  const requestId=data?.request_id||response.headers?.get("X-Request-ID");
+  if(requestId && /^[a-f0-9]{32}$/i.test(requestId)){
+    message+="\nNumer zgłoszenia: "+requestId;
+  }
+  return message;
 }
 generateButton.addEventListener("click",async()=>{
   if(!currentFile||!accepted||busy||!conversionAvailable||
@@ -139,7 +144,8 @@ generateButton.addEventListener("click",async()=>{
       extraction:data.document?.extraction,grounding:data.grounding,source:"generated"});
   }catch(error){
     show(result,"Nie udało się przygotować formularza",
-      error.message||"Spróbuj ponownie. Wybrany dokument jest nadal dostępny.",true);
+      (error.message||"Spróbuj ponownie.")+
+      "\nMożesz spróbować ponownie. Wybrany dokument nadal jest dostępny.",true);
   }finally{setBusy(false);}
 });
 demoButton.addEventListener("click",async()=>{

@@ -239,3 +239,24 @@ showed mixed model-quality changes, not universal gains. See
 [vision benchmark and architecture](docs/V11_MULTIMODAL_QUALITY.md).
 
 OpenRouter API remains contrary to the competition's external-API ban.
+
+
+## v1.2 — Private persistent conversion diagnostics
+
+Every new attempt receives a random 32-character request ID returned in
+`X-Request-ID` and included in the browser error message. A private,
+rotating JSONL audit log on the VPS records model, input format/size,
+image count, token usage, finish reason, parser error line/column,
+completion duration and HTTP outcome — **never OCR text, filenames,
+uploaded files, prompt content, secret keys or model response bodies**.
+
+Logs persist in the gitignored folder `data/private/logs` across Docker
+container recreations (up to 12 MiB, size-based rotation). Read with:
+
+`docker exec formflow-ai-api-1 sh -c 'tail -n 60 /var/log/formflow/conversions.jsonl'`
+
+Qwen output token limit increased from 4000 to 6500. Truncated responses
+(`finish_reason=length`) are distinguishable from syntax errors
+(`MODEL_INVALID_JSON`). No automatic additional billable retry.
+
+See [v1.2 conversion diagnostic documentation](docs/V12_CONVERSION_LOGGING.md).

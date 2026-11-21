@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: formflow-ai-api:1.1.0-dev
+    image: formflow-ai-api:1.2.0-dev
     restart: unless-stopped
     init: true
     user: "10001:10001"
@@ -13,6 +13,7 @@ services:
     environment:
       MAX_UPLOAD_MB: "${MAX_UPLOAD_MB:-15}"
       PYTHONDONTWRITEBYTECODE: "1"
+      FORMFLOW_AUDIT_LOG_FILE: "/var/log/formflow/conversions.jsonl"
     read_only: true
     tmpfs:
       - /tmp:rw,nosuid,nodev,size=64m,mode=1777
@@ -22,6 +23,13 @@ services:
       - no-new-privileges:true
     pids_limit: 80
     mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    volumes:
+      - ./data/private/logs:/var/log/formflow:rw
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
       interval: 30s

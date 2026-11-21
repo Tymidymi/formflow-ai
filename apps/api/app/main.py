@@ -1,5 +1,6 @@
-"""FormFlow AI v1.1.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v1.2.0 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
+import time
 from typing import Literal
 from uuid import uuid4
 
@@ -15,6 +16,7 @@ from .coi_builder import convert as to_coi
 from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
 from .field_grounding import analyze_grounding
+from .conversion_audit import REQUEST_ID,record
 from .semantic_quality import normalize_semantic
 from .conditional_rules import apply_conditions
 from .document_zones import split_legal_notice, primary_image_crop
@@ -22,27 +24,48 @@ from .form_repair import repair_form
 from .demo_fixture import create_demo
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="1.1.0",
+app=FastAPI(title="FormFlow AI",version="1.2.0",
     description="COI prototype using OpenRouter API; not compliant with COI no-external-API requirement.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
 
 @app.middleware("http")
 async def security(request:Request, call_next):
-    size=request.headers.get("content-length")
-    if size:
-        try: n=int(size)
-        except ValueError:
-            return JSONResponse(status_code=400,content={"detail":"Błędny Content-Length."})
-        if n<0 or n>max_upload_bytes()+1024*1024:
-            return JSONResponse(status_code=413,content={"detail":"Przekroczono limit uploadu."})
-    response=await call_next(request)
-    response.headers["X-Request-ID"]=str(uuid4())
-    response.headers["X-Content-Type-Options"]="nosniff"
-    response.headers["Referrer-Policy"]="no-referrer"
-    response.headers["Cache-Control"]="no-store"
-    response.headers["Content-Security-Policy"]="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; object-src 'none'; frame-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'"
-    return response
+    request_id=uuid4().hex
+    token=REQUEST_ID.set(request_id)
+    started=time.monotonic()
+    status=500
+    try:
+        size=request.headers.get("content-length")
+        error_status=None
+        if size:
+            try: n=int(size)
+            except ValueError: error_status=400
+            else:
+                if n<0 or n>max_upload_bytes()+1024*1024:
+                    error_status=413
+        if error_status:
+            response=JSONResponse(status_code=error_status,content={
+                "detail":"Nieprawidłowy lub zbyt duży dokument.",
+                "request_id":request_id})
+        else:
+            response=await call_next(request)
+        status=response.status_code
+        response.headers["X-Request-ID"]=request_id
+        response.headers["X-Content-Type-Options"]="nosniff"
+        response.headers["Referrer-Policy"]="no-referrer"
+        response.headers["Cache-Control"]="no-store"
+        response.headers["Content-Security-Policy"]="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; object-src 'none'; frame-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'"
+        return response
+    except Exception as exc:
+        if request.url.path=="/api/v1/forms/convert":
+            record("conversion_exception",error_class=type(exc).__name__)
+        raise
+    finally:
+        if request.url.path=="/api/v1/forms/convert":
+            record("conversion_http",http_status=status,
+                   elapsed_ms=round((time.monotonic()-started)*1000))
+        REQUEST_ID.reset(token)
 
 @app.exception_handler(RejectedFile)
 async def reject_upload(request:Request,exc:RejectedFile):
@@ -54,7 +77,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"1.1.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"1.2.0"}
 
 @app.get("/readyz")
 def ready():
@@ -125,8 +148,13 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
     if not content:raise RejectedFile("Nie można przesłać pustego pliku.")
     if len(content)>max_upload_bytes():raise RejectedFile("Przekroczony limit.",413)
     mime=detect_mime(content,ext)
+    record("conversion_start",file_extension=ext,file_bytes=len(content),
+           vision_mode=vision)
     try:
         text,images,extraction_meta=await extract_with_backend(content,ext,vision_mode=vision)
+        record("document_extracted",stage="extraction",
+               page_count=extraction_meta.get("pages"),
+               images_sent=len(images))
         extraction_meta["vision_requested"]=vision
         zones=split_legal_notice(text)
         model_images=images
@@ -174,17 +202,35 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
             quality["manual_review_recommended"]=True
             quality.setdefault("possible_missing",[]).append(
                 "Nie wszystkie obrazy stron zmieściły się w limicie API.")
+    except RejectedFile as exc:
+        record("conversion_failed",stage="extraction",
+               error_code="DOCUMENT_REJECTED")
+        return JSONResponse(status_code=exc.status,content={
+            "detail":str(exc),"code":"DOCUMENT_REJECTED",
+            "request_id":REQUEST_ID.get()})
     except AIProviderError as exc:
-        return JSONResponse(status_code=502,content={"detail":str(exc),"code":"AI_PROVIDER_ERROR"})
+        record("conversion_failed",stage="ai",error_code=exc.code)
+        return JSONResponse(status_code=502,content={
+            "detail":str(exc),"code":exc.code,"request_id":REQUEST_ID.get()})
     except ValueError as exc:
-        return JSONResponse(status_code=422,content={"detail":str(exc),"code":"INVALID_SEMANTIC_FORM"})
+        record("conversion_failed",stage="normalization",
+               error_code="INVALID_SEMANTIC_FORM")
+        return JSONResponse(status_code=422,content={
+            "detail":"Wynik AI ma nieprawidłową strukturę pól lub stron.",
+            "code":"INVALID_SEMANTIC_FORM","request_id":REQUEST_ID.get()})
+    record("conversion_processed",stage="coi",
+           schema_valid=bool(validation.get("schema_valid")),
+           quality_ok=bool(quality.get("ok")),
+           page_count=extraction_meta.get("pages"),
+           images_sent=extraction_meta.get("model_images_sent"))
     if mode=="coi":
         if not validation["valid"] or not quality["ok"]:
             return JSONResponse(status_code=422,content={
                 "detail":"Wygenerowana konfiguracja wymaga ręcznej weryfikacji.",
                 "code":"COI_REVIEW_REQUIRED","validation":validation,"quality":quality})
         return result
-    return {"status":"generated" if validation["valid"] and quality["ok"]
+    return {"request_id":REQUEST_ID.get(),
+            "status":"generated" if validation["valid"] and quality["ok"]
             and not quality.get("manual_review_recommended") else "needs_review",
             "provider":info.get("provider","openrouter-development"),"model":info["model"],"usage":info.get("usage",{}),
             "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime,"extraction":extraction_meta},
