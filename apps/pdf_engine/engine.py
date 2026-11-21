@@ -121,6 +121,46 @@ def pdf_extract(data:bytes, include_previews:bool=False)->dict:
         "ocr_pages":ocr,"page_sources":pages,"preview_images":previews,
     }
 
+def detect_stitched_image_parts(img:Image.Image)->list[Image.Image]:
+    """Split tall concatenated scans at a mid-page blank separator.
+
+    Preserve BOTH regions in OCR; this never discards legal appendices.
+    Restrict to a single well-evidenced 2-part layout, avoiding arbitrary
+    splitting of normal one-page documents with short empty lines.
+    """
+    w,h=img.size
+    if h<1400 or h<1.8*w:
+        return [img]
+    gray=img.convert("L")
+    if w>700:
+        scale=700/w
+        thumb=gray.resize((700,int(h*scale)),Image.Resampling.BILINEAR)
+    else:
+        thumb=gray
+    sw,sh=thumb.size
+    bitmap=thumb.point(lambda v: 255 if v>=185 else 0).convert("1")
+    data=bitmap.tobytes();stride=(sw+7)//8
+    rows=[sum(8-b.bit_count() for b in data[y*stride:(y+1)*stride])
+          for y in range(sh)]
+    start=None;runs=[]
+    for y in range(int(sh*.30),int(sh*.78)):
+        if rows[y]<=max(10,int(sw*.015)):
+            if start is None:start=y
+        elif start is not None:
+            if y-start>=int(sh*.05):runs.append((start,y))
+            start=None
+    if start is not None and int(sh*.78)-start>=int(sh*.05):
+        runs.append((start,int(sh*.78)))
+    if not runs:return [img]
+    # Prefer whitespace near the middle of the stitched scan rather than
+    # an earlier empty block within the main paper application.
+    a,b=min(runs,key=lambda ab:abs((ab[0]+ab[1])/2-sh*.5))
+    cut=int((a+b)/2*h/sh)
+    if not (int(h*.25)<cut<int(h*.85)):
+        return [img]
+    return [img.crop((0,0,w,cut)),img.crop((0,cut,w,h))]
+
+
 def image_extract(data:bytes,extension:str,include_previews:bool=False)->dict:
     try:
         Image.MAX_IMAGE_PIXELS=MAX_IMAGE_PIXELS*3
@@ -128,7 +168,12 @@ def image_extract(data:bytes,extension:str,include_previews:bool=False)->dict:
         im.load()
         if im.width*im.height>MAX_IMAGE_PIXELS*4:
             raise PdfExtractionError("Obraz przekracza maksymalny rozmiar.",413)
-        text=tesseract_text(im)
+        parts=detect_stitched_image_parts(im)
+        if len(parts)>1:
+            texts=[tesseract_text(part) for part in parts]
+            text="\n\n".join(f"[Część {i+1}/{len(parts)}]\n"+v for i,v in enumerate(texts))
+        else:
+            text=tesseract_text(im)
         previews=[jpeg_preview(im)] if include_previews else []
     except PdfExtractionError:raise
     except (UnidentifiedImageError,OSError,ValueError,Image.DecompressionBombError) as exc:
@@ -136,6 +181,7 @@ def image_extract(data:bytes,extension:str,include_previews:bool=False)->dict:
     return {
         "engine":"tesseract-pol+eng","format":extension,"text":text[:MAX_TEXT_CHARS],
         "truncated":len(text)>MAX_TEXT_CHARS,"page_count":1,
-        "ocr_pages":1,"page_sources":[{"page":1,"method":"tesseract-pol+eng","characters":len(text)}],
+        "ocr_pages":1,"page_sources":[{"page":1,"method":"tesseract-pol+eng",
+            "characters":len(text),"regions":len(parts)}],
         "preview_images":previews,
     }

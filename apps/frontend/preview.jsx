@@ -229,7 +229,7 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
             validationMode={showValidation ? "ValidateAndShow" : "ValidateAndHide"}
             i18n={polishI18n}
             config={{restrict:true,showUnfocusedDescription:true}} />
-          {page.blocks.map((message,index)=><p className="ff-note" key={index}>{message}</p>)}
+          {page.blocks.map((message,index)=><div className={page.fieldCount===0?"ff-notice":"ff-note"} key={index}>{message}</div>)}
         </div>}
         {showValidation && errors.length > 0 && <p role="alert" className="ff-validation-message">
           Formularz wymaga poprawy: {errors.length} problemów. Uzupełnij wymagane pola lub popraw ich format.

@@ -94,6 +94,10 @@ generateButton.addEventListener('click',async()=>{
         '\nOficjalny JSON Schema COI: '+(report.schema_valid?'ZGODNY':'NIEZGODNY')+
         '\nKontrola kompletności: '+(quality.ok?'OK':'WYMAGA WERYFIKACJI')+
         '\nPrawdopodobnie pominięte pola: '+((quality.possible_missing||[]).join(', ')||'brak')+
+        '\nPola odzyskane z OCR/referencji: '+(quality.recovered_fields||0)+
+        '\nOdrzucone pola pozorne (RODO/niedopasowane): '+(quality.removed_noninput_fields||0)+
+        '\nKlauzula RODO jako informacja: '+(quality.legal_notice_readonly?'TAK':'nie dotyczy')+
+        (quality.manual_review_recommended?'\nUWAGA: sprawdź pola przywrócone z referencji przed użyciem.':'')+
         (errors?'\n'+errors:''),!report.valid||!quality.ok);
     downloadButton.hidden=!report.valid||!quality.ok;
     window.FormFlowPreview?.open?.(data.form,{

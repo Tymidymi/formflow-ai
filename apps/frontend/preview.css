@@ -97,3 +97,5 @@
 #coi-preview-section .ff-validation-message{background:#fff6ee;border:1px solid #f3d9c5;border-radius:10px;padding:14px;color:#a25925;font-size:12px}
 #coi-preview-section .ff-check-controls{display:flex;flex-wrap:wrap;gap:8px}
 @media(max-width:760px){#coi-preview-section .ff-page-nav{align-items:stretch;flex-wrap:wrap}#coi-preview-section .ff-page-nav>div{flex-wrap:wrap}}
+
+#coi-preview-section .ff-notice{border:1px solid #dce9e1;border-left:3px solid #6baf89;background:#f6faf7;border-radius:9px;padding:20px 24px;color:#365541;font-size:13px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;max-height:540px;overflow:auto}

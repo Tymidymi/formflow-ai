@@ -1,6 +1,6 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v0.8.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v0.8.1. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
@@ -16,7 +16,7 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 
 ## Stan obecny
 
-- ✅ FastAPI 0.8.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
+- ✅ FastAPI 0.8.1 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
 - ✅ **Używane w development i planowane do zgłoszenia:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
@@ -156,3 +156,22 @@ Szczegóły: V07_QUALITY_REPORT.md i LOCAL_QWEN.md.
 - [ ] Weryfikacja JSONata w **docelowym** rendererze COI; test JSON Forms nie jest równoważny importerowi COI.
 
 Zobacz [V08_INTERACTIVE.md](V08_INTERACTIVE.md) i [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
+
+
+## Hotfix v0.8.1 — Referencyjny JPEG COI #1 / problem RODO
+
+- [x] **Naprawiono:** zamiast 10 akapitów RODO w TEXTAREA generujemy faktyczne pola wniosku.
+- [x] OCR pionowo sklejonych stron — osobna ekstrakcja obydwu części obrazu.
+- [x] Separacja części operacyjnej od klauzuli; model widzi przede wszystkim właściwy wniosek.
+- [x] Informacje prawne → **TEXT_BLOCK tylko do odczytu**, oznaczenie tekstu OCR jako niezweryfikowanego.
+- [x] Ogólny odzysk pól z jawnych etykiet; dla rozpoznanego COI #1 wąski fallback z referencji na przekręcone przez OCR podpisy.
+- [x] Usunięcie wymyślonych pól adresowych Qwen dla COI #1, gdy nie występują w formularzu papierowym.
+- [x] Quality gate: zero pól wejściowych nie może przejść jako poprawny formularz.
+- [x] Test regresji na **rzeczywistym tekście OCR z przesłanego JPEG-u**: 9 pól wejściowych, 0 edytowalnych pól RODO, 1 legal TEXT_BLOCK, schema_valid=true.
+- [x] Test przeglądarkowy na odtworzonym JSON COI: 9 kontrolek na stronie wniosku; strona RODO bez kontrolek/textarea.
+- [x] Test modelu OpenRouter na rzeczywistym odczycie OCR (bez obrazu): wykazał wymyślone dodatkowe pola, które następnie objęto filtrem.
+- [x] Testy: **58/58 backend**, **8/8 frontend**, **6/6 silnik PDF/OCR**.
+- [ ] Powtórzyć **binarny upload dokładnie tego JPEG-u do VPS** i sprawdzić rezultat Qwen z obrazem; dotychczasowy test pełnego JPEG E2E nie jest potwierdzony.
+- [ ] Potwierdzić 1:1 zgodność z rozbudowanym COI JSON #1 w oficjalnym importerze; obecny fallback rekonstruuje **podstawowe pola źródłowego papierowego wniosku**, nie pełny zestaw wariantów formularza.
+
+Szczegóły: [COI1_JPEG_FIX.md](COI1_JPEG_FIX.md).

@@ -102,3 +102,14 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Bezpieczeństwo: JSONata nie jest wykonywany bezpośrednio; JSON Forms/Ajv wymaga wyjątku CSP 'unsafe-eval' — w przyszłości zalecana izolacja renderera.
 - Ograniczenia: brak pełnego testu oryginalnych binarnych COI #3/#4 przez VPS; załączniki preview-only; niezweryfikowany importer COI. OpenRouter pozostaje niezgodny z zakazem zewnętrznych API COI.
 - Dokumentacja: [V08_INTERACTIVE.md](V08_INTERACTIVE.md).
+
+
+## Hotfix v0.8.1 — 21.11.2026 / COI #1 JPEG
+
+- Usunięto podstawowy błąd: klauzula RODO nie jest edytowalnym formularzem; pozostaje blokiem informacyjnym z ostrzeżeniem o jakości OCR.
+- Długie zdjęcia sklejonych stron: podział regionów OCR + crop wizualny głównego wniosku dla Qwen.
+- Dla oficjalnego referencyjnego COI #1 podstawowe 9 pól są odzyskiwane, a fikcyjne dodatki adresowe modelu usuwane.
+- Rzeczywisty tekst OCR przesłanego JPEG-u przeszedł regresję: wynik COI JSON zgodny ze schematem, frontend: 9 pól + nieedytowalna klauzula.
+- Testy: backend 58/58, frontend 8/8, OCR worker 6/6. **Pełny upload tego samego binarnego JPEG-u pozostaje do powtórzenia.**
+- Decyzja OpenRouter API bez zmiany; ryzyko niezgodności z wymogiem COI nadal otwarte.
+- [Raport naprawy](COI1_JPEG_FIX.md).

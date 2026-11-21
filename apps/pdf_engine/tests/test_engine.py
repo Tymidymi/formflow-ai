@@ -3,7 +3,7 @@ import io
 import unittest
 from PIL import Image,ImageDraw,ImageFont
 from pypdf import PdfWriter
-from engine import pdf_extract,image_extract,normalize_text,PdfExtractionError
+from engine import pdf_extract,image_extract,normalize_text,PdfExtractionError,detect_stitched_image_parts
 
 class EngineTest(unittest.TestCase):
     def test_normalize_checkbox(self):
@@ -37,6 +37,24 @@ class EngineTest(unittest.TestCase):
         with self.assertRaises(PdfExtractionError) as context:
             pdf_extract(out.getvalue())
         self.assertEqual(context.exception.code,413)
+
+    def test_tall_jpeg_separates_main_application_and_legal_page(self):
+        img=Image.new("RGB",(724,2048),"white")
+        pen=ImageDraw.Draw(img)
+        font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",28)
+        pen.text((60,145),"WNIOSEK PESEL",font=font,fill="black")
+        pen.text((60,420),"DATA TELEFON",font=font,fill="black")
+        pen.text((60,1110),"KLAUZULA INFORMACYJNA",font=font,fill="black")
+        pen.text((60,1240),"RODO DANE OSOBOWE",font=font,fill="black")
+        parts=detect_stitched_image_parts(img)
+        self.assertEqual(len(parts),2)
+        self.assertLess(parts[0].height,1300)
+        out=io.BytesIO();img.save(out,"JPEG",quality=88)
+        result=image_extract(out.getvalue(),".jpeg")
+        self.assertEqual(result["page_sources"][0]["regions"],2)
+        self.assertIn("PESEL",result["text"])
+        self.assertIn("RODO",result["text"])
+        self.assertLess(result["text"].index("PESEL"),result["text"].index("RODO"))
 
     def test_pdf_corruption(self):
         with self.assertRaises(PdfExtractionError):

@@ -36,6 +36,7 @@ def assess(text: str, semantic: dict) -> dict:
         f for page in semantic.get("pages",[]) if isinstance(page,dict)
         for sec in page.get("sections",[]) if isinstance(sec,dict)
         for f in sec.get("fields",[]) if isinstance(f,dict) and f.get("label")
+        and f.get("type") not in ("INFO_BLOCK","TEXT_BLOCK")
     ]
     labels=[fold(str(f["label"])) for f in fields]
     signals=[(title, keys) for title, pattern, keys in SIGNALS if re.search(fold(pattern),source)]
@@ -44,7 +45,11 @@ def assess(text: str, semantic: dict) -> dict:
     detected=[title for title,keys in signals if any(any(key in lab for key in keys) for lab in labels)]
     missing=[title for title,keys in signals if title not in detected]
     ratio=(len(detected)/len(signals)) if signals else 1.0
-    severe=bool(len(signals)>=4 and (len(fields)<3 or ratio<0.45))
+    # A RODO-only result is never a valid application, even if JSON Schema passes.
+    # The user asked to digitize a form. Returning only legal information
+    # should NEVER be treated as a successful form conversion.
+    severe=bool(len(fields)==0
+                or (len(signals)>=4 and (len(fields)<3 or ratio<0.55)))
     return {"ok":not severe,"input_fields":len(fields),"source_signals":len(signals),
             "matched_signals":len(detected),"signal_coverage":round(ratio,3),
             "possible_missing":missing,

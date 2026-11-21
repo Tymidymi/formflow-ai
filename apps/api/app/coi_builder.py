@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from html import escape
 from uuid import NAMESPACE_URL, uuid5
 from .coi_validation import validate_coi_form
 from .coi_conditions import attach_states
 
 KINDS = {
     "TEXT_FIELD", "TEXTAREA", "NUMBER", "DATEPICKER",
-    "RADIO", "CHECKBOX", "SELECT", "FILE_UPLOADER",
+    "RADIO", "CHECKBOX", "SELECT", "FILE_UPLOADER", "INFO_BLOCK",
 }
 # Match only sufficiently explicit field labels. These are suggestions, not legal
 # interpretation; never infer required-ness from the mere presence of a field.
@@ -99,6 +100,17 @@ def convert(semantic: dict) -> tuple[dict,dict]:
                 validation=field_validation(label,data.get("required") is True)
                 item=field(label,kind,name,f"{title}/{pi}/{si}/{fi}/{name}",
                            options=opts,validation=validation)
+                if kind=="INFO_BLOCK":
+                    content=str(data.get("content",""))[:7000]
+                    # Use COI's supported read-only TEXT_BLOCK, not TEXTAREA.
+                    item["type"]="TEXT_BLOCK"
+                    item["readOnly"]=True
+                    item["validation"]=[]
+                    item["description"]=(
+                        "<html><head></head><body><p>"
+                        +escape(content).replace("\n","<br/>")
+                        +"</p></body></html>"
+                    )
                 if kind in {"RADIO","CHECKBOX","SELECT"} and dictionary:
                     item["dictionaryName"] = dictionary
                 if isinstance(data.get("show_when"), dict):

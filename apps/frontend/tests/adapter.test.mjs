@@ -89,3 +89,18 @@ test("Summary counts actual answers, not hidden placeholders",()=>{
 test("Does not accept invalid root",()=>{
   assert.throws(()=>coiToJsonForms(null),/brak stron/i);
 });
+
+test("Long legal COI TEXT_BLOCK is read-only and not counted as user input",()=>{
+  const d=sample();
+  const notice="Klauzula informacyjna "+("RODO — informacja publiczna. ".repeat(45));
+  const block={...fld("TEXT_BLOCK","rodo_notice","Klauzula informacyjna"),description:
+     "<html><body><p>"+notice+"</p></body></html>"};
+  d.tabs.splice(1,0,{id:uuid(4),type:"MAIN",title:"Klauzula informacyjna",
+    questions:[section("RODO",[block])]});
+  const res=coiToJsonForms(d);
+  assert.equal(res.fields.length,4);
+  assert.equal(res.pages.length,3);
+  assert.equal(res.pages[1].fieldCount,0);
+  assert(res.pages[1].blocks[0].length>450);
+  assert(!Object.keys(res.jsonSchema.properties).includes("rodo_notice"));
+});

@@ -123,8 +123,15 @@ export function coiToJsonForms(form){
           const nested=[];walk(children(f),nested,depth+1);
           if(nested.length)out.push({type:"Group",label:String(f.title||"Sekcja"),elements:nested});
         }else if(f.type==="TEXT_BLOCK"){
-          const plain=String(f.description||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
-          if(plain)blocks.push(plain.slice(0,450));
+          const plain=String(f.description||"")
+            .replace(/<br\s*\/?\s*>/gi,"\n")
+            .replace(/<\/p\s*>/gi,"\n")
+            .replace(/<[^>]*>/g," ")
+            .replace(/&lt;/g,"<").replace(/&gt;/g,">")
+            .replace(/&quot;/g,'"').replace(/&#x27;|&#39;/g,"'")
+            .replace(/&amp;/g,"&")
+            .replace(/[ \t]{2,}/g," ").trim();
+          if(plain)blocks.push(plain.slice(0,7000));
         }
       }
     };

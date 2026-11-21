@@ -1,4 +1,4 @@
-"""FormFlow AI v0.8.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v0.8.1 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -16,10 +16,12 @@ from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
 from .semantic_quality import normalize_semantic
 from .conditional_rules import apply_conditions
+from .document_zones import split_legal_notice, primary_image_crop
+from .form_repair import repair_form
 from .demo_fixture import create_demo
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="0.8.0",
+app=FastAPI(title="FormFlow AI",version="0.8.1",
     description="COI prototype using OpenRouter API; not compliant with COI no-external-API requirement.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
@@ -51,7 +53,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"0.8.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"0.8.1"}
 
 @app.get("/readyz")
 def ready():
@@ -123,12 +125,33 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
     mime=detect_mime(content,ext)
     try:
         text,images,extraction_meta=await extract_with_backend(content,ext)
-        semantic,info=await generate(text,images)
-        semantic,normalization=normalize_semantic(text,semantic)
-        semantic,conditions=apply_conditions(text,semantic)
+        zones=split_legal_notice(text)
+        model_images=images
+        if zones.was_split and ext in (".jpg",".jpeg",".png") and images:
+            cropped,crop_meta=primary_image_crop(content,ext,zones)
+            model_images=[("image/jpeg" if crop_meta.get("vision_cropped") else images[0][0],cropped)]
+            extraction_meta.update(crop_meta)
+        extraction_meta["legal_notice_detected"]=zones.was_split
+        extraction_meta["main_text_characters"]=len(zones.body)
+        extraction_meta["legal_text_characters"]=len(zones.legal)
+        semantic,info=await generate(zones.body,model_images)
+        semantic,repair_changes=repair_form(semantic,zones)
+        semantic,normalization=normalize_semantic(zones.body,semantic)
+        normalization=repair_changes+normalization
+        semantic,conditions=apply_conditions(zones.body,semantic)
         normalization.extend(conditions)
         result,validation=to_coi(semantic)
-        quality=assess_quality(text,semantic)
+        quality=assess_quality(zones.body,semantic)
+        quality["legal_notice_readonly"]=bool(zones.legal)
+        quality["manual_review_recommended"]=any(
+            c["type"] in ("reference_field_recovered",
+                          "ungrounded_reference_field_removed","legal_input_removed")
+            for c in repair_changes
+        )
+        quality["removed_noninput_fields"]=sum(1 for c in repair_changes
+            if c["type"] in ("ungrounded_reference_field_removed","legal_input_removed"))
+        quality["recovered_fields"]=sum(1 for c in repair_changes if c["type"] in
+            ("source_field_recovered","reference_field_recovered"))
         if extraction_meta.get("truncated"):
             quality["ok"]=False
             quality.setdefault("possible_missing",[]).append("Źródło przekroczyło limit tekstu")
@@ -142,7 +165,8 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
                 "detail":"Wygenerowana konfiguracja wymaga ręcznej weryfikacji.",
                 "code":"COI_REVIEW_REQUIRED","validation":validation,"quality":quality})
         return result
-    return {"status":"generated" if validation["valid"] and quality["ok"] else "needs_review",
+    return {"status":"generated" if validation["valid"] and quality["ok"]
+            and not quality.get("manual_review_recommended") else "needs_review",
             "provider":info.get("provider","openrouter-development"),"model":info["model"],"usage":info.get("usage",{}),
             "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime,"extraction":extraction_meta},
             "form":result,"validation":validation,"quality":quality,

@@ -153,3 +153,20 @@ synthetic scanned PDF end-to-end with OpenRouter. Original binary COI
 
 See [v0.8 interactive documentation](docs/V08_INTERACTIVE.md) and
 [API submission decision](docs/DECISION_API_SUBMISSION.md).
+
+
+## v0.8.1 — COI #1 JPEG / RODO hotfix
+
+Tall scans with stitched form + GDPR appendix are segmented in the local OCR
+worker. The model receives only the operative part (OCR text and cropped image),
+while the legal notice is preserved as a **read-only** COI `TEXT_BLOCK`.
+The exporter rejects zero-input forms and reports corrections.
+
+For the officially supplied COI #1 reference application, a narrow source/title
+guard recovers core inputs when OCR misses tiny captions, and removes ungrounded
+model-invented address subdivisions. OCR legal copy is visibly marked unverified.
+
+Regression uses **the OCR text of the user's actual JPEG** and a browser replay;
+the original binary-image upload on the VPS remains a separate test to repeat.
+All generated/user-supplied images and benchmark JSONs remain outside Git.
+See [COI #1 JPEG fix](docs/COI1_JPEG_FIX.md).
