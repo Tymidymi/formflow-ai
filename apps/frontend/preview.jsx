@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import { createRoot } from "react-dom/client";
 import { JsonForms, withJsonFormsControlProps } from "@jsonforms/react";
 import { vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
-import { coiToJsonForms, calculateSummary, conditionIsVisible } from "./adapter.mjs";
+import { coiToJsonForms, calculateSummary, conditionIsVisible, makePreviewAnswerPayload } from "./adapter.mjs";
 import { editCOI } from "./editor.mjs";
 import { EditorPanel } from "./EditorPanel.jsx";
 import "./preview.css";
@@ -276,6 +276,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
     }
   };
   const exportAnswers = () => {
+    if (summary.answered === 0) return false;
     const visible = new Set(model.fields.filter(item => {
       const controls = [];
       function walk(elements) {
@@ -288,10 +289,10 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
       const rule = controls.find(control => control.scope === "#/properties/" + item.key)?.rule;
       return conditionIsVisible(rule, answers);
     }).map(field => field.key));
-    const currentAnswers = Object.fromEntries(Object.entries(answers).filter(([key]) => visible.has(key)));
-    download("formflow-odpowiedzi.json", JSON.stringify({
-      form: String(workingForm.title || "COI"), previewOnly: true, answers: currentAnswers
-    }, null, 2), "application/json;charset=utf-8");
+    const payload=makePreviewAnswerPayload(workingForm,answers,visible);
+    if(!payload)return false;
+    download("formflow-odpowiedzi-PODGLAD.json", JSON.stringify(payload,null,2), "application/json;charset=utf-8");
+    return true;
   };
 
   return <div className="ff-app">
@@ -402,7 +403,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
         : page.isFinish ? <div className="ff-finish">
           <div className="ff-finish-icon">✓</div>
           <h3>Podsumowanie wniosku</h3>
-          <p>To wyłącznie interaktywny podgląd — nie wysyła danych do urzędu ani do OpenRouter.</p>
+          <p>To wyłącznie interaktywny podgląd — nie wysyła danych do urzędu ani do OpenRouter. Aby pobrać pełny formularz COI, użyj przycisku „Pobierz JSON formularza COI”.</p>
           <dl>{fields.filter(item => answers[item.key] !== undefined).map(item=><div key={item.key}><dt>{item.field.title || item.key}</dt><dd><PrintValue value={answers[item.key]}/></dd></div>)}</dl>
           {summary.answered === 0 && <p>Nie wprowadzono jeszcze żadnych odpowiedzi.</p>}
         </div> : <div className="ff-rendered">
@@ -425,7 +426,11 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
             <button type="button" className="ff-quiet" disabled={pageIndex===0} onClick={()=>setPageIndex(Math.max(0,pageIndex-1))}>Wstecz</button>
             {pageIndex < pages.length-1
               ? <button type="button" className="ff-primary" onClick={()=>setPageIndex(pageIndex+1)}>Dalej →</button>
-              : <button type="button" className="ff-primary" onClick={exportAnswers}>Pobierz odpowiedzi</button>}
+              : <>
+                  {summary.answered>0 && <button type="button" className="ff-quiet" onClick={exportAnswers}
+                    title="Eksport wpisanych danych z podglądu, nie konfiguracji COI">Pobierz wypełnione odpowiedzi (podgląd)</button>}
+                  <button type="button" className="ff-primary" onClick={exportEditedCOI}>Pobierz JSON formularza COI</button>
+                </>}
           </div>
         </div>}
       </div>
