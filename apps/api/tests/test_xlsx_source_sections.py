@@ -246,3 +246,27 @@ def test_inflected_question_heading_does_not_create_extra_text_field():
         ('CHECKBOX','Informacje dotyczące sposobu odbioru'),
         ('TEXT_FIELD','Adres')]
     assert fields[1]['show_when']['value']=='Kurierem'
+
+
+def test_radio_guess_for_choice_heading_does_not_duplicate_printed_checkbox_group():
+    from app.source_region_reconcile import enforce_source_region
+    page=structured_extraction.Page(
+        1,'Sekcja źródłowa: 4. Informacje dotyczące sposobu odbioru\n'
+          '[Wiersz 3] [DRUKOWANE PUSTE POLE L3:L3] | N: Osobiście\n'
+          '[Wiersz 5] [DRUKOWANE PUSTE POLE L5:L5] | N: Kurierem\n'
+          '[Wiersz 8] A: Nazwa | [DRUKOWANE PUSTE POLE L8:AA8]',
+        None,'4. Informacje dotyczące sposobu odbioru',
+        '4. Informacje dotyczące sposobu odbioru',
+        ({'label':'Osobiście','row':3,'kind_hint':'CHECKBOX'},
+         {'label':'Kurierem','row':5,'kind_hint':'CHECKBOX'},
+         {'label':'Nazwa','row':8,'kind_hint':'TEXT_FIELD'}))
+    proposal={'title':'Test','pages':[{'title':'Strona','sections':[{
+        'title':'Sekcja','fields':[
+            {'label':'Sposób odbioru','type':'RADIO',
+             'options':['Pocztą','Osobiście']},
+            {'label':'Nazwa','type':'TEXT_FIELD'}]}]}]}
+    value,_=enforce_source_region(proposal,page)
+    fields=value['pages'][0]['sections'][0]['fields']
+    assert len(fields)==2,fields
+    assert [f['type'] for f in fields]==['CHECKBOX','TEXT_FIELD']
+    assert fields[0]['options']==['Osobiście','Kurierem']
