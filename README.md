@@ -22,10 +22,10 @@ tailscale serve --https=9466 off
 ## API
 
 - `GET /healthz` – status API.
-- `GET /readyz` – etap gotowości (konwersja nieaktywna).
+- `GET /readyz` – rzeczywista gotowość API, w tym jawny brak zgodności z wymaganiem offline COI.
 - `GET /api/v1/capabilities` – lista formatów i aktualnych możliwości.
 - `POST /api/v1/forms/inspect` – `multipart/form-data` (`file`) → JSON: rozmiar i MIME, bez trwałego zapisu.
-- `POST /api/v1/forms/convert` – zarezerwowany endpoint. W etapie 1 zawsze zwraca `501`.
+- `POST /api/v1/forms/convert` – działająca konwersja jednego dokumentu do JSON COI; przy OpenRouter wymaga `X-External-AI-Consent: true`. Tryb `?mode=diagnostic` zwraca dodatkową ocenę jakości.
 - `/api/docs` – dokumentacja OpenAPI.
 
 ## Testy
@@ -37,7 +37,7 @@ PYTHONPATH=apps/api pytest -q apps/api/tests
 
 ## Polityka przechowywania danych
 
-Nie zapisujemy wgrywanych dokumentów na dysku aplikacyjnym ani do repozytorium. Framework może korzystać z tymczasowego dysku podczas odczytu multipart; kontener ma wydzielony tmpfs czyszczony wraz z kontenerem. W tym etapie żaden dokument nie jest wysyłany do zewnętrznych usług.
+Nie zapisujemy wgrywanych dokumentów na dysku aplikacyjnym ani do repozytorium. Framework może korzystać z tymczasowego dysku podczas odczytu multipart; kontener ma wydzielony tmpfs czyszczony wraz z kontenerem. Po świadomej zgodzie konwersja wysyła treść dokumentu do OpenRouter; podgląd ekstrakcji jest lokalny i nie wysyła źródła do zewnętrznych usług.
 
 ## Aktualny status wdrożenia
 
@@ -47,7 +47,7 @@ Nie zapisujemy wgrywanych dokumentów na dysku aplikacyjnym ani do repozytorium.
 
 ## Status / dalszy plan
 
-Zobacz [architekturę](docs/ARCHITECTURE.md). Materiały konkursowe z Discorda są konieczne przed implementacją adaptera eksportującego JSON COI.
+Zobacz [architekturę](docs/ARCHITECTURE.md). Adapter JSON COI działa i waliduje oficjalny schemat; nadal wymaga testu z **docelowym importerem COI**. Zadania: [TASKLIST.md](docs/TASKLIST.md).
 
 ## Development AI (OpenRouter)
 
@@ -59,11 +59,30 @@ put a key and model in the ignored .env file and run:
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 ```
 
-Current development features: PDF/DOCX/ODS/XLSX text, JPG/PNG and scanned PDF vision,
+Current development features: PDF/DOC/DOCX/ODS/XLSX text, JPG/PNG and scanned PDF vision,
 semantic extraction with Qwen3-VL, deterministic COI JSON mapping, preliminary structure validation.
 
-Limitations: the official COI JSON Schema is integrated, but it is permissive and does not guarantee importer compatibility. Docling is not integrated; old DOC unsupported for conversion;
-real competition dataset benchmarking pending.
+Limitations: the COI JSON Schema is permissive and does not guarantee importer compatibility. Docling Office is integrated; legacy DOC uses **text-only** Antiword and must be visually reviewed. Browser-layout conversion of Office is still pending.
+
+## Aktualizacja 21.11.2026 — CanonicalForm, DOC i CI
+
+- Wewnętrzny `CanonicalForm` (Pydantic) waliduje strony, sekcje, pola,
+  źródłowe dowody, wiersze i kolumny oraz reguły SHOW przed COI JSON.
+  Nie wytwarza dodatkowych pól na podstawie przykładowych dokumentów.
+- Prawdziwy plik Word 97–2003 został odczytany przez izolowany worker
+  Antiword oraz endpoint `extract-preview` (HTTP 200). Dla DOC dostępny
+  jest **tekst**, nie wierny układ wizualny; wynik wymaga kontroli.
+- CI: `.github/workflows/ci.yml` opublikowany, testy backendu i frontendu.
+  Wynik wykonania GitHub Actions pozostaje do potwierdzenia.
+- Lokalnie: **101/101 testów backendu i 16/16 testów frontendu**, build UI OK.
+- [Architektura aktualnej wersji](docs/ARCHITECTURE.md) ·
+  [Wstępna inwentaryzacja licencji](THIRD_PARTY_LICENSES.md).
+
+### Historia wersji (poniżej)
+
+Sekcje v0.4–v1.3 są zachowanymi opisami wcześniejszych etapów.
+W razie sprzeczności status operacyjny wynika z powyższej aktualizacji,
+[tasklisty](docs/TASKLIST.md) i [architektury](docs/ARCHITECTURE.md).
 
 ## Project status / roadmap
 
@@ -85,7 +104,7 @@ Sparse model outputs are flagged needs_review; the raw COI JSON endpoint rejects
 
 ## v0.5 Docling Office
 
-Office documents DOCX, XLSX and ODS can be processed by a separate Docling-slim 2.151.1 Docker worker. It has no public port, uses an internal Docker network, and has a 384 MiB memory limit. The API falls back to built-in parsers if the worker fails. Enable via compose.docling.yaml and --profile docling. Full PDF layout/OCR and legacy DOC are pending.
+Office documents DOCX, XLSX and ODS can be processed by a separate Docling-slim 2.151.1 Docker worker. It has no public port, uses an internal Docker network, and has a 384 MiB memory limit. The API falls back to built-in parsers if the worker fails. Enable via compose.docling.yaml and --profile docling. Legacy DOC text extraction is now supported via Antiword in the same worker (no full layout/graphical fields). Full Docling PDF is still pending.
 
 See docs/COI_BENCHMARKS.md and docs/EXTRACTION.md for test findings and limitations.
 
@@ -280,8 +299,8 @@ Model inference performs independent requests per source page. The system
 may call the model again on a page if detected inputs seem incomplete. This
 is potentially slower and more costly than previous one-shot generation.
 
-Supported conversion inputs: PDF, JPG/JPEG, PNG, DOCX, XLSX and ODS.
-Old `.doc` and other formats still require conversion before upload.
+Supported conversion inputs: PDF, JPG/JPEG, PNG, DOC, DOCX, XLSX and ODS.
+Legacy `.doc` is parsed as text only, with a review warning; graphical controls and the source layout may be lost.
 OCR-heavy PDF supports up to 12 pages; longer scans may be rejected.
 Office uses Docling text/table extraction, not full-page image rendering.
 
