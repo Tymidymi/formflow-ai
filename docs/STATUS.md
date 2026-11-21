@@ -229,3 +229,17 @@ Zadania i priorytety: [TASKLIST.md](TASKLIST.md).
 - [x] Eksport COI/eksport odpowiedzi rozdzielone w interfejsie. Wstępnie zapobiega pustym eksportom odpowiedzi.
 - [x] 109 testów backendu + 20 testów frontendu.
 - [ ] Ponowny rzeczywisty upload dostarczonego JPEG z Qwen — niepotwierdzony w tej sesji.
+
+
+## Naprawa ucinania odpowiedzi modelu — 21.11.2026
+
+- [x] Otwarto problem wspólny dla PDF i XLSX: `MODEL_OUTPUT_TRUNCATED` przy stałym `max_tokens=6500`.
+- [x] Przy `finish_reason=length`: ponowienie modelu z limitem 12 000 tokenów, bez akceptacji niekompletnego JSON.
+- [x] Dla stron z dużą liczbą wierszy / miejsc na odpowiedzi: od razu analiza mniejszych fragmentów bez wcześniejszego czekania na przekroczenie limitu.
+- [x] W innych przypadkach `MODEL_OUTPUT_TRUNCATED` i `MODEL_TIMEOUT`: stopniowy podział 2 → 4 → 8 fragmentów OCR lub obrazów strony; zachowanie wszystkich części i source evidence.
+- [x] XLSX w izolowanym workerze: strukturalny odczyt niepustych komórek ze współrzędnymi arkusz/wiersz/kolumna zamiast rozwijania pustych komórek do rozległych tabel Markdown.
+- [x] Dla DOCX/ODS: jawna informacja o ucięciu eksportu, bez cichej utraty tekstu.
+- [x] 118 zaliczonych testów backendu: recovery PDF/Excel, timeouty, brak ubytków tekstu, ponowienie OpenRouter, niezależne strukturalne XLSX.
+- [x] Test LIVE niezależnego XLSX na VPS: HTTP 200, COI schema valid, quality true, 37 pól wejściowych.
+- [ ] Pełny ponowny test ORYGINALNEGO załączonego XLSX/PDF binarnie na VPS (w tym przebiegu test LIVE był wykonany na syntetycznym formularzu).
+- [ ] Potwierdzić, jak działa złożony PDF z nowym proaktywnym dzieleniem stron.
