@@ -107,7 +107,7 @@ def test_xlsx_sparse_reader_preserves_all_ordinary_cell_labels_and_positions():
     module=importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     result=module.extract_xlsx(data.getvalue())
-    assert result["engine"]=="xlsx-sparse-structural"
+    assert result["engine"]=="xlsx-structure-aware"
     assert result["populated_cells"]==121
     assert result["sheet_count"]==1
     assert not result["truncated"]
