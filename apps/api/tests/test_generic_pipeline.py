@@ -121,6 +121,9 @@ def test_api_generates_full_generic_table_from_text_and_image(monkeypatch):
     async def no_extra_table(*args,**kwargs):
         return []
     monkeypatch.setattr(inventory,"visually_detect",no_extra_table)
+    async def no_extra_choices(*args,**kwargs):
+        return []
+    monkeypatch.setattr(inventory,"detect_choices",no_extra_choices)
     out=TestClient(app).post("/api/v1/forms/convert?mode=diagnostic",
         headers={"X-External-AI-Consent":"true"},
         files={"file":("mock.pdf",b"%PDF-1.7\n%fixture","application/pdf")})

@@ -16,6 +16,7 @@ from .ai_provider import generate, AIProviderError
 from .field_grounding import norm
 from .layout_slots import extract_multislot_rows, grouped_fields
 from .visual_tables import visually_detect,expand,likely_table_duplicate,recover_groups_from_ocr
+from .visual_choices import detect_choices, merge_choices, consolidate_choice_fields
 
 PAGE_RE = re.compile(r"(?m)^\[(?:Strona|Część)\s+(\d+)/(\d+)\]\s*$")
 BLANK_RE = re.compile(r"(?:\.{5,}|…{3,}|_{4,}|﹏{3,}|(?<!\w)☐|(?<!\w)□)")
@@ -32,6 +33,12 @@ invent fields, administrative subdivisions, dates, legal requirements, or wordin
 FIRST locate ALL fillable elements on the physical page:
 - Every dotted/underlined answer blank, every checkbox/radio choice, every
   date/name/address/contact entry, every numeric cell of tables.
+- IMPORTANT: a choice group may be one printed table row with separate
+  checkbox/radio symbols in adjacent cells. Detect ALL options, including any
+  options printed under a shared heading or on later lines.
+- A checkbox option followed by a dotted answer blank contains two responses:
+  the option itself AND the additional text answer for that particular option.
+  Preserve both and their relationship; a plain option has no text answer.
 - The source may include AUTO_EXTRACTED_MULTISLOT_ROWS. These table cells
   have already been mechanically extracted from printed blank punctuation.
   Do NOT repeat any of these cells in the output; instead focus on ALL
@@ -105,6 +112,8 @@ page, in the SAME JSON schema (title/pages/sections/fields).
 - Conversely, keep two distinct physical blanks even if their captions match.
 - Never classify explanatory paragraphs or attachment instructions as
   compulsory checkboxes.
+- Audit every physically printed choice symbol, even a one-row table.
+  Preserve checkbox groups and each writable detail blank attached to an option.
 - Keep fields in physical page order, preserve headings, labels, evidence.
 - Never omit meaningful fields to simplify the answer.
 Return ONLY one JSON object, no commentary."""
@@ -169,6 +178,12 @@ def _fields(data:dict)->list[dict]:
             for section in page.get("sections",[]) if isinstance(section,dict)
             for f in section.get("fields",[]) if isinstance(f,dict)
             and f.get("type") in INPUT_TYPES]
+
+def response_slot_count(inventory:dict)->int:
+    """Physical response places: choices have one box per printed option."""
+    return sum(max(1,len(f.get("options") or []))
+               if f.get("type") in {"CHECKBOX","RADIO","SELECT"} else 1
+               for f in _fields(inventory))
 
 def _evidence_ok(field:dict,text:str)->bool:
     excerpt=norm(field.get("evidence","")).strip()
@@ -383,9 +398,25 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
                     return min((f.get("source_line",10**6)
                                 for f in section.get("fields",[])),default=10**6)
                 initial["pages"][0]["sections"].sort(key=_section_line)
+            consolidated_choices=consolidate_choice_fields(initial)
+            choice_stats={"choice_groups":0,"choice_options":0,
+                          "detail_inputs_added":0,"visual_review_groups":0}
+            choice_audit_error=False
+            if page.image:
+                try:
+                    choice_groups=await detect_choices(page.text,page.image)
+                    choice_stats=merge_choices(initial,choice_groups,page.number)
+                except AIProviderError:
+                    # An independent audit may fail while the first-pass form
+                    # is still usable. Do not silently claim full coverage.
+                    choice_audit_error=True
             report={"source_page":page.number,
                     "blank_slots":hints["blank_slots"],
                     "detected_fields":len(_fields(initial)),
+                    "detected_slots":response_slot_count(initial),
+                    "choice_audit_error":choice_audit_error,
+                    "consolidated_choice_groups":consolidated_choices,
+                    **choice_stats,
                     "independent_review":bool(revision),
                     "with_image":bool(page.image),
                     "mechanically_extracted_cells":len(table_fields)-len(vision_tables),
