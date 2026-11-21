@@ -1,6 +1,6 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v0.7.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v0.8.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
@@ -16,11 +16,11 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 
 ## Stan obecny
 
-- ✅ FastAPI 0.7.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
+- ✅ FastAPI 0.8.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
 - ✅ **Używane w development i planowane do zgłoszenia:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
-- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **46/46**.
+- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **50/50**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
 - ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
 - ✅ Lokalny PDF layout/OCR działa (pypdf/Tesseract). ❌ Pozostają pełny Docling PDF, stary `.doc`, JSON Forms i część słowników COI. Lokalny LLM jest poza zakresem hackathonu.
@@ -72,13 +72,13 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 ### Etap F — Frontend i podgląd JSON Forms · P1
 - [x] Statyczny interfejs uploadu i pobierania wygenerowanego JSON.
 - [ ] Adapter do **oddzielnych** `JSON Schema + UI Schema` na potrzeby JSON Forms.
-- [ ] React + JSON Forms: formularz z wizualizacją, strony/sekcje, walidacje.
-- [ ] Widok porównawczy: oryginał / COI JSON / interaktywny formularz.
-- [ ] Edycja i akceptacja pól, wskazanie źródła i poziomu pewności.
+- [x] React + JSON Forms: podgląd stron/sekcji/pól, walidacje po polsku, SHOW i podsumowanie; [ ] pełna weryfikacja w oficjalnym importerze COI.
+- [x] Widok porównawczy: oryginał PDF/obraz lub tekst Office / COI JSON / interaktywny formularz.
+- [ ] Edycja i akceptacja **konfiguracji** pól przez urzędnika, wskazanie źródła i poziomu pewności. W podglądzie można już wprowadzać odpowiedzi, ale nie poprawiać definicji formularza.
 
 ### Etap G — Jakość, bezpieczeństwo i submission · P0
 - [x] Podstawowe ograniczenia uploadu, weryfikacja nazw i formatów, Tailscale-only.
-- [x] Testy automatyczne nowego kodu: 46/46; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
+- [x] Testy automatyczne v0.8.0: **50/50 backend + 7/7 frontend** oraz Chromium na desktopie i mobile; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
 - [ ] Pełne testy MIME, ZIP-bomb, makr, limitu stron, cleanup, timeoutów, bezpieczeństwa wysyłki.
 - [ ] Konfiguracja JWT (wymagania konkursowe); [x] `readyz.competition_compliant=false` również przy wyłączonym AI.
 - [ ] Test Docker z czystego klona z OpenRouter API; test inferencji offline **poza aktualnym zakresem**. Ryzyko niezgodności z regulaminem pozostaje otwarte.
@@ -92,7 +92,7 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 1. **GitHub:** ✅ Repo utworzone, push zakończony; utrzymywać synchronizację `origin/main`.
 2. **P0:** ✅ Schemat COI, bezpośredni eksport i quality gate. **Dalej:** porównanie rzeczywistych referencji i poprawa mapowania.
 3. **P0:** test na jednym prawdziwym formularzu COI (np. #3), wykaz brakujących i nadmiarowych pól, poprawki promptu/adaptera.
-4. **P0:** Docling Office już działa; pozostały pełny Docling PDF/OCR i stary DOC. Potem słowniki i JSON Forms; lokalny Qwen wyłącznie po hackathonie.
+4. **P0:** Docling Office już działa; pozostały pełny Docling PDF/OCR i stary DOC. Potem słowniki i pełny benchmark oryginalnych dokumentów; React JSON Forms już działa, lokalny Qwen wyłącznie po hackathonie.
 5. **Decyzja zamknięta:** zgłoszenie korzysta z OpenRouter API. **Ryzyko regulaminowe otwarte**, ale nie planujemy lokalnego LLM na ten hackathon.
 
 **Definicja sukcesu MVP:** `POST /api/v1/forms/convert` przyjmuje **każdy wymagany format** i zwraca bezpośrednio **JSON zgodny ze schematem COI**, potwierdzony testem na nowych materiałach, działając z OpenRouter API (**niezgodność z wymogiem COI zakazującym zewnętrznych API jest jawnie udokumentowana**).
@@ -107,7 +107,7 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 - [x] Pierwszy benchmark na tekstach wyciągniętych z oryginalnych PDF COI #3 i #4.
 - [x] Próba długiego promptu i wycofanie po regresji liczby pól.
 - [ ] Benchmark na oryginalnych plikach binarnych wszystkich formatów.
-- [ ] Pełny Docling PDF/OCR, legacy DOC, słowniki/dynamika, JSON Forms. Lokalny LLM: po konkursie.
+- [ ] Pełny Docling PDF/OCR, legacy DOC, słowniki/dynamika, zaawansowane funkcje JSON Forms. Lokalny LLM: po konkursie.
 
 
 ## Etap v0.6.0 — PDF Layout i OCR
@@ -121,7 +121,7 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 - [x] Lokalna ekstrakcja binarnych oryginalnych PDF-ów/PNG COI #3/#4.
 - [ ] **Pełny benchmark binarnych oryginalnych dokumentów przez VPS + LLM** i ręczny scoring recall/precision/types; obecne testy są częściowe.
 - [ ] Pełny Docling PDF/layout z modelami, jeśli zasoby pozwolą.
-- [ ] Legacy DOC, słowniki, warunki, JSON Forms i audyt licencji. Lokalny Qwen: po konkursie.
+- [ ] Legacy DOC, słowniki, warunki, zaawansowane funkcje JSON Forms i audyt licencji. Lokalny Qwen: po konkursie.
 
 Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).
 
@@ -138,3 +138,21 @@ Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).
 - [ ] Audyt licencji; wersji bez API nie planujemy na konkurs. **Niezgodność z zakazem API pozostaje nieusunięta.**
 
 Szczegóły: V07_QUALITY_REPORT.md i LOCAL_QWEN.md.
+
+
+## Etap v0.8.0 — Interaktywny formularz i porównanie
+
+- [x] React 18.3.1 + JSON Forms 3.8.0, frontend pakowany do lokalnych plików JS/CSS (bez CDN).
+- [x] JSON COI -> JSON Schema + UI Schema; komponenty TEXT_FIELD, TEXTAREA, NUMBER, DATEPICKER, RADIO, CHECKBOX, SELECT i podgląd FILE_UPLOADER.
+- [x] Reguły SHOW uruchamiane w podglądzie na podstawie wąskiego, bezpiecznie parsowanego wzorca COI; dla 'Inna osoba' odsłaniają się dwa pola.
+- [x] Zakładki: Formularz cyfrowy / Oryginał / JSON COI; podgląd PDF/PNG/JPG z lokalnego pliku.
+- [x] Polskie komunikaty podstawowych walidacji po kliknięciu 'Sprawdź pola', formularz stronicowany, podsumowanie, eksport COI JSON.
+- [x] Syntetyczny i bezpłatny formularz demonstracyjny: GET /api/v1/demo/convert (bez OpenRouter).
+- [x] Testy: 50/50 backend, 7/7 adapter, desktop/mobile Chromium (reguły, zakładki, brak błędów i poziomego scrolla).
+- [x] **E2E z SYNTHETYCZNYM zeskanowanym PDF**: upload -> OCR -> OpenRouter/Qwen -> JSON COI -> React + podgląd oryginału; oficjalny schemat i quality gate OK.
+- [ ] Pełny benchmark **oryginalnych binarnych** plików COI #3/#4 na VPS z ręcznym scoringiem recall/precision/types — nadal wymagany.
+- [ ] Załączniki jako rzeczywisty upload, edytor definicji pól i zależności, TERYT oraz pozostałe słowniki.
+- [ ] Osobny origin / sandbox dla renderera, ponieważ JSON Forms / Ajv wymagają dynamicznej kompilacji; obecny CSP zawiera 'unsafe-eval'.
+- [ ] Weryfikacja JSONata w **docelowym** rendererze COI; test JSON Forms nie jest równoważny importerowi COI.
+
+Zobacz [V08_INTERACTIVE.md](V08_INTERACTIVE.md) i [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).

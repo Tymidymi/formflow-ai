@@ -9,6 +9,7 @@ const downloadButton=document.querySelector('#download');
 const providerStatus=document.querySelector('#provider-status');
 const previewButton=document.querySelector('#extract-preview');
 const extractionResult=document.querySelector('#extraction-result');
+const demoButton=document.querySelector('#load-demo');
 let currentFile=null;
 let generated=null;
 let externalConsentRequired=true;
@@ -31,6 +32,7 @@ async function inspect(file){
   if(!file)return;
   currentFile=file;
   generated=null;
+  window.FormFlowPreview?.close?.();
   downloadButton.hidden=true;
   updateButton();
   show(result,'Sprawdzanie dokumentu…',file.name);
@@ -94,8 +96,31 @@ generateButton.addEventListener('click',async()=>{
         '\nPrawdopodobnie pominięte pola: '+((quality.possible_missing||[]).join(', ')||'brak')+
         (errors?'\n'+errors:''),!report.valid||!quality.ok);
     downloadButton.hidden=!report.valid||!quality.ok;
+    window.FormFlowPreview?.open?.(data.form,{
+      file:currentFile,validation:report,quality,extraction:data.document?.extraction,source:'generated'
+    });
   }catch(e){show(convertResult,'Konwersja nieudana',e.message||'Błąd połączenia.',true);}
   updateButton();
+});
+demoButton.addEventListener('click',async()=>{
+  demoButton.disabled=true;
+  show(convertResult,'Ładowanie demonstracji…','Przykład syntetyczny, bez OpenRouter.');
+  try{
+    const response=await fetch('/api/v1/demo/convert');
+    const data=await response.json();
+    if(!response.ok||!data.form)throw Error(data.detail||'Błąd przykładowego formularza.');
+    generated=data.form;
+    downloadButton.hidden=!data.validation?.valid;
+    show(convertResult,'✓ Formularz demonstracyjny gotowy',
+      'Przykładowa eUsługa została wygenerowana lokalnie bez użycia zewnętrznego API.\n'+
+      'To nie jest wynik analizy oryginalnego dokumentu COI.');
+    if(!window.FormFlowPreview)throw Error('Moduł interaktywnego podglądu nie został wczytany.');
+    window.FormFlowPreview.open(data.form,{
+      file:null,validation:data.validation,quality:data.quality,source:'synthetic'
+    });
+  }catch(error){
+    show(convertResult,'Błąd demonstracji',error.message||'Błąd.',true);
+  }finally{demoButton.disabled=false;}
 });
 downloadButton.addEventListener('click',()=>{
   if(!generated)return;
@@ -107,7 +132,7 @@ downloadButton.addEventListener('click',()=>{
 });
 fetch('/api/v1/capabilities').then(r=>r.json()).then(data=>{
   limit.textContent=Math.round(data.max_upload_bytes/1024/1024)+' MB';
-  providerStatus.textContent=(data.conversion?'● OpenRouter DEV':'● AI wyłączone')+
+  providerStatus.textContent=(data.conversion?'● OpenRouter API':'● AI wyłączone')+
     (data.pdf_ocr_enabled?' · PDF/OCR':'');
   externalConsentRequired=data.model_provider!=='ollama-offline';
   const privacy=document.querySelector('.stage-note');

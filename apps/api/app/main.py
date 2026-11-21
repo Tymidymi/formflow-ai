@@ -1,4 +1,4 @@
-"""FormFlow AI v0.7.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v0.8.0 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -16,10 +16,11 @@ from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
 from .semantic_quality import normalize_semantic
 from .conditional_rules import apply_conditions
+from .demo_fixture import create_demo
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="0.7.0",
-    description="COI prototype. OpenRouter is development ONLY, not competition-compliant.",
+app=FastAPI(title="FormFlow AI",version="0.8.0",
+    description="COI prototype using OpenRouter API; not compliant with COI no-external-API requirement.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
 
@@ -37,7 +38,7 @@ async def security(request:Request, call_next):
     response.headers["X-Content-Type-Options"]="nosniff"
     response.headers["Referrer-Policy"]="no-referrer"
     response.headers["Cache-Control"]="no-store"
-    response.headers["Content-Security-Policy"]="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+    response.headers["Content-Security-Policy"]="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'"
     return response
 
 @app.exception_handler(RejectedFile)
@@ -50,7 +51,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"0.7.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"0.8.0"}
 
 @app.get("/readyz")
 def ready():
@@ -59,7 +60,7 @@ def ready():
 
 @app.get("/api/v1/capabilities")
 def capabilities():
-    return {"inspection":True,"conversion":enabled(),"preview":True,
+    return {"inspection":True,"conversion":enabled(),"preview":True,"jsonforms_preview":True,"comparison_view":True,
             "coi_structural_validation":True,"coi_schema_validation":True,
             "model_provider":("ollama-offline" if __import__("os").environ.get("FORMFLOW_AI_PROVIDER")=="ollama"
                               else "openrouter-development" if enabled() else "disabled"),
@@ -69,7 +70,7 @@ def capabilities():
             "supported_extensions":[".pdf",".doc",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "conversion_extensions":[".pdf",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "max_upload_bytes":max_upload_bytes(),
-            "note":"OpenRouter DEV or optional local Ollama (not yet E2E tested). PDF layout/OCR and Docling Office available; legacy DOC and full Docling PDF pending."}
+            "note":"OpenRouter used for prototype and planned submission despite COI external-API ban. JSON Forms preview enabled; old DOC and full Docling PDF pending."}
 
 @app.post("/api/v1/forms/inspect")
 async def inspect(file:UploadFile=File(...)):
@@ -90,6 +91,11 @@ async def extract_preview(file:UploadFile=File(...)):
     return {"external_api_used":False,"filename":file.filename,"mime":mime,
             "extraction":meta,"characters":len(text),
             "text_preview":text[:4000],"images_for_vision":len(images)}
+
+@app.get("/api/v1/demo/convert")
+def demo_form():
+    """Static, synthetic COI form: no external API call and no user data."""
+    return create_demo()
 
 @app.post("/api/v1/forms/validate-json")
 async def validate_json(request:Request):

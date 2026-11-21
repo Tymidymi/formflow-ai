@@ -116,3 +116,40 @@ optional internal Ollama Qwen adapter (mock tested only).
 
 See docs/V07_QUALITY_REPORT.md, docs/LOCAL_QWEN.md (future option) and [API submission decision](docs/DECISION_API_SUBMISSION.md).
 OpenRouter is planned for submission, **without claiming compliance with COI rules**. Local Ollama is a future-only option.
+
+
+## v0.8 — Interactive COI / React JSON Forms
+
+The v0.8 preview has a 3-tab workflow: **Digital Form / Original Document / COI JSON**.
+Users can navigate MAIN/FINISH pages, fill fields with basic validation,
+trigger dynamic SHOW conditions, and preview/export data. Uploads in the
+interactive preview are **filename-only**; no form or attachment is submitted to
+a government office.
+
+The free synthetic demo endpoint `GET /api/v1/demo/convert` runs with **no AI API**.
+For document conversion, `POST /api/v1/forms/convert?mode=diagnostic` still uses
+OpenRouter/Qwen with explicit user consent.
+
+Run the reproducible frontend build before Docker:
+
+```bash
+cd apps/frontend
+npm ci
+npm test
+npm run build
+cd ../..
+docker compose -f compose.yaml -f compose.dev.yaml -f compose.docling.yaml -f compose.pdf.yaml \
+  --profile docling --profile pdf up -d --build
+```
+
+Frontend versions are pinned in `apps/frontend/package-lock.json` and bundled
+for self-hosting (no external CDN). AJV uses dynamic schema compilation, so the
+renderer currently needs a restricted CSP exception `'unsafe-eval'`. This is
+a security trade-off; isolate it before real deployment.
+
+Tested: 50 backend tests, 7 frontend adapter tests, Chromium desktop/mobile,
+synthetic scanned PDF end-to-end with OpenRouter. Original binary COI
+#3 and #4 benchmark remains pending.
+
+See [v0.8 interactive documentation](docs/V08_INTERACTIVE.md) and
+[API submission decision](docs/DECISION_API_SUBMISSION.md).

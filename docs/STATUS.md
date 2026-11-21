@@ -90,3 +90,15 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Kolejne prace: benchmark prawdziwych dokumentów, jakość konwersji, JSON Forms, testy i submission.
 - **Ryzyko:** wymaganie COI wyklucza zależności od zewnętrznych API; nasza wersja go nie spełnia, a organizator nie potwierdził wyjątku.
 - [Decyzja i ryzyko](DECISION_API_SUBMISSION.md).
+
+
+## Etap v0.8.0 — 21 listopada 2026
+
+- Interaktywny podgląd React + JSON Forms, trzy zakładki (cyfrowy/original/COI JSON), strony, sekcje, walidacje, dynamiczne SHOW.
+- Budowanie self-hosted bundle JS/CSS przez esbuild; UI responsywne na 390 px.
+- Syntetyczny formularz demonstracyjny, bez zewnętrznego API; pełna ścieżka generowania OpenRouter zachowuje świadomą zgodę.
+- 50/50 testów API, 7/7 testów adaptera; Chromium desktop/mobile bez błędów JavaScript, w tym odsłanianie 2 pól, załącznik file i polskie walidacje.
+- Osobny E2E: **syntetyczny zeskanowany PDF** przez przeglądarkę -> lokalny OCR -> OpenRouter/Qwen3-VL -> JSON COI -> interaktywny podgląd: schema_valid=true, quality=true, 7 pól/3 strony.
+- Bezpieczeństwo: JSONata nie jest wykonywany bezpośrednio; JSON Forms/Ajv wymaga wyjątku CSP 'unsafe-eval' — w przyszłości zalecana izolacja renderera.
+- Ograniczenia: brak pełnego testu oryginalnych binarnych COI #3/#4 przez VPS; załączniki preview-only; niezweryfikowany importer COI. OpenRouter pozostaje niezgodny z zakazem zewnętrznych API COI.
+- Dokumentacja: [V08_INTERACTIVE.md](V08_INTERACTIVE.md).
