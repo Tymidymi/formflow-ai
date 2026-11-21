@@ -1,4 +1,4 @@
-"""FormFlow AI v0.9.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v1.0.0 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -21,7 +21,7 @@ from .form_repair import repair_form
 from .demo_fixture import create_demo
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="0.9.0",
+app=FastAPI(title="FormFlow AI",version="1.0.0",
     description="COI prototype using OpenRouter API; not compliant with COI no-external-API requirement.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
@@ -40,7 +40,7 @@ async def security(request:Request, call_next):
     response.headers["X-Content-Type-Options"]="nosniff"
     response.headers["Referrer-Policy"]="no-referrer"
     response.headers["Cache-Control"]="no-store"
-    response.headers["Content-Security-Policy"]="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'"
+    response.headers["Content-Security-Policy"]="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; object-src 'none'; frame-src 'self' blob:; frame-ancestors 'none'; base-uri 'none'"
     return response
 
 @app.exception_handler(RejectedFile)
@@ -53,7 +53,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"0.9.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"1.0.0"}
 
 @app.get("/readyz")
 def ready():

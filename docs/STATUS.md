@@ -125,3 +125,16 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Dodatkowy Chromium na COI #1: poprawione pole numeru działki, brak edytowalnych pól w klauzuli RODO, schema_valid=true.
 - Wersja v0.9.0 aktywna na VPS pod Tailscale; OpenRouter bez zmian; regulaminowe ryzyko zależności od API nadal otwarte.
 - Szczegóły: [V09_FIELD_EDITOR.md](V09_FIELD_EDITOR.md).
+
+
+## Etap v1.0.0 — 21 listopada 2026
+
+- Przebudowano UI na progresywny kreator: krok 1 (plik + zgoda), krok 2 (podgląd/edycja), krok 3 (pobranie).
+- Przed przetworzeniem nie pokazujemy edytora, diagnostyki i eksportu. Po przetworzeniu chowamy ekran importu.
+- Duże przyciski i krótkie objaśnienia; przejrzysty pasek 1/3 → 2/3 → 3/3.
+- Edytor COI, reguły SHOW, poprawione RODO i walidacja JSON zachowane.
+- Lokalny blob obrazów zaakceptowany w CSP — wcześniej własny podgląd JPG/PNG był blokowany.
+- Testy: backend 58/58; frontend 16/16; przeglądarka: demo, ręczna korekta, cofanie, wynikowa walidacja, pobieranie, plik PNG i zgoda, porównanie z oryginałem, widoki 390px bez overflow i bez JS errors.
+- Test UI generowania użył sztucznego payloadu modelu, nie dodatkowej inferencji Qwen.
+- Prywatny deployment Tailscale Serve, kod na GitHubie; ryzyko regulaminowe OpenRouter API bez zmian.
+- Raport: [V10_GUIDED_WIZARD.md](V10_GUIDED_WIZARD.md).

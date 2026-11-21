@@ -190,3 +190,27 @@ read-only legal text are protected. Undo is available for the current edit sessi
 
 See [v0.9 field editor](docs/V09_FIELD_EDITOR.md). Current competition submission
 still plans OpenRouter API despite the COI no-external-API requirement.
+
+
+## v1.0 — Guided, three-step workflow
+
+The default interface deliberately shows **one stage at a time**:
+
+1. **Dodaj dokument** — file upload, local inspection, explicit OpenRouter API consent, one primary conversion button.
+2. **Sprawdź i popraw** — digital COI form preview with an optional definition editor; compare it with the original document and continue only after validating the COI JSON.
+3. **Pobierz formularz** — summary and the verified COI JSON download.
+
+OCR logs and provider diagnostics are collapsed under **Opcje dla administratora**.
+JSON configuration is kept out of the everyday preview tabs. Going back
+to the upload stage does not discard the completed form, and manual edits are
+retained until the user explicitly replaces the document or closes the tab.
+Edits remain in browser memory; **download JSON to preserve them**.
+
+The demo route uses local synthetic data without OpenRouter. Actual document
+conversion still requires the user's explicit consent to send it to OpenRouter
+and remains contrary to the COI external-API restriction. Backend/frontend
+test totals: 58/58 and 16/16. Chromium E2E verified the stages, editing,
+validation, download, real synthetic PNG upload and mocked AI response,
+blob image preview and responsive layout (390 px).
+
+See [v1.0 guided wizard documentation](docs/V10_GUIDED_WIZARD.md).

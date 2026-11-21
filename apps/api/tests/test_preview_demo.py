@@ -47,6 +47,7 @@ def test_react_bundle_and_styles_are_self_hosted():
     assert js.status_code==200 and len(js.content)>100000
     assert css.status_code==200 and len(css.content)>2000
     assert "frame-src 'self' blob:" in r.headers["content-security-policy"]
+    assert "img-src 'self' data: blob:" in r.headers["content-security-policy"]
     assert r.headers["cache-control"]=="no-store"
 
 def test_capabilities_show_preview_enabled():

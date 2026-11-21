@@ -1,17 +1,127 @@
 <!doctype html>
-<html lang="pl"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="color-scheme" content="light" />
-<title>FormFlow AI — COI</title><link rel="stylesheet" href="/static/style.css"/><link rel="stylesheet" href="/static/preview.bundle.css"/>
-<script src="/static/app.js" defer></script><script src="/static/preview.bundle.js" defer></script></head><body>
-<div class="app-shell"><aside class="sidebar"><a class="brand" href="/"><span class="mark">F<span>·</span></span><span>formflow <small>AI</small></span></a><span class="sidebar-label">WORKSPACE</span><nav><a class="nav-active" href="/"><span>▣</span> Konwersja formularza</a><a href="/api/docs" target="_blank" rel="noopener"><span>{ }</span> Dokumentacja API</a></nav><div class="sidebar-bottom"><div class="mini-pulse"></div> Infrastruktura aktywna <p>HackNation 2026 · COI</p></div></aside>
-<main class="content"><header class="topbar"><span>Cyfryzacja formularzy <b>/</b> Nowy formularz</span><span class="env-chip">ETAP 09 · EDYTOR</span></header>
-<section class="intro"><div class="eyebrow"><span class="eyebrow-dot"></span> FORMULARZE PRZYSZŁOŚCI</div><h1>Od dokumentu do<br><em>cyfrowego formularza.</em></h1><p>Załaduj dokument, wygeneruj JSON COI przez Qwen i obejrzyj interaktywną eUsługę, jej oryginał oraz kod. Dostępne jest też demo bez wywołania AI.</p></section>
-<section class="work-area"><div class="section-header"><div><h2>Import dokumentu</h2><p>Konwersja: PDF, DOCX, ODS, XLSX, JPG i PNG. PDF-y i skany analizuje lokalny silnik OCR; Docling odczytuje pliki Office. Stary DOC — w przygotowaniu.</p></div><div class="status" id="provider-status">● Ładowanie…</div></div>
-<div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Wybierz dokument"><input id="file-input" type="file" accept=".pdf,.doc,.docx,.ods,.xlsx,.jpg,.jpeg,.png" hidden/><div class="file-icon">⇧</div><h3>Przeciągnij dokument tutaj</h3><p>lub <span>wybierz plik z komputera</span></p><small>Maksymalny rozmiar: <b id="size-limit">15 MB</b> · lokalne sprawdzenie pliku przed wysłaniem do AI</small></div>
-<div class="result" id="result" hidden aria-live="polite"></div>
-<div class="preview-tools"><button id="extract-preview" class="button-secondary" disabled>Sprawdź ekstrakcję lokalnie</button><span>Podgląd tekstu i OCR nie wysyła pliku do OpenRouter.</span></div>
-<div class="result" id="extraction-result" hidden aria-live="polite"></div>
-<div class="preview-tools"><button id="load-demo" class="button-secondary" type="button">Wypróbuj formularz demonstracyjny</button><span>Przykład syntetyczny, bez kosztu API i danych osobowych.</span></div>
-<div class="stage-note"><span class="note-icon">ⓘ</span><div><b>Uwaga: wybrana wersja z API OpenRouter</b><p>Konwersja wysyła zawartość dokumentu do zewnętrznego API. Nie używaj dokumentów z danymi osobowymi ani tajemnicami. Wersja z OpenRouter NIE spełnia konkursowego zakazu zależności od zewnętrznych API. Wybór API jest świadomą decyzją projektową.</p><label><input id="external-consent" type="checkbox"/> Rozumiem i zgadzam się na wysłanie wybranego dokumentu do OpenRouter.</label><p><button id="generate" disabled>Generuj JSON COI przez Qwen</button> <button id="download" hidden>Pobierz JSON COI</button></p></div></div>
-<div class="result" id="conversion-result" hidden aria-live="polite"></div>
-</section><section id="coi-preview-section" hidden><div id="coi-preview-root"></div></section><footer>FormFlow AI <span>·</span> Open source infrastructure <span>·</span> Built for HackNation 2026</footer>
-</main></div></body></html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light"/>
+  <title>FormFlow AI — formularz krok po kroku</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link rel="stylesheet" href="/static/preview.bundle.css"/>
+  <script src="/static/app.js" defer></script>
+  <script src="/static/preview.bundle.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="mark">F<span>·</span></span><span>formflow <small>AI</small></span></a>
+    <div class="sidebar-hint">Zamień dokument w formularz internetowy — krok po kroku.</div>
+    <nav aria-label="Menu główne"><a class="nav-active" href="/"><span>▣</span> Nowy formularz</a></nav>
+    <div class="sidebar-bottom"><div class="mini-pulse"></div> Aplikacja działa
+      <p>HackNation 2026 · COI</p>
+      <a href="/api/docs" target="_blank" rel="noopener">Dokumentacja techniczna</a>
+    </div>
+  </aside>
+  <main class="content" id="main-content">
+    <header class="topbar"><span>FormFlow AI <b>/</b> Tworzenie formularza</span><span class="env-chip">PROSTY KREATOR</span></header>
+
+    <div class="wizard-progress" aria-label="Postęp pracy">
+      <ol class="wizard-steps">
+        <li class="is-active" data-step="1" aria-current="step"><span class="wizard-step-number">1</span><span>Dodaj dokument</span></li>
+        <li data-step="2"><span class="wizard-step-number">2</span><span>Sprawdź i popraw</span></li>
+        <li data-step="3"><span class="wizard-step-number">3</span><span>Pobierz formularz</span></li>
+      </ol>
+    </div>
+
+    <section class="wizard-page" id="step-upload" aria-labelledby="upload-title">
+      <div class="wizard-intro">
+        <div class="wizard-kicker">KROK 1 Z 3</div>
+        <h1 id="upload-title">Dodaj dokument,<br><em>od którego zaczniemy.</em></h1>
+        <p>Wybierz plik z formularzem, np. skan, zdjęcie lub dokument PDF. Program przygotuje jego wersję elektroniczną.</p>
+      </div>
+      <div class="wizard-card">
+        <div class="section-header">
+          <div><h2>Wybierz dokument</h2><p>Obsługiwane: PDF, Word (DOCX), Excel (XLSX), ODS, JPG i PNG.</p></div>
+        </div>
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Wybierz dokument z komputera">
+          <input id="file-input" type="file" accept=".pdf,.docx,.ods,.xlsx,.jpg,.jpeg,.png" hidden/>
+          <div class="file-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 16V3m0 0L7 8m5-5 5 5M4 16v4h16v-4"/></svg></div>
+          <h3>Kliknij tutaj, aby wybrać plik</h3>
+          <p>Możesz też przeciągnąć dokument z komputera.</p>
+          <small>Maksymalny rozmiar: <b id="size-limit">15 MB</b></small>
+        </div>
+        <div class="result" id="result" hidden aria-live="polite"></div>
+        <div class="selected-file" id="selected-file" hidden>
+          <span aria-hidden="true">✓</span>
+          <div><strong id="selected-filename"></strong><small>Plik jest gotowy do przetworzenia.</small></div>
+          <button id="change-file" class="button-secondary" type="button">Zmień plik</button>
+        </div>
+
+        <div class="file-consent" id="file-consent" hidden>
+          <h3>Jeszcze jedna rzecz przed rozpoczęciem</h3>
+          <p>Dokument zostanie przesłany do zewnętrznej usługi AI (OpenRouter). Nie dodawaj dokumentów zawierających prawdziwe dane osobowe lub informacje poufne.</p>
+          <label class="consent-label"><input id="external-consent" type="checkbox"/> <span>Rozumiem i zgadzam się na przesłanie wybranego dokumentu do zewnętrznego AI.</span></label>
+          <button id="generate" class="wizard-primary" type="button" disabled>Przygotuj formularz <span aria-hidden="true">→</span></button>
+        </div>
+        <div class="wizard-loading" id="wizard-loading" hidden role="status" aria-live="polite">
+          <span class="wizard-spinner" aria-hidden="true"></span>
+          <div><strong>Przygotowujemy formularz...</strong><p>Analizujemy dokument. Pozostaw tę kartę otwartą.</p></div>
+        </div>
+
+        <div class="demo-link">
+          <span>Chcesz tylko zobaczyć, jak działa program?</span>
+          <button id="load-demo" type="button" class="wizard-text-button">Wypróbuj na przykładzie</button>
+        </div>
+        <button id="return-to-review" type="button" class="wizard-return" hidden>Wróć do przygotowanego formularza →</button>
+      </div>
+      <details class="technical-details" id="advanced-tools">
+        <summary>Opcje dla administratora</summary>
+        <div class="technical-inner">
+          <p>Podgląd lokalnej ekstrakcji i diagnostyka konwersji — niepotrzebne do zwykłej pracy.</p>
+          <div class="status" id="provider-status">Ładowanie informacji o usłudze…</div>
+          <div class="preview-tools"><button id="extract-preview" class="button-secondary" type="button" disabled>Pokaż odczytany tekst i OCR</button></div>
+          <div class="result" id="extraction-result" hidden aria-live="polite"></div>
+          <div class="result" id="conversion-result" hidden aria-live="polite"></div>
+          <div class="stage-note"><span class="note-icon">ⓘ</span><div>
+            <b>Informacja o środowisku konkursowym</b>
+            <p>Wersja wykorzystująca OpenRouter NIE spełnia konkursowego zakazu zależności od zewnętrznych API. Jest to świadomie wybrana wersja demonstracyjna.</p>
+          </div></div>
+        </div>
+      </details>
+    </section>
+
+    <section class="wizard-page" id="step-review" hidden aria-labelledby="review-title">
+      <div class="wizard-stage-title">
+        <div class="wizard-kicker">KROK 2 Z 3</div>
+        <h1 id="review-title">Sprawdź i popraw <em>formularz.</em></h1>
+        <p>Przejrzyj przygotowane pytania. Jeśli zauważysz błąd, kliknij „Popraw pytania”. Gdy wszystko się zgadza, wybierz „Dalej”.</p>
+      </div>
+      <div class="review-tip"><span class="review-tip-icon" aria-hidden="true">i</span><span><strong>Wskazówka:</strong> sprawdź przede wszystkim nazwy pytań, brakujące pola i opcje wyboru. Możesz porównać wynik z oryginałem dokumentu.</span></div>
+      <div id="coi-preview-section" hidden><div id="coi-preview-root"></div></div>
+      <div class="review-back"><button id="review-back" type="button" class="button-secondary">← Wróć do dokumentu</button></div>
+    </section>
+
+    <section class="wizard-page" id="step-finish" hidden aria-labelledby="finish-title">
+      <div class="wizard-stage-title">
+        <div class="wizard-kicker">KROK 3 Z 3</div>
+        <h1 id="finish-title">Twój formularz<br><em>jest gotowy.</em></h1>
+        <p>Sprawdziliśmy strukturę formularza. Teraz możesz zapisać go na komputerze.</p>
+      </div>
+      <div class="finish-card">
+        <div class="finish-check" aria-hidden="true">✓</div>
+        <h2>Formularz przygotowany do pobrania</h2>
+        <p id="finish-form-title" class="finish-form-title"></p>
+        <div class="finish-summary"><div><strong id="finish-input-count">–</strong><span>pól do wypełnienia</span></div><div><strong id="finish-page-count">–</strong><span>stron formularza</span></div></div>
+        <button id="download" class="wizard-primary" type="button">Pobierz gotowy formularz <span aria-hidden="true">↓</span></button>
+        <p class="finish-explainer">Zapiszemy plik JSON COI na Twoim komputerze. Pobranie nie oznacza wysłania wniosku do urzędu.</p>
+        <div id="finish-download-status" role="status" aria-live="polite" hidden></div>
+      </div>
+      <div class="finish-actions">
+        <button id="finish-back" type="button" class="button-secondary">← Wróć i popraw formularz</button>
+        <button id="finish-new" type="button" class="button-secondary">Utwórz kolejny formularz</button>
+      </div>
+    </section>
+    <footer>FormFlow AI · HackNation 2026</footer>
+  </main>
+</div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v0.9.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v1.0.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
@@ -194,3 +194,19 @@ Szczegóły: [COI1_JPEG_FIX.md](COI1_JPEG_FIX.md).
 - [ ] Pełny test importu do rzeczywistego systemu COI oraz benchmark na nowych oryginalnych formularzach.
 
 Dokumentacja: [V09_FIELD_EDITOR.md](V09_FIELD_EDITOR.md).
+
+
+## Etap v1.0.0 — Prosty kreator trzyetapowy (21.11.2026)
+
+- [x] **Krok 1: Dodaj dokument** — duży wybór pliku, potwierdzenie inspekcji, zgoda na AI i jeden przycisk „Przygotuj formularz”.
+- [x] **Krok 2: Sprawdź i popraw** — widoczny dopiero po analizie lub po uruchomieniu syntetycznego demo. „Popraw pytania” + „Wszystko się zgadza — dalej”.
+- [x] **Krok 3: Pobierz formularz** — osobny ekran z nazwą, liczbą pól i dużym przyciskiem pobierania walidowanego COI JSON.
+- [x] Pasek postępu 1/2/3, duże przyciski i czytelniejsze instrukcje dla nietechnicznych użytkowników.
+- [x] Opcje OCR i diagnostyka schowane w „Opcje dla administratora”; JSON COI nie jest zakładką podstawowego podglądu.
+- [x] Powrót między etapami, ochrona przed utratą ręcznych poprawek; powrót do już wygenerowanego formularza bez kolejnego wywołania OpenRouter.
+- [x] Własny upload i inspekcja działają na rzeczywistym syntetycznym PNG; symulowana odpowiedź AI otwiera podgląd.
+- [x] CSP: zezwolenie na własne adresy obrazów `blob:` w podglądzie oryginalnego zdjęcia.
+- [x] Testy: **58/58 backend**, **16/16 frontend**, Chromium E2E kompletnej trasy, 390 px bez overflow, zero błędów JS i konsoli.
+- [ ] Testy użyteczności z urzędnikami oraz dostępności (klawiatura, powiększenie 200%, czytniki ekranu), trwałe wersjonowanie, test importu w oficjalnym COI.
+
+Szczegóły: [V10_GUIDED_WIZARD.md](V10_GUIDED_WIZARD.md).

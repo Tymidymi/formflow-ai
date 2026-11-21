@@ -1,161 +1,237 @@
-const input=document.querySelector('#file-input');
-const zone=document.querySelector('#dropzone');
-const result=document.querySelector('#result');
-const convertResult=document.querySelector('#conversion-result');
-const limit=document.querySelector('#size-limit');
-const checkbox=document.querySelector('#external-consent');
-const generateButton=document.querySelector('#generate');
-const downloadButton=document.querySelector('#download');
-const providerStatus=document.querySelector('#provider-status');
-const previewButton=document.querySelector('#extract-preview');
-const extractionResult=document.querySelector('#extraction-result');
-const demoButton=document.querySelector('#load-demo');
-let currentFile=null;
-let generated=null;
-let externalConsentRequired=true;
+/* FormFlow AI — guided three-step flow. No persistence or third-party scripts. */
+const $=selector=>document.querySelector(selector);
+const input=$("#file-input"),zone=$("#dropzone"),result=$("#result");
+const convertResult=$("#conversion-result"),limit=$("#size-limit");
+const checkbox=$("#external-consent"),generateButton=$("#generate"),downloadButton=$("#download");
+const providerStatus=$("#provider-status"),previewButton=$("#extract-preview");
+const extractionResult=$("#extraction-result"),demoButton=$("#load-demo");
+const fileConsent=$("#file-consent"),selectedFile=$("#selected-file");
+const selectedFilename=$("#selected-filename"),loading=$("#wizard-loading");
+const downloadStatus=$("#finish-download-status");
+let currentFile=null,generated=null,externalConsentRequired=true;
+let conversionAvailable=false,accepted=false,busy=false,inspectionId=0;
+let currentStep=1;
 
-function show(container,title,details,failed=false){
-  container.hidden=false;
-  container.classList.toggle('fail',failed);
-  container.replaceChildren();
-  const heading=document.createElement('h3');
-  heading.textContent=title;
-  const body=document.createElement('pre');
-  body.textContent=details;
-  container.append(heading,body);
+function stepTo(number){
+  if(![1,2,3].includes(number))return;
+  currentStep=number;
+  $("#step-upload").hidden=number!==1;
+  $("#return-to-review").hidden=!(number===1 && generated);
+  $("#step-review").hidden=number!==2;
+  $("#step-finish").hidden=number!==3;
+  for(const item of document.querySelectorAll(".wizard-steps li")){
+    const n=Number(item.dataset.step);
+    item.classList.toggle("is-active",n===number);
+    item.classList.toggle("is-complete",n<number);
+    if(n===number)item.setAttribute("aria-current","step");
+    else item.removeAttribute("aria-current");
+  }
+  const heading=$("#step-"+({1:"upload",2:"review",3:"finish"}[number])+" h1");
+  document.title=({1:"Dodaj dokument",2:"Sprawdź i popraw",3:"Pobierz formularz"}[number])+" — FormFlow AI";
+  window.scrollTo({top:0,behavior:"instant"});
+  if(number!==1 && heading)heading.focus({preventScroll:true});
+}
+function show(box,title,details,failed=false){
+  box.hidden=false;
+  box.classList.toggle("fail",Boolean(failed));
+  box.replaceChildren();
+  const h=document.createElement("h3");h.textContent=title;
+  const pre=document.createElement("pre");pre.textContent=details;
+  box.append(h,pre);
+}
+function markFile(ready){
+  accepted=ready;
+  selectedFile.hidden=!ready;
+  fileConsent.hidden=!ready;
+  if(ready){
+    selectedFilename.textContent=currentFile?.name||"Wybrany dokument";
+    result.hidden=true;
+  }
+  updateButton();
 }
 function updateButton(){
-  generateButton.disabled=!currentFile||(externalConsentRequired&&!checkbox.checked);
-  previewButton.disabled=!currentFile;
+  const ready=accepted && currentFile && conversionAvailable;
+  generateButton.disabled=busy||!ready||(externalConsentRequired&&!checkbox.checked);
+  previewButton.disabled=busy||!accepted||!currentFile;
+  demoButton.disabled=busy;
+  $("#change-file").disabled=busy;
+}
+function setBusy(loadingNow){
+  busy=loadingNow;
+  loading.hidden=!loadingNow;
+  zone.setAttribute("aria-disabled",String(loadingNow));
+  updateButton();
+}
+function preserveManualEdits(message){
+  return !window.FormFlowPreview?.hasEdits?.() || window.confirm(message);
 }
 async function inspect(file){
-  if(!file)return;
-  if(window.FormFlowPreview?.hasEdits?.() &&
-     !window.confirm("Aktualny formularz zawiera poprawki. Przed wczytaniem kolejnego dokumentu pobierz JSON COI. Kontynuować i utracić bieżące poprawki?"))return;
-  currentFile=file;
-  generated=null;
+  if(!file||busy)return;
+  if(!preserveManualEdits("Masz już ręcznie poprawiony formularz. Przed zmianą pliku pobierz gotowy JSON. Czy zastąpić bieżące dane?"))return;
+  const requestId=++inspectionId;
+  currentFile=null;generated=null;input.value="";
+  $("#return-to-review").hidden=true;
   window.FormFlowPreview?.close?.();
-  downloadButton.hidden=true;
-  updateButton();
-  show(result,'Sprawdzanie dokumentu…',file.name);
-  const body=new FormData();body.append('file',file,file.name);
+  fileConsent.hidden=true;selectedFile.hidden=true;result.hidden=true;
+  checkbox.checked=false;accepted=false;updateButton();
+  show(result,"Sprawdzamy dokument…","Odczytujemy wybrany plik.");
   try{
-    const response=await fetch('/api/v1/forms/inspect',{method:'POST',body});
+    const body=new FormData();body.append("file",file,file.name);
+    const response=await fetch("/api/v1/forms/inspect",{method:"POST",body});
     const data=await response.json();
-    show(result,response.ok?'✓ Dokument zaakceptowany':'✕ Plik odrzucony',
-       response.ok?('Nazwa: '+data.document.filename+'\nFormat: '+data.document.detected_mime+'\nWielkość: '+(data.document.size_bytes/1024).toFixed(1)+' KB'):
-                  (data.detail||'Błąd walidacji'),!response.ok);
-    if(!response.ok){currentFile=null;updateButton();}
-  }catch(e){show(result,'Błąd sieci','Nie udało się sprawdzić pliku.',true);}
-}
-zone.addEventListener('click',()=>input.click());
-zone.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}});
-input.addEventListener('change',()=>inspect(input.files[0]));
-zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragging');});
-zone.addEventListener('dragleave',()=>zone.classList.remove('dragging'));
-zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('dragging');inspect(e.dataTransfer.files[0]);});
-checkbox.addEventListener('change',updateButton);
-previewButton.addEventListener('click',async()=>{
-  if(!currentFile)return;
-  previewButton.disabled=true;
-  show(extractionResult,'Analiza lokalna…','Odczytuję dokument. Do zewnętrznego API nic nie jest wysyłane.');
-  const payload=new FormData();payload.append('file',currentFile,currentFile.name);
-  try{
-    const response=await fetch('/api/v1/forms/extract-preview',{method:'POST',body:payload});
-    const data=await response.json();
-    if(!response.ok)throw Error(data.detail||'Nie udało się wydobyć tekstu.');
-    const ext=data.extraction||{};
-    show(extractionResult,'✓ Ekstrakcja lokalna zakończona',
-      'Silnik: '+(ext.engine||'local')+'\\nStrony: '+(ext.pages||ext.source_pages||'—')+
-      '\\nStrony OCR: '+(ext.ocr_pages||0)+
-      '\\nTekst skrócony: '+(ext.truncated?'TAK':'nie')+
-      '\\n\\n'+(data.text_preview||'[Brak czytelnego tekstu — użyj podglądu wizualnego]'));
-  }catch(err){show(extractionResult,'Błąd ekstrakcji',err.message||'Błąd.',true);}
-  updateButton();
-});
-
-
-generateButton.addEventListener('click',async()=>{
-  if(!currentFile||(externalConsentRequired&&!checkbox.checked))return;
-  if(window.FormFlowPreview?.hasEdits?.() &&
-     !window.confirm("Wygenerowanie nowej konfiguracji zastąpi ręczne poprawki. Pobierz aktualny JSON przed kontynuowaniem. Zastąpić formularz?"))return;
-  generateButton.disabled=true;
-  show(convertResult,'Generowanie przez Qwen…','Dokument jest analizowany przez zewnętrzny model. Nie zamykaj karty.');
-  const payload=new FormData();payload.append('file',currentFile,currentFile.name);
-  try{
-    const response=await fetch('/api/v1/forms/convert?mode=diagnostic',{
-      method:'POST',headers:{'X-External-AI-Consent':externalConsentRequired?'true':'false'},body:payload});
-    const data=await response.json();
-    if(!response.ok)throw Error(data.detail||'Błąd generowania.');
-    generated=data.form;
-    const report=data.validation;const quality=data.quality||{};
-    const normalization=data.normalization||[];
-    const errors=(report.errors||[]).slice(0,10).map(v=>v.code+': '+v.message).join('\n');
-    show(convertResult,data.status==='generated'?'✓ JSON COI wygenerowany':'JSON wymaga kontroli',
-        'Model: '+data.model+'\nEkstrakcja: '+(data.document?.extraction?.engine||'local')+'\nStrony: '+report.summary.tabs+
-        '\nPola (z sekcjami): '+report.summary.fields_including_sections+
-        '\nWeryfikacja strukturalna: '+(report.valid?'OK':'BŁĘDY')+
-        '\nOficjalny JSON Schema COI: '+(report.schema_valid?'ZGODNY':'NIEZGODNY')+
-        '\nKontrola kompletności: '+(quality.ok?'OK':'WYMAGA WERYFIKACJI')+
-        '\nPrawdopodobnie pominięte pola: '+((quality.possible_missing||[]).join(', ')||'brak')+
-        '\nPola odzyskane z OCR/referencji: '+(quality.recovered_fields||0)+
-        '\nOdrzucone pola pozorne (RODO/niedopasowane): '+(quality.removed_noninput_fields||0)+
-        '\nKlauzula RODO jako informacja: '+(quality.legal_notice_readonly?'TAK':'nie dotyczy')+
-        (quality.manual_review_recommended?'\nUWAGA: sprawdź pola przywrócone z referencji przed użyciem.':'')+
-        (errors?'\n'+errors:''),!report.valid||!quality.ok);
-    downloadButton.hidden=!report.valid||!quality.ok;
-    window.FormFlowPreview?.open?.(data.form,{
-      file:currentFile,validation:report,quality,extraction:data.document?.extraction,source:'generated'
-    });
-  }catch(e){show(convertResult,'Konwersja nieudana',e.message||'Błąd połączenia.',true);}
-  updateButton();
-});
-demoButton.addEventListener('click',async()=>{
-  if(window.FormFlowPreview?.hasEdits?.() &&
-     !window.confirm("Bieżący formularz zawiera ręczne poprawki. Czy zastąpić go nową demonstracją?"))return;
-  demoButton.disabled=true;
-  show(convertResult,'Ładowanie demonstracji…','Przykład syntetyczny, bez OpenRouter.');
-  try{
-    const response=await fetch('/api/v1/demo/convert');
-    const data=await response.json();
-    if(!response.ok||!data.form)throw Error(data.detail||'Błąd przykładowego formularza.');
-    generated=data.form;
-    downloadButton.hidden=!data.validation?.valid;
-    show(convertResult,'✓ Formularz demonstracyjny gotowy',
-      'Przykładowa eUsługa została wygenerowana lokalnie bez użycia zewnętrznego API.\n'+
-      'To nie jest wynik analizy oryginalnego dokumentu COI.');
-    if(!window.FormFlowPreview)throw Error('Moduł interaktywnego podglądu nie został wczytany.');
-    window.FormFlowPreview.open(data.form,{
-      file:null,validation:data.validation,quality:data.quality,source:'synthetic'
-    });
+    if(requestId!==inspectionId)return;
+    if(!response.ok)throw Error(data.detail||"Nie udało się przyjąć dokumentu.");
+    currentFile=file;markFile(true);
   }catch(error){
-    show(convertResult,'Błąd demonstracji',error.message||'Błąd.',true);
-  }finally{demoButton.disabled=false;}
+    if(requestId!==inspectionId)return;
+    show(result,"Nie udało się dodać dokumentu",String(error.message||"Błąd pliku."),true);
+    currentFile=null;markFile(false);
+  }
+}
+zone.addEventListener("click",()=>{if(!busy)input.click();});
+zone.addEventListener("keydown",event=>{
+  if(!busy && ["Enter"," "].includes(event.key)){event.preventDefault();input.click();}
 });
-downloadButton.addEventListener('click',async()=>{
-  if(window.FormFlowPreview?.exportCurrent) {
-    await window.FormFlowPreview.exportCurrent();
+input.addEventListener("change",()=>inspect(input.files?.[0]));
+zone.addEventListener("dragover",event=>{event.preventDefault();if(!busy)zone.classList.add("dragging");});
+zone.addEventListener("dragleave",()=>zone.classList.remove("dragging"));
+zone.addEventListener("drop",event=>{
+  event.preventDefault();zone.classList.remove("dragging");
+  if(!busy)inspect(event.dataTransfer.files?.[0]);
+});
+$("#change-file").addEventListener("click",()=>{if(!busy)input.click();});
+checkbox.addEventListener("change",updateButton);
+
+function showPreview(form,details){
+  if(!window.FormFlowPreview?.open)throw Error("Moduł podglądu nie jest gotowy. Odśwież stronę i spróbuj ponownie.");
+  generated=form;
+  stepTo(2);
+  window.FormFlowPreview.open(form,{...details,wizardMode:true,scrollIntoView:false});
+}
+function errorFromAPI(data,response){
+  if(typeof data?.detail==="string")return data.detail;
+  if(Array.isArray(data?.detail))return data.detail.map(x=>x.msg||String(x)).join("; ");
+  return "Wystąpił błąd („"+response.status+"”). Spróbuj ponownie.";
+}
+generateButton.addEventListener("click",async()=>{
+  if(!currentFile||!accepted||busy||!conversionAvailable||
+      (externalConsentRequired&&!checkbox.checked))return;
+  if(!preserveManualEdits("Ponowne utworzenie formularza zastąpi Twoje poprawki. Kontynuować?"))return;
+  const file=currentFile;
+  setBusy(true);result.hidden=true;convertResult.hidden=true;
+  try{
+    const body=new FormData();body.append("file",file,file.name);
+    const response=await fetch("/api/v1/forms/convert?mode=diagnostic",{
+      method:"POST",headers:{"X-External-AI-Consent":externalConsentRequired?"true":"false"},body
+    });
+    const data=await response.json();
+    if(!response.ok||!data.form)throw Error(errorFromAPI(data,response));
+    const report=data.validation||{},quality=data.quality||{};
+    const warnings=(report.errors||[]).slice(0,8).map(x=>x.message).join("\n");
+    show(convertResult,"Informacje o analizie dokumentu",
+      "Model: "+(data.model||"n/d")+
+      "\nStrony: "+(report.summary?.tabs??"—")+
+      "\nPola: "+(report.summary?.input_fields??"—")+
+      "\nStruktura COI: "+(report.valid?"poprawna":"wymaga poprawy")+
+      "\nKontrola jakości: "+(quality.ok?"OK":"wymaga weryfikacji")+
+      (warnings?"\nUwagi: "+warnings:""),!report.valid||!quality.ok);
+    showPreview(data.form,{file,validation:report,quality,
+      extraction:data.document?.extraction,source:"generated"});
+  }catch(error){
+    show(result,"Nie udało się przygotować formularza",
+      error.message||"Spróbuj ponownie. Wybrany dokument jest nadal dostępny.",true);
+  }finally{setBusy(false);}
+});
+demoButton.addEventListener("click",async()=>{
+  if(busy)return;
+  if(!preserveManualEdits("Nowy przykład zastąpi bieżące poprawki. Czy kontynuować?"))return;
+  setBusy(true);result.hidden=true;
+  try{
+    const response=await fetch("/api/v1/demo/convert");
+    const data=await response.json();
+    if(!response.ok||!data.form)throw Error(errorFromAPI(data,response));
+    showPreview(data.form,{file:null,validation:data.validation,
+      quality:data.quality,source:"synthetic"});
+  }catch(error){
+    show(result,"Przykład nie został uruchomiony",error.message||"Błąd.",true);
+  }finally{setBusy(false);}
+});
+previewButton.addEventListener("click",async()=>{
+  if(!accepted||!currentFile||busy)return;
+  previewButton.disabled=true;
+  show(extractionResult,"Odczytujemy dokument…","Ta czynność działa lokalnie, bez wysyłania do OpenRouter.");
+  try{
+    const body=new FormData();body.append("file",currentFile,currentFile.name);
+    const response=await fetch("/api/v1/forms/extract-preview",{method:"POST",body});
+    const data=await response.json();
+    if(!response.ok)throw Error(errorFromAPI(data,response));
+    show(extractionResult,"Tekst dokumentu",
+      "Silnik: "+(data.extraction?.engine||"lokalny")+
+      "\n\n"+(data.text_preview||"Nie udało się odczytać tekstu."),false);
+  }catch(error){show(extractionResult,"Błąd odczytu",error.message||"Błąd.",true);}
+  updateButton();
+});
+
+window.FormFlowWizard={
+  showFinal({form,validation}={}){
+    if(!form||!validation?.valid||!validation?.schema_valid)
+      throw Error("Formularz wymaga sprawdzenia przed pobraniem.");
+    const count=validation.summary||{};
+    $("#finish-form-title").textContent=form.title||"Formularz elektroniczny";
+    $("#finish-input-count").textContent=String(count.input_fields??"–");
+    $("#finish-page-count").textContent=String(count.tabs??"–");
+    downloadStatus.hidden=true;
+    stepTo(3);
+  },
+  currentStep:()=>currentStep,
+};
+$("#review-back").addEventListener("click",()=>stepTo(1));
+$("#return-to-review").addEventListener("click",()=>{if(generated)stepTo(2);});
+$("#finish-back").addEventListener("click",()=>stepTo(2));
+$("#finish-new").addEventListener("click",()=>{
+  if(!preserveManualEdits("Aby nie utracić ręcznych poprawek, pobierz najpierw plik JSON. Czy na pewno utworzyć nowy formularz?"))return;
+  ++inspectionId;
+  currentFile=null;generated=null;checkbox.checked=false;input.value="";
+  accepted=false;window.FormFlowPreview?.close?.();
+  result.hidden=true;convertResult.hidden=true;extractionResult.hidden=true;
+  selectedFile.hidden=true;fileConsent.hidden=true;downloadStatus.hidden=true;
+  $("#advanced-tools").open=false;
+  updateButton();
+  stepTo(1);
+});
+downloadButton.addEventListener("click",async()=>{
+  const current=window.FormFlowPreview;
+  if(!current?.exportCurrent){
+    downloadStatus.hidden=false;
+    downloadStatus.textContent="Podgląd formularza nie jest dostępny. Wróć do poprzedniego kroku.";
     return;
   }
-  if(!generated)return;
-  const blob=new Blob([JSON.stringify(generated,null,2)],{type:'application/json;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='formflow-coi.json';a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  downloadButton.disabled=true;
+  try{
+    const exported=await current.exportCurrent();
+    downloadStatus.hidden=false;
+    downloadStatus.textContent=exported
+      ?"✓ Plik został pobrany. Możesz znaleźć go w folderze Pobrane."
+      :"Nie udało się pobrać pliku. Wróć do kroku 2 i sprawdź formularz.";
+  }catch(error){
+    downloadStatus.hidden=false;
+    downloadStatus.textContent="Nie udało się pobrać pliku: "+(error.message||"Błąd.");
+  }finally{downloadButton.disabled=false;}
 });
-fetch('/api/v1/capabilities').then(r=>r.json()).then(data=>{
-  limit.textContent=Math.round(data.max_upload_bytes/1024/1024)+' MB';
-  providerStatus.textContent=(data.conversion?'● OpenRouter API':'● AI wyłączone')+
-    (data.pdf_ocr_enabled?' · PDF/OCR':'');
-  externalConsentRequired=data.model_provider!=='ollama-offline';
-  const privacy=document.querySelector('.stage-note');
-  if(privacy&&!externalConsentRequired){
-    privacy.querySelector('b').textContent='Lokalny model Ollama (tryb testowy)';
-    privacy.querySelector('p').textContent='W tym trybie dokument nie trafia do OpenRouter. Pełne testy offline i zgodności konkursowej pozostają do wykonania.';
-    checkbox.closest('label').hidden=true;
-    generateButton.textContent='Generuj JSON COI lokalnie';
+fetch("/api/v1/capabilities").then(r=>r.json()).then(data=>{
+  const mb=Math.round(data.max_upload_bytes/1024/1024);
+  limit.textContent=mb+" MB";
+  conversionAvailable=Boolean(data.conversion);
+  externalConsentRequired=data.model_provider!=="ollama-offline";
+  providerStatus.textContent=(conversionAvailable?"AI dostępne":"AI niedostępne")+
+    (data.pdf_ocr_enabled?" · Odczyt skanów aktywny":"");
+  if(!externalConsentRequired){
+    checkbox.closest("label").hidden=true;
+    $(".file-consent p").textContent="Dokument będzie analizowany przez lokalny model w trybie testowym.";
   }
   updateButton();
-  generateButton.disabled=!data.conversion || generateButton.disabled;
-}).catch(()=>{providerStatus.textContent='● Brak połączenia';});
+}).catch(()=>{
+  providerStatus.textContent="Usługa jest chwilowo niedostępna";
+  conversionAvailable=false;updateButton();
+});
+stepTo(1);

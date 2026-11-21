@@ -8,7 +8,7 @@ from app.coi_builder import convert
 client=TestClient(app)
 
 def test_health():
-    assert client.get("/healthz").json()["version"]=="0.9.0"
+    assert client.get("/healthz").json()["version"]=="1.0.0"
 
 def test_validation_pdf_signature():
     r=client.post("/api/v1/forms/inspect",files={"file":("test.pdf",b"%PDF-1.7\n%%EOF\n","application/pdf")})
@@ -61,4 +61,10 @@ def test_mocked_conversion(monkeypatch):
 def test_ui():
     r=client.get("/")
     assert r.status_code==200
-    assert "Generuj JSON COI" in r.text
+    assert "Przygotuj formularz" in r.text
+    assert "Dodaj dokument" in r.text
+    assert "Sprawdź i popraw" in r.text
+    assert "Pobierz formularz" in r.text
+    assert 'id="step-review" hidden' in r.text
+    assert 'id="step-finish" hidden' in r.text
+    assert 'id="file-consent" hidden' in r.text

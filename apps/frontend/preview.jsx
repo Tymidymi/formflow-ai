@@ -124,7 +124,7 @@ function DocumentView({file, extraction}) {
     {loadedText && <pre className="ff-extracted">{loadedText}</pre>}
   </div>;
 }
-function PreviewApp({form, file, extraction, validation, quality, source}) {
+function PreviewApp({form, file, extraction, validation, quality, source, wizardMode=false}) {
   const [pageIndex, setPageIndex] = useState(0);
   const [view, setView] = useState("form");
   const [answers, setAnswers] = useState({});
@@ -199,7 +199,7 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
         return false;
       }
       setSavedReview(data);
-      return true;
+      return data;
     } catch (error) {
       setEditError("Nie można zweryfikować JSON COI: "+(error.message||"błąd sieci"));
       return false;
@@ -221,11 +221,25 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
   async function exportEditedCOI() {
     if(editing) {
       setEditError("Najpierw zapisz poprawki i sprawdź wynik walidacji COI.");
-      return;
+      return false;
     }
-    if (!(await checkCOI())) return;
+    if (!(await checkCOI())) return false;
     download("formflow-coi-poprawiony.json", JSON.stringify(workingForm,null,2), "application/json;charset=utf-8");
     setEditMessage("Pobrano zweryfikowaną konfigurację COI. Plik zachowuje poprawki.");
+    return true;
+  }
+  async function advanceToFinal() {
+    if(editing) {
+      setEditError("Najpierw zapisz poprawki, a następnie przejdź dalej.");
+      return;
+    }
+    const report=await checkCOI();
+    if(!report)return;
+    if(!window.FormFlowWizard?.showFinal){
+      setEditError("Kreator jest niedostępny. Odśwież stronę i spróbuj ponownie.");
+      return;
+    }
+    window.FormFlowWizard.showFinal({form:workingForm,validation:report});
   }
   useEffect(() => {
     if(window.FormFlowPreview) {
@@ -282,12 +296,12 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
 
   return <div className="ff-app">
     <div className="ff-top">
-      <div className="ff-kicker">PODGLĄD WYGENEROWANEJ E-USŁUGI</div>
+      <div className="ff-kicker">{wizardMode?"FORMULARZ DO SPRAWDZENIA":"PODGLĄD WYGENEROWANEJ E-USŁUGI"}</div>
       <div className="ff-heading-row">
         <div><h2>{workingForm.title || "Formularz COI"}</h2>
           <p>{editing
-            ? "Tryb urzędnika: popraw definicje pytań, a następnie zapisz konfigurację COI."
-            : "Sprawdź wygląd pytań i popraw błędy AI przed eksportem konfiguracji."}</p>
+            ? "Wybierz pytanie i popraw je. Na koniec naciśnij „Zapisz poprawki”."
+            : "Obejrzyj przygotowane pytania. Jeśli są błędne, kliknij „Popraw pytania”."}</p>
         </div>
         <div className="ff-stats">
           <div><strong>{summary.fields}</strong><span>pól</span></div>
@@ -304,9 +318,10 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
           </button>
         </> : <>
           {hasEdits && <span className="ff-edited-label">● Formularz poprawiony ręcznie</span>}
-          <button type="button" className="ff-quiet" onClick={startEditing}>✎ Edytuj formularz</button>
-          <button type="button" className="ff-primary" disabled={validating} onClick={exportEditedCOI}>
-            {validating?"Walidacja…":"Pobierz JSON COI"}
+          <button type="button" className="ff-quiet" onClick={startEditing}>✎ Popraw pytania</button>
+          <button type="button" className="ff-primary" disabled={validating}
+            onClick={wizardMode ? advanceToFinal : exportEditedCOI}>
+            {validating?"Sprawdzanie…":wizardMode?"Wszystko się zgadza — dalej →":"Pobierz JSON COI"}
           </button>
         </>}
       </div>
@@ -314,7 +329,9 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
       {editMessage && !editError && <p role="status" className="ff-edit-message">{editMessage}</p>}
     </div>
     <div className="ff-switch" role="tablist" aria-label="Widoki dokumentu">
-      {[["form","Formularz cyfrowy"],["original","Oryginał"],["json","JSON COI"]].map(([id,name]) =>
+      {(wizardMode
+        ? [["form","Przygotowany formularz"],["original","Oryginalny dokument"]]
+        : [["form","Formularz cyfrowy"],["original","Oryginał"],["json","JSON COI"]]).map(([id,name]) =>
         <button role="tab" type="button" key={id} aria-selected={view === id}
           className={view===id?"selected":""} onClick={()=>setView(id)}>{name}</button>)}
     </div>
@@ -387,7 +404,9 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
         </div>}
       </div>
     </>}
-    <div className="ff-footnote">Edycja formularza działa lokalnie w karcie przeglądarki i bez wywołania AI. Zapisanie poprawek sprawdza JSON na własnym VPS; aby je zachować, pobierz poprawiony plik. Nie jest to oficjalny importer COI.</div>
+    <div className="ff-footnote">{wizardMode
+      ? "To jest podgląd formularza, nie wysłanie wniosku do urzędu. Po sprawdzeniu pytań przejdź do kroku 3, żeby pobrać plik."
+      : "Edycja formularza działa lokalnie w karcie przeglądarki i bez wywołania AI. Zapisanie poprawek sprawdza JSON na własnym VPS; aby je zachować, pobierz poprawiony plik. Nie jest to oficjalny importer COI."}</div>
   </div>;
 }
 const mount=document.getElementById("coi-preview-root");
@@ -400,8 +419,9 @@ if(mount && section){
       section.hidden=false;
       root.render(<PreviewApp key={Date.now()} form={form} file={options.file}
         extraction={options.extraction} quality={options.quality} validation={options.validation}
-        source={options.source}/>);
-      section.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+        source={options.source} wizardMode={options.wizardMode===true}/>);
+      if(options.scrollIntoView!==false)
+        section.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
     },
     close(){
       root.render(null);
