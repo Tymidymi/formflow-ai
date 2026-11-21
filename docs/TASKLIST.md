@@ -7,14 +7,14 @@
 
 ## Stan obecny
 
-- ✅ FastAPI 0.4.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
+- ✅ FastAPI 0.5.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
-- ✅ **Development only:** OpenRouter + Qwen3-VL-8B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
-- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **29/29**.
+- ✅ **Development only:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
+- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **32/32**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
 - ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
-- ❌ Brak Docling i obsługi starego `.doc` w konwersji, JSON Forms, słowników COI, walidacji reguł i rozwiązania lokalnego LLM dla konkursu.
+- ❌ Brak pełnego Docling PDF/OCR i obsługi starego `.doc` w konwersji, JSON Forms, słowników COI, walidacji reguł i rozwiązania lokalnego LLM dla konkursu.
 
 ## Kolejność prac i checklista
 
@@ -34,12 +34,12 @@
 - [x] Ująć udokumentowane rozbieżności jako ostrzeżenia (np. FINISH SECTION, linki bez UUID); [ ] sprawdzić pełny importer COI.
 - [x] Endpoint `/convert` zwraca bezpośrednio JSON COI, a `?mode=diagnostic` podaje metryki dla UI.
 - [x] Testy: oryginalny schemat po sumie SHA, brakujące pola, błędny typ, przepływ, stabilne UUID; [ ] porównanie semantyczne obu rzeczywistych referencji #1/#5.
-- [ ] Pomiar zgodności pól na **oryginalnych** formularzach COI #3 i #4 (a nie tylko na syntetycznym teście).
+- [x] Test Qwen na tekstach wyciągniętych z oryginalnych PDF-ów COI #3 i #4; [ ] test binarnych oryginałów i ręczna ocena kompletności.
 
 ### Etap C — Ekstrakcja Docling i pełne wejście · P0
 - [x] Podstawowe wydobycie treści z PDF/DOCX/XLSX, obsługa JPG/PNG i obrazów skanowanego PDF w trybie developerskim.
-- [ ] Osobna usługa/worker Docling z limitami czasu, pamięci i rozmiaru dokumentu.
-- [ ] Zachować tabele, kolejność bloków, strony, współrzędne i źródła pól.
+- [x] Izolowany Docling Office dla DOCX/XLSX/ODS, 384 MiB, HTTP 200; [ ] ciężki Docling PDF/OCR.
+- [x] Docling Office zachowuje tabele w Markdown; [ ] pełne współrzędne, numery stron i pochodzenie pól.
 - [x] Lekki parser `.ods` bez dodatkowych zależności, testy XML; [ ] adapter starego `.doc` i audyt konwersji.
 - [ ] OCR i fallback dla obrazów/skanów (w trybie konkursowym bez żadnego zewnętrznego API).
 - [ ] Testy wszystkich wymaganych rozszerzeń na materiałach COI.
@@ -69,7 +69,7 @@
 
 ### Etap G — Jakość, bezpieczeństwo i submission · P0
 - [x] Podstawowe ograniczenia uploadu, weryfikacja nazw i formatów, Tailscale-only.
-- [x] Testy automatyczne nowego kodu: 29/29; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
+- [x] Testy automatyczne nowego kodu: 32/32; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
 - [ ] Pełne testy MIME, ZIP-bomb, makr, limitu stron, cleanup, timeoutów, bezpieczeństwa wysyłki.
 - [ ] Konfiguracja JWT (wymagania konkursowe); [x] `readyz.competition_compliant=false` również przy wyłączonym AI.
 - [ ] Test Docker z czystego klona, test offline, brak wyjściowych zależności SaaS.
@@ -83,7 +83,19 @@
 1. **GitHub:** ✅ Repo utworzone, push zakończony; utrzymywać synchronizację `origin/main`.
 2. **P0:** ✅ Schemat COI, bezpośredni eksport i quality gate. **Dalej:** porównanie rzeczywistych referencji i poprawa mapowania.
 3. **P0:** test na jednym prawdziwym formularzu COI (np. #3), wykaz brakujących i nadmiarowych pól, poprawki promptu/adaptera.
-4. **P0:** Docling i obsługa starego DOC; ODS działa jako parser tymczasowy. Potem P1 słowniki i JSON Forms.
+4. **P0:** Docling Office już działa; pozostały pełny Docling PDF/OCR i stary DOC. Potem słowniki, JSON Forms i offline Qwen.
 5. **P0:** rozstrzygnąć konkursowy runtime bez zewnętrznego API; OpenRouter pozostaje wyłącznie narzędziem developerskim.
 
 **Definicja sukcesu MVP:** `POST /api/v1/forms/convert` przyjmuje **każdy wymagany format** i zwraca bezpośrednio **JSON zgodny ze schematem COI**, potwierdzony testem na nowych materiałach, działając **bez zewnętrznych API**.
+
+
+## Weryfikacja chunku v0.5.0
+
+- [x] Docker Docling Office: DOCX, XLSX, ODS — REST HTTP 200 i zachowane tabele.
+- [x] Główne API łączy się z Docling Office po prywatnej sieci Dockera; brak publicznych portów workera.
+- [x] Bezpieczny fallback ekstraktora przy niedostępności workera.
+- [x] Test syntetyczny DOCX → Docling → Qwen → JSON COI (schema_valid=true).
+- [x] Pierwszy benchmark na tekstach wyciągniętych z oryginalnych PDF COI #3 i #4.
+- [x] Próba długiego promptu i wycofanie po regresji liczby pól.
+- [ ] Benchmark na oryginalnych plikach binarnych wszystkich formatów.
+- [ ] Pełny Docling dla PDF/OCR, legacy DOC, słowniki/dynamika, JSON Forms i offline LLM.

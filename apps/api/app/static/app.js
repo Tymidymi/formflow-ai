@@ -62,7 +62,7 @@ generateButton.addEventListener('click',async()=>{
     const report=data.validation;const quality=data.quality||{};
     const errors=(report.errors||[]).slice(0,10).map(v=>v.code+': '+v.message).join('\n');
     show(convertResult,data.status==='generated'?'✓ JSON COI wygenerowany':'JSON wymaga kontroli',
-        'Model: '+data.model+'\nStrony: '+report.summary.tabs+
+        'Model: '+data.model+'\nEkstrakcja: '+(data.document?.extraction?.engine||'local')+'\nStrony: '+report.summary.tabs+
         '\nPola (z sekcjami): '+report.summary.fields_including_sections+
         '\nWeryfikacja strukturalna: '+(report.valid?'OK':'BŁĘDY')+
         '\nOficjalny JSON Schema COI: '+(report.schema_valid?'ZGODNY':'NIEZGODNY')+

@@ -19,6 +19,12 @@ SIGNALS = (
     ("REGON", r"\bregon\b", ("regon",)),
     ("kod pocztowy", r"kod\s+pocztowy", ("pocztowy",)),
     ("e-mail", r"e-?mail", ("email", "mail")),
+    ("wynajem/użyczenie", r"wynaj[eę]cie/u[zż]yczenie|wynajem/u[zż]yczenie", ("wynajem", "wynajec", "uzyczen", "rodzaj", "forma")),
+    ("okres od-do", r"terminie\s+od|termin\s+od", ("termin", "od", "do", "data")),
+    ("uczestnicy", r"ilo[sś][cć]\s+uczestnik", ("uczestnik", "osob", "ilosc")),
+    ("odpowiedzialny", r"osoba\s+odpowiedzialna", ("odpowiedzial", "osoba")),
+    ("cel wynajęcia", r"cel\s+wynaj[eę]cia", ("cel", "rodzaj uroczystosci")),
+    ("oświadczenia", r"o[sś]wiadczam", ("oswiadcz", "zapoznal", "przestrzegania", "odpowiadam")),
 )
 
 def fold(s: str) -> str:

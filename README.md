@@ -82,3 +82,9 @@ real competition dataset benchmarking pending.
 ### Completeness heuristic
 
 Sparse model outputs are flagged needs_review; the raw COI JSON endpoint rejects severely incomplete outputs with HTTP 422. This is a heuristic, not a real-document coverage benchmark.
+
+## v0.5 Docling Office
+
+Office documents DOCX, XLSX and ODS can be processed by a separate Docling-slim 2.151.1 Docker worker. It has no public port, uses an internal Docker network, and has a 384 MiB memory limit. The API falls back to built-in parsers if the worker fails. Enable via compose.docling.yaml and --profile docling. Full PDF layout/OCR and legacy DOC are pending.
+
+See docs/COI_BENCHMARKS.md and docs/EXTRACTION.md for test findings and limitations.

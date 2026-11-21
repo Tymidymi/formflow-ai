@@ -1,0 +1,40 @@
+# OPTIONAL development overlay. Do not enable on a memory-constrained VPS
+# without verifying free RAM. Worker has no published port or external network.
+services:
+  api:
+    networks:
+      - default
+      - extractor_private
+    environment:
+      FORMFLOW_DOCLING_URL: http://docling-office:8001
+  docling-office:
+    profiles: ["docling"]
+    build:
+      context: .
+      dockerfile: apps/extractor/Dockerfile
+    image: formflow-docling-office:2.151.1
+    restart: "on-failure:3"
+    user: "10002:10002"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=96m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 80
+    mem_limit: 384m
+    environment:
+      OMP_NUM_THREADS: "2"
+      OPENBLAS_NUM_THREADS: "2"
+      NUMEXPR_NUM_THREADS: "2"
+    networks:
+      - extractor_private
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:8001/healthz',timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+networks:
+  extractor_private:
+    internal: true

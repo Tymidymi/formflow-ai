@@ -1,4 +1,4 @@
-"""FormFlow AI v0.4.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v0.5.0 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -10,13 +10,13 @@ from fastapi.staticfiles import StaticFiles
 from .settings import max_upload_bytes
 from .uploads import RejectedFile, validate_filename, detect_mime, inspect_upload
 from .ai_provider import AIProviderError, enabled, generate
-from .document_text import extract_document
+from .extraction_router import extract_with_backend
 from .coi_builder import convert as to_coi
 from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="0.4.0",
+app=FastAPI(title="FormFlow AI",version="0.5.0",
     description="COI prototype. OpenRouter is development ONLY, not competition-compliant.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
@@ -48,7 +48,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"0.4.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"0.5.0"}
 
 @app.get("/readyz")
 def ready():
@@ -60,10 +60,11 @@ def capabilities():
     return {"inspection":True,"conversion":enabled(),"preview":False,
             "coi_structural_validation":True,"coi_schema_validation":True,
             "model_provider":"openrouter-development" if enabled() else "disabled",
+            "docling_office_enabled":__import__("os").environ.get("FORMFLOW_DOCLING_URL")=="http://docling-office:8001",
             "supported_extensions":[".pdf",".doc",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "conversion_extensions":[".pdf",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "max_upload_bytes":max_upload_bytes(),
-            "note":"OpenRouter development only. Official COI JSON Schema enabled; Docling and legacy DOC parsing pending."}
+            "note":"OpenRouter development only. Official COI JSON Schema enabled; Docling Office active when configured; full PDF/OCR and legacy DOC pending."}
 
 @app.post("/api/v1/forms/inspect")
 async def inspect(file:UploadFile=File(...)):
@@ -94,7 +95,7 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
     if len(content)>max_upload_bytes():raise RejectedFile("Przekroczony limit.",413)
     mime=detect_mime(content,ext)
     try:
-        text,images=extract_document(content,ext)
+        text,images,extraction_meta=await extract_with_backend(content,ext)
         semantic,info=await generate(text,images)
         result,validation=to_coi(semantic)
         quality=assess_quality(text,semantic)
@@ -110,6 +111,6 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         return result
     return {"status":"generated" if validation["valid"] and quality["ok"] else "needs_review",
             "provider":"openrouter-development","model":info["model"],"usage":info.get("usage",{}),
-            "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime},
+            "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime,"extraction":extraction_meta},
             "form":result,"validation":validation,"quality":quality,
             "warning":"Tryb developerski wysyła zawartość formularza do OpenRouter. Nie jest wersją konkursową."}

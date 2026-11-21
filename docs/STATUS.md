@@ -2,7 +2,7 @@
 
 ## Wdrożone na VPS
 
-- [x] FastAPI 0.4.0 i Docker Compose z portem 127.0.0.1:18171
+- [x] FastAPI 0.5.0 i Docker Compose z portem 127.0.0.1:18171
 - [x] Prywatny Tailscale Serve: https://vibe.tail075c6f.ts.net:9466/
 - [x] Przesyłanie dokumentów, weryfikacja formatu, rozmiaru i nazwy
 - [x] Oddzielny dev-only adapter OpenRouter Qwen3-VL-8B-Instruct
@@ -49,3 +49,13 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Test na tekście odtworzonym z prawdziwego formularza COI #3: model 8B wykrył tylko podpis, model 30B-A3B wykrył 9 pól. Test nie używał oryginalnego pliku z zachowanym układem strony.
 
 - Szablon CI jest w docs/CI_WORKFLOW_TEMPLATE.yml; plik .github/workflows NIE jest aktywny, bo OAuth nie ma scope workflow.
+
+## Chunk v0.5.0
+
+- Docling-slim Office 2.151.1 w osobnym kontenerze, private Docker network, limit RAM 384 MiB; DOCX/XLSX/ODS przetestowane HTTP 200.
+- API używa Docling przez prywatną sieć z fallbackiem do parsera lokalnego.
+- End-to-end syntetyczny DOCX z tabelą -> Docling -> Qwen -> JSON COI: HTTP 200, schema_valid=true, quality=true.
+- Benchmark na tekstach z oryginalnych PDF COI #3 i #4, przed poprawkami promptu: 11 i 17 pól.
+- Długi prompt pogorszył liczby pól (11→5 w COI #3 i 17→12 w COI #4), więc został cofnięty; quality gate rozszerzono o terminy, uczestników i odpowiedzialność.
+- 32/32 testy automatyczne.
+- Niewykonane: pełny Docling PDF/OCR, starszy DOC, test pełnych oryginalnych plików i lokalny LLM konkursowy.
