@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { JsonForms, withJsonFormsControlProps } from "@jsonforms/react";
 import { vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 import { coiToJsonForms, calculateSummary, conditionIsVisible } from "./adapter.mjs";
+import { editCOI } from "./editor.mjs";
+import { EditorPanel } from "./EditorPanel.jsx";
 import "./preview.css";
 
 function FileNameControl(props) {
@@ -129,10 +131,124 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
   const [errors, setErrors] = useState([]);
   const [showWarnings, setShowWarnings] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
-  const model = useMemo(() => coiToJsonForms(form), [form]);
+  const [workingForm, setWorkingForm] = useState(() => structuredClone(form));
+  const [editing, setEditing] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editMessage, setEditMessage] = useState("");
+  const [validating, setValidating] = useState(false);
+  const [savedReview, setSavedReview] = useState(validation || null);
+  const history = useRef([]);
+  const editStart = useRef(null);
+  const hasEdits = useMemo(() => JSON.stringify(form)!==JSON.stringify(workingForm), [form,workingForm]);
+  const model = useMemo(() => coiToJsonForms(workingForm), [workingForm]);
   const {jsonSchema, pages, fields, warnings} = model;
   const page = pages[pageIndex] || pages[0];
   const summary = calculateSummary(model, answers);
+  function changeDefinition(action) {
+    try {
+      const next = editCOI(workingForm,action);
+      history.current.push(workingForm);
+      if (history.current.length > 40) history.current.shift();
+      setWorkingForm(next);
+      setSavedReview(null);
+      setEditError("");
+      setEditMessage("Zmiana zastosowana. Zapisz poprawki, aby sprawdzić strukturę COI.");
+      return next;
+    } catch (error) {
+      setEditError(error.message || "Błąd edycji pola.");
+      return null;
+    }
+  }
+  function undoDefinition() {
+    if (!history.current.length) return;
+    setWorkingForm(history.current.pop());
+    setSavedReview(null);
+    setEditError("");
+    setEditMessage("Cofnięto ostatnią zmianę.");
+  }
+  function startEditing() {
+    editStart.current = structuredClone(workingForm);
+    history.current=[];
+    setEditing(true);
+    setView("form");
+    if (page?.isFinish) setPageIndex(0);
+    setEditError("");
+    setEditMessage("");
+  }
+  function cancelEditing() {
+    if (history.current.length && !window.confirm("Porzucić niezapisane zmiany z tej sesji edycji?")) return;
+    if (editStart.current) setWorkingForm(editStart.current);
+    history.current=[];
+    setEditing(false);
+    setEditError("");
+    setEditMessage("Anulowano ostatnią sesję edycji.");
+  }
+  async function checkCOI() {
+    setValidating(true);
+    setEditError("");
+    try {
+      const response = await fetch("/api/v1/forms/validate-json", {
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(workingForm)
+      });
+      const data=await response.json();
+      if (!response.ok || !data.valid || !data.schema_valid) {
+        setEditError("Konfiguracja COI wymaga poprawy: "+(
+          data.errors||[]).slice(0,4).map(x=>x.message).join("; "));
+        setSavedReview(data);
+        return false;
+      }
+      setSavedReview(data);
+      return true;
+    } catch (error) {
+      setEditError("Nie można zweryfikować JSON COI: "+(error.message||"błąd sieci"));
+      return false;
+    } finally {setValidating(false);}
+  }
+  async function saveEditing() {
+    if (await checkCOI()) {
+      history.current=[];
+      editStart.current=structuredClone(workingForm);
+      setEditing(false);
+      setAnswers({});
+      setErrors([]);
+      setShowValidation(false);
+      setEditMessage("Poprawki zapisane w tej karcie i zweryfikowane przez walidator COI. Pobierz JSON, aby zachować plik.");
+      const button=document.getElementById("download");
+      if(button) button.hidden=false;
+    }
+  }
+  async function exportEditedCOI() {
+    if(editing) {
+      setEditError("Najpierw zapisz poprawki i sprawdź wynik walidacji COI.");
+      return;
+    }
+    if (!(await checkCOI())) return;
+    download("formflow-coi-poprawiony.json", JSON.stringify(workingForm,null,2), "application/json;charset=utf-8");
+    setEditMessage("Pobrano zweryfikowaną konfigurację COI. Plik zachowuje poprawki.");
+  }
+  useEffect(() => {
+    if(window.FormFlowPreview) {
+      window.FormFlowPreview.exportCurrent=exportEditedCOI;
+      window.FormFlowPreview.hasEdits=()=>hasEdits;
+    }
+    return () => {
+      if(window.FormFlowPreview) {
+        window.FormFlowPreview.exportCurrent=null;
+        window.FormFlowPreview.hasEdits=()=>false;
+      }
+    };
+  },[workingForm,editing,hasEdits]);
+  useEffect(() => {
+    const guard=event => {
+      if(hasEdits){
+        event.preventDefault();
+        event.returnValue="";
+      }
+    };
+    window.addEventListener("beforeunload",guard);
+    return () => window.removeEventListener("beforeunload",guard);
+  },[hasEdits]);
   const handleChange = useCallback(({data, errors: nextErrors}) => {
     setAnswers(prev => JSON.stringify(prev) === JSON.stringify(data) ? prev : data || {});
     setErrors(Array.isArray(nextErrors) ? nextErrors : []);
@@ -160,16 +276,18 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
     }).map(field => field.key));
     const currentAnswers = Object.fromEntries(Object.entries(answers).filter(([key]) => visible.has(key)));
     download("formflow-odpowiedzi.json", JSON.stringify({
-      form: String(form.title || "COI"), previewOnly: true, answers: currentAnswers
+      form: String(workingForm.title || "COI"), previewOnly: true, answers: currentAnswers
     }, null, 2), "application/json;charset=utf-8");
   };
-  const exportCOI = () => download("formflow-coi.json", JSON.stringify(form,null,2), "application/json;charset=utf-8");
+
   return <div className="ff-app">
     <div className="ff-top">
       <div className="ff-kicker">PODGLĄD WYGENEROWANEJ E-USŁUGI</div>
       <div className="ff-heading-row">
-        <div><h2>{form.title || "Formularz COI"}</h2>
-          <p>Sprawdź wygląd i zachowanie pytań przed eksportem konfiguracji.</p>
+        <div><h2>{workingForm.title || "Formularz COI"}</h2>
+          <p>{editing
+            ? "Tryb urzędnika: popraw definicje pytań, a następnie zapisz konfigurację COI."
+            : "Sprawdź wygląd pytań i popraw błędy AI przed eksportem konfiguracji."}</p>
         </div>
         <div className="ff-stats">
           <div><strong>{summary.fields}</strong><span>pól</span></div>
@@ -177,15 +295,32 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
           <div><strong>{summary.answered}</strong><span>wypełnionych</span></div>
         </div>
       </div>
+      <div className="ff-edit-toolbar">
+        {editing ? <>
+          <span className="ff-edit-indicator">✎ TRYB EDYCJI</span>
+          <button type="button" className="ff-quiet" onClick={cancelEditing}>Anuluj edycję</button>
+          <button type="button" className="ff-primary" disabled={validating} onClick={saveEditing}>
+            {validating?"Sprawdzanie…":"✓ Zapisz poprawki"}
+          </button>
+        </> : <>
+          {hasEdits && <span className="ff-edited-label">● Formularz poprawiony ręcznie</span>}
+          <button type="button" className="ff-quiet" onClick={startEditing}>✎ Edytuj formularz</button>
+          <button type="button" className="ff-primary" disabled={validating} onClick={exportEditedCOI}>
+            {validating?"Walidacja…":"Pobierz JSON COI"}
+          </button>
+        </>}
+      </div>
+      {editError && <p role="alert" className="ff-edit-error">{editError}</p>}
+      {editMessage && !editError && <p role="status" className="ff-edit-message">{editMessage}</p>}
     </div>
     <div className="ff-switch" role="tablist" aria-label="Widoki dokumentu">
       {[["form","Formularz cyfrowy"],["original","Oryginał"],["json","JSON COI"]].map(([id,name]) =>
         <button role="tab" type="button" key={id} aria-selected={view === id}
           className={view===id?"selected":""} onClick={()=>setView(id)}>{name}</button>)}
     </div>
-    {validation && !validation.valid && <div className="ff-warning" role="alert">
+    {savedReview && !savedReview.valid && <div className="ff-warning" role="alert">
       Walidator COI wskazuje problemy. Formularz ma charakter roboczy.</div>}
-    {quality && !quality.ok && <div className="ff-warning" role="alert">
+    {quality && !quality.ok && !hasEdits && <div className="ff-warning" role="alert">
       Wynik modelu wymaga ręcznej weryfikacji — część pytań mogła zostać pominięta.</div>}
     {warnings.length > 0 && <div className="ff-warning">
       <button className="ff-warning-trigger" type="button" onClick={()=>setShowWarnings(!showWarnings)}>
@@ -196,17 +331,18 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
     {view==="original" && <DocumentView file={file} extraction={extraction}/>}
     {view==="json" && <div className="ff-json">
       <div className="ff-toolbar">
-        <span>Oryginalna konfiguracja JSON COI</span>
+        <span>{hasEdits?"Konfiguracja JSON COI po korekcie":"Wygenerowana konfiguracja JSON COI"}</span>
         <div>
-          <button type="button" className="ff-quiet" onClick={() => navigator.clipboard.writeText(JSON.stringify(form,null,2))}>Kopiuj JSON</button>
-          <button type="button" className="ff-primary" onClick={exportCOI}>Pobierz JSON</button>
+          <button type="button" className="ff-quiet" onClick={() => navigator.clipboard.writeText(JSON.stringify(workingForm,null,2))}>Kopiuj JSON</button>
+          <button type="button" className="ff-primary" onClick={exportEditedCOI}>Pobierz JSON</button>
         </div>
       </div>
-      <pre>{JSON.stringify(form,null,2)}</pre>
+      <pre>{JSON.stringify(workingForm,null,2)}</pre>
     </div>}
     {view==="form" && <>
       <div className="ff-stepper" aria-label="Strony formularza">
         {pages.map((item,index)=><button type="button" key={item.id} className={index===pageIndex?"current":""}
+          disabled={editing && item.isFinish}
           aria-current={index===pageIndex?"step":undefined} onClick={()=>setPageIndex(index)}>
           <span className="ff-step-num">{item.isFinish?"✓":index+1}</span>
           <span>{item.title}</span>
@@ -217,7 +353,10 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
           <span>STRONA {pageIndex+1} / {pages.length}</span>
           <h3>{page.title}</h3>
         </div>
-        {page.isFinish ? <div className="ff-finish">
+        {editing && !page.isFinish ? <EditorPanel form={workingForm} pageIndex={pageIndex}
+          onAction={changeDefinition} onUndo={undoDefinition}
+          canUndo={history.current.length>0}/>
+        : page.isFinish ? <div className="ff-finish">
           <div className="ff-finish-icon">✓</div>
           <h3>Podsumowanie wniosku</h3>
           <p>To wyłącznie interaktywny podgląd — nie wysyła danych do urzędu ani do OpenRouter.</p>
@@ -231,10 +370,10 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
             config={{restrict:true,showUnfocusedDescription:true}} />
           {page.blocks.map((message,index)=><div className={page.fieldCount===0?"ff-notice":"ff-note"} key={index}>{message}</div>)}
         </div>}
-        {showValidation && errors.length > 0 && <p role="alert" className="ff-validation-message">
+        {!editing && showValidation && errors.length > 0 && <p role="alert" className="ff-validation-message">
           Formularz wymaga poprawy: {errors.length} problemów. Uzupełnij wymagane pola lub popraw ich format.
         </p>}
-        <div className="ff-page-nav">
+        {!editing && <div className="ff-page-nav">
           <div className="ff-check-controls">
             <button type="button" className="ff-quiet" onClick={()=>setShowValidation(true)}>Sprawdź pola</button>
             <button type="button" className="ff-quiet" onClick={clearAnswers}>Wyczyść</button>
@@ -245,10 +384,10 @@ function PreviewApp({form, file, extraction, validation, quality, source}) {
               ? <button type="button" className="ff-primary" onClick={()=>setPageIndex(pageIndex+1)}>Dalej →</button>
               : <button type="button" className="ff-primary" onClick={exportAnswers}>Pobierz odpowiedzi</button>}
           </div>
-        </div>
+        </div>}
       </div>
     </>}
-    <div className="ff-footnote">Podgląd z JSON Forms · Nie jest równoznaczny z importem do systemu COI ani elektronicznym złożeniem wniosku.</div>
+    <div className="ff-footnote">Edycja formularza działa lokalnie w karcie przeglądarki i bez wywołania AI. Zapisanie poprawek sprawdza JSON na własnym VPS; aby je zachować, pobierz poprawiony plik. Nie jest to oficjalny importer COI.</div>
   </div>;
 }
 const mount=document.getElementById("coi-preview-root");

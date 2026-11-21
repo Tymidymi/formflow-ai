@@ -30,6 +30,8 @@ function updateButton(){
 }
 async function inspect(file){
   if(!file)return;
+  if(window.FormFlowPreview?.hasEdits?.() &&
+     !window.confirm("Aktualny formularz zawiera poprawki. Przed wczytaniem kolejnego dokumentu pobierz JSON COI. Kontynuować i utracić bieżące poprawki?"))return;
   currentFile=file;
   generated=null;
   window.FormFlowPreview?.close?.();
@@ -75,6 +77,8 @@ previewButton.addEventListener('click',async()=>{
 
 generateButton.addEventListener('click',async()=>{
   if(!currentFile||(externalConsentRequired&&!checkbox.checked))return;
+  if(window.FormFlowPreview?.hasEdits?.() &&
+     !window.confirm("Wygenerowanie nowej konfiguracji zastąpi ręczne poprawki. Pobierz aktualny JSON przed kontynuowaniem. Zastąpić formularz?"))return;
   generateButton.disabled=true;
   show(convertResult,'Generowanie przez Qwen…','Dokument jest analizowany przez zewnętrzny model. Nie zamykaj karty.');
   const payload=new FormData();payload.append('file',currentFile,currentFile.name);
@@ -107,6 +111,8 @@ generateButton.addEventListener('click',async()=>{
   updateButton();
 });
 demoButton.addEventListener('click',async()=>{
+  if(window.FormFlowPreview?.hasEdits?.() &&
+     !window.confirm("Bieżący formularz zawiera ręczne poprawki. Czy zastąpić go nową demonstracją?"))return;
   demoButton.disabled=true;
   show(convertResult,'Ładowanie demonstracji…','Przykład syntetyczny, bez OpenRouter.');
   try{
@@ -126,7 +132,11 @@ demoButton.addEventListener('click',async()=>{
     show(convertResult,'Błąd demonstracji',error.message||'Błąd.',true);
   }finally{demoButton.disabled=false;}
 });
-downloadButton.addEventListener('click',()=>{
+downloadButton.addEventListener('click',async()=>{
+  if(window.FormFlowPreview?.exportCurrent) {
+    await window.FormFlowPreview.exportCurrent();
+    return;
+  }
   if(!generated)return;
   const blob=new Blob([JSON.stringify(generated,null,2)],{type:'application/json;charset=utf-8'});
   const url=URL.createObjectURL(blob);

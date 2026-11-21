@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: formflow-ai-api:0.8.1-dev
+    image: formflow-ai-api:0.9.0-dev
     restart: unless-stopped
     init: true
     user: "10001:10001"

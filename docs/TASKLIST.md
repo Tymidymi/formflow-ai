@@ -1,6 +1,6 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v0.8.1. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v0.9.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
@@ -23,7 +23,7 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 - ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **50/50**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
 - ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
-- ✅ Lokalny PDF layout/OCR działa (pypdf/Tesseract). ❌ Pozostają pełny Docling PDF, stary `.doc`, JSON Forms i część słowników COI. Lokalny LLM jest poza zakresem hackathonu.
+- ✅ Lokalny PDF layout/OCR działa (pypdf/Tesseract). ❌ Pozostają pełny Docling PDF, stary `.doc`, zaawansowane funkcje JSON Forms i część słowników COI. Lokalny LLM jest poza zakresem hackathonu.
 
 ## Kolejność prac i checklista
 
@@ -71,10 +71,10 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 
 ### Etap F — Frontend i podgląd JSON Forms · P1
 - [x] Statyczny interfejs uploadu i pobierania wygenerowanego JSON.
-- [ ] Adapter do **oddzielnych** `JSON Schema + UI Schema` na potrzeby JSON Forms.
+- [x] Adapter do **oddzielnych** `JSON Schema + UI Schema` na potrzeby JSON Forms.
 - [x] React + JSON Forms: podgląd stron/sekcji/pól, walidacje po polsku, SHOW i podsumowanie; [ ] pełna weryfikacja w oficjalnym importerze COI.
 - [x] Widok porównawczy: oryginał PDF/obraz lub tekst Office / COI JSON / interaktywny formularz.
-- [ ] Edycja i akceptacja **konfiguracji** pól przez urzędnika, wskazanie źródła i poziomu pewności. W podglądzie można już wprowadzać odpowiedzi, ale nie poprawiać definicji formularza.
+- [x] Edycja **definicji** pól COI przez urzędnika: nazwa, typ, required, opcje, walidacja, dodawanie/usuwanie/przestawianie, sekcje, cofanie i walidowany eksport. [ ] Trwałe zatwierdzanie wersji w bazie, źródła i poziomy pewności.
 
 ### Etap G — Jakość, bezpieczeństwo i submission · P0
 - [x] Podstawowe ograniczenia uploadu, weryfikacja nazw i formatów, Tailscale-only.
@@ -175,3 +175,22 @@ Zobacz [V08_INTERACTIVE.md](V08_INTERACTIVE.md) i [DECISION_API_SUBMISSION.md](D
 - [ ] Potwierdzić 1:1 zgodność z rozbudowanym COI JSON #1 w oficjalnym importerze; obecny fallback rekonstruuje **podstawowe pola źródłowego papierowego wniosku**, nie pełny zestaw wariantów formularza.
 
 Szczegóły: [COI1_JPEG_FIX.md](COI1_JPEG_FIX.md).
+
+
+## Etap v0.9.0 — Edytor definicji formularzy COI
+
+- [x] Przycisk **Edytuj formularz** bezpośrednio w sekcji „Podgląd wygenerowanej eUsługi”.
+- [x] Edytor właściwości pytania: etykieta, typ (8 rodzajów), wymagane, opcje wyboru, walidacja PESEL/NIP/REGON/e-mail/kod, podpowiedź.
+- [x] Dodawanie/usuwanie/przestawianie pól w sekcji, tworzenie/usuwanie sekcji, zmiana nazwy sekcji/strony i tytułu formularza.
+- [x] Cofanie do 40 ostatnich zmian w danej sesji edycji; przycisk Anuluj edycję przywraca stan z jej początku.
+- [x] Edycje modyfikują **oryginalną strukturę COI JSON**, zachowując UUID, techName, states i kolejność/siatkę.
+- [x] Ochrona `SHOW`: brak możliwości usunięcia źródła lub używanej opcji; zmiana nazwy strony naprawia znane referencje JSONata.
+- [x] Strony `FINISH` i klauzule `TEXT_BLOCK` pozostają tylko do odczytu.
+- [x] **Zapisz poprawki** sprawdza definicję w `POST /api/v1/forms/validate-json` (własny VPS, bez AI); **Pobierz JSON COI** eksportuje rzeczywiście poprawiony plik i ponownie sprawdza walidację.
+- [x] Ostrzeżenia przed utratą edycji przy ponownym uploadzie/generowaniu, zamknięciu karty lub uruchomieniu nowego demo.
+- [x] Testy: **16/16 frontend**, **58/58 backend**, Chromium (edycja+undo+RADIO+download+JSON valid), ekran 390 px bez overflow.
+- [x] Drugi test Chromium: korekta pola numeru działki w COI #1, ochrona strony RODO, JSON schema_valid=true.
+- [ ] Trwała baza danych wersji i zatwierdzania przez urzędnika, komentarze, źródła/prawdopodobieństwa, edycja reguł `SHOW`, edycja stron MAIN.
+- [ ] Pełny test importu do rzeczywistego systemu COI oraz benchmark na nowych oryginalnych formularzach.
+
+Dokumentacja: [V09_FIELD_EDITOR.md](V09_FIELD_EDITOR.md).

@@ -170,3 +170,23 @@ Regression uses **the OCR text of the user's actual JPEG** and a browser replay;
 the original binary-image upload on the VPS remains a separate test to repeat.
 All generated/user-supplied images and benchmark JSONs remain outside Git.
 See [COI #1 JPEG fix](docs/COI1_JPEG_FIX.md).
+
+
+## v0.9 — COI Definition Editor (official review workspace)
+
+After generating or loading a synthetic demo, click **Edytuj formularz** inside
+**PODGLĄD WYGENEROWANEJ E-USŁUGI**. Review and correct question labels, types,
+required status, available choices, basic validation rules, and help texts.
+Add, remove or reorder fields; rename or add/remove sections. Each change
+modifies the actual **COI form JSON**, not only the UI.
+
+Press **Zapisz poprawki** to verify against the official COI JSON Schema and
+local COI business rules on our own FastAPI (no OpenRouter call). After validation,
+**Pobierz JSON COI** exports the **edited and verified** configuration.
+
+Edits remain **browser-tab local only**, without a database/autosave. Download
+the JSON to keep the corrections. Existing SHOW dependencies, technical IDs and
+read-only legal text are protected. Undo is available for the current edit session.
+
+See [v0.9 field editor](docs/V09_FIELD_EDITOR.md). Current competition submission
+still plans OpenRouter API despite the COI no-external-API requirement.

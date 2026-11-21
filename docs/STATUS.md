@@ -113,3 +113,15 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Testy: backend 58/58, frontend 8/8, OCR worker 6/6. **Pełny upload tego samego binarnego JPEG-u pozostaje do powtórzenia.**
 - Decyzja OpenRouter API bez zmiany; ryzyko niezgodności z wymogiem COI nadal otwarte.
 - [Raport naprawy](COI1_JPEG_FIX.md).
+
+
+## Etap v0.9.0 — 21 listopada 2026
+
+- W interaktywnym podglądzie działa **tryb edycji definicji COI JSON** dla urzędnika.
+- Obsługuje poprawianie pytań, typu/obowiązkowości/walidacji/opcji, dodawanie/usuwanie/przestawianie, sekcje i tytuły stron.
+- Form validation: lokalne `POST /api/v1/forms/validate-json`, zapis do stanu przeglądarki, eksport **zmodyfikowanego** COI JSON. Brak trwałego zapisu w DB.
+- Warunki `SHOW` i identyfikatory pól są chronione, a RODO TEXT_BLOCK jest readonly.
+- Testy Node 16/16, FastAPI 58/58. Chromium: edycja + radio + cofnięcie + zapis + JSON download + server validation: valid=true / schema_valid=true, mobilnie 390px OK.
+- Dodatkowy Chromium na COI #1: poprawione pole numeru działki, brak edytowalnych pól w klauzuli RODO, schema_valid=true.
+- Wersja v0.9.0 aktywna na VPS pod Tailscale; OpenRouter bez zmian; regulaminowe ryzyko zależności od API nadal otwarte.
+- Szczegóły: [V09_FIELD_EDITOR.md](V09_FIELD_EDITOR.md).

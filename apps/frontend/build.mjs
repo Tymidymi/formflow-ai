@@ -21,4 +21,4 @@ const result = await build({
 });
 const output = Object.entries(result.metafile.outputs)
   .map(([file, meta]) => file + " " + (meta.bytes / 1024).toFixed(1) + " KiB");
-console.log("FormFlow v0.8 bundle: " + output.join(", "));
+console.log("FormFlow v0.9 bundle: " + output.join(", "));
