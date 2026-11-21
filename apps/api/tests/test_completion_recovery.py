@@ -175,3 +175,18 @@ def test_timeout_on_whole_page_can_recover_by_chunking():
         "Dane testowe "*80,None,prompt="TASK",model_generate=timed))
     assert meta["recovered_fragments"]==2
     assert isinstance(result["pages"],list)
+
+
+def test_incomplete_llm_table_row_metadata_does_not_reject_regular_field():
+    from app.structured_extraction import Page,_sanitize_page
+    from app.canonical_form import canonicalize
+    proposal={"title":"Dokument","pages":[{"title":"Strona","sections":[
+        {"title":"Pytania","fields":[{"label":"Identyfikator",
+          "type":"TEXT_FIELD","required":False,"options":[],
+          "evidence":"Identyfikator .......","row":1}]}]}]}
+    page=Page(1,"Identyfikator .......",None)
+    cleaned=_sanitize_page(proposal,page)
+    field=cleaned["pages"][0]["sections"][0]["fields"][0]
+    assert "row" not in field
+    assert "column" not in field
+    assert canonicalize(cleaned)["pages"][0]["sections"][0]["fields"][0]==field

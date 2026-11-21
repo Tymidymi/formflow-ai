@@ -230,10 +230,14 @@ def _sanitize_page(result:dict,page:Page)->dict:
                             or (len(match)>30 and match[:25] in norm(line))):
                         clean["source_line"]=lineno
                         break
-                if isinstance(f.get("row"),int) and f["row"]>0:
-                    clean["row"]=f["row"]
+                # A row index is meaningful only together with a printed
+                # column header. Some VLM outputs put row=1 on ordinary
+                # standalone blanks; never let that ungrounded hint invalidate
+                # the entire Pydantic CanonicalForm.
                 if isinstance(f.get("column"),str) and f["column"].strip():
                     clean["column"]=f["column"][:65]
+                    if isinstance(f.get("row"),int) and f["row"]>0:
+                        clean["row"]=f["row"]
                 fields.append(clean)
             if fields:
                 valid.append({"title":str(sec.get("title") or "Pola formularza")[:160],
