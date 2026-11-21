@@ -180,6 +180,7 @@ def enforce_source_region(inventory:dict,page)->tuple[dict,int]:
     # option group, even when Qwen returned separate checkboxes or file
     # uploaders. No labels come from a prewritten form dictionary.
     clusters=_choice_clusters(anchors)
+    choice_parents=[]
     for cluster in clusters:
         labels=[str(a["label"]).strip() for a in cluster]
         selected=[f for f in fields
@@ -201,6 +202,7 @@ def enforce_source_region(inventory:dict,page)->tuple[dict,int]:
                     "source":"workbook_printed_choice_group"}
             fields.append(parent)
             recovered+=1
+        choice_parents.append(parent)
         parent.setdefault("source_choice_ref",
                           f"choice_{page.number}_{cluster[0].get('row',0)}")
         first=_source_line(page.text,cluster[0].get("row",0))
@@ -214,7 +216,7 @@ def enforce_source_region(inventory:dict,page)->tuple[dict,int]:
        a.get("row") for a in anchors if isinstance(a.get("row"),int)}:
         heading=_norm(page.section_title)
         fields=[f for f in fields if (
-            f.get("type") not in {"TEXT_FIELD","TEXTAREA"} or
+            any(f is original for original in choice_parents) or
             f.get("source")=="workbook_printed_answer_box" or
             not (_label_is_heading(f.get("label"),heading) and
                  all(not _matched(f.get("label"),a.get("label"))
