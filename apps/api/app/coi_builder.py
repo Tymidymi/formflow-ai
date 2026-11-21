@@ -62,6 +62,7 @@ def convert(semantic: dict) -> tuple[dict,dict]:
         raise ValueError("Zbyt wiele stron formularza do bezpiecznego eksportu COI.")
     title=str(semantic.get("title") or "Formularz urzędowy")[:255]
     tabs=[];used=set();total=0
+    choice_refs={};pending_conditions=[]
     for pi,page in enumerate(pages):
         if not isinstance(page,dict): continue
         questions=[];y=0
@@ -133,8 +134,14 @@ def convert(semantic: dict) -> tuple[dict,dict]:
                     )
                 if kind in {"RADIO","CHECKBOX","SELECT"} and dictionary:
                     item["dictionaryName"] = dictionary
-                if isinstance(data.get("show_when"), dict):
-                    item["__show_when"] = data["show_when"]
+                if isinstance(data.get("source_choice_ref"),str):
+                    choice_refs[data["source_choice_ref"]]=name
+                if isinstance(data.get("show_when"),dict):
+                    spec=dict(data["show_when"])
+                    ref=spec.pop("field_ref",None)
+                    if isinstance(ref,str):
+                        pending_conditions.append((item,ref))
+                    item["__show_when"]=spec
                 placement=wrap(item,len(children),len(children))
                 if tabular:
                     placement["x"]=column_positions[data["column"]]
@@ -169,6 +176,11 @@ def convert(semantic: dict) -> tuple[dict,dict]:
                  "questions":[{"x":0,"y":0,"rows":2,"cols":3,"field":finish}]})
     links=[{"id":identifier(title,"link",a["id"],b["id"]),
             "source":a["id"],"target":b["id"]} for a,b in zip(tabs,tabs[1:])]
+    # The source group can share a printed caption with groups on other
+    # source pages. Resolve dependencies via internal instance references,
+    # never by a possibly duplicated label or untrusted model expression.
+    for item,ref in pending_conditions:
+        item["__show_when"]["field"]=choice_refs.get(ref)
     attach_states(tabs)
     coi={"title":title,"tabs":tabs,"flow":{"links":links}}
     return coi,validate_coi_form(coi)
