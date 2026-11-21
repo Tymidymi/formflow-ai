@@ -17,6 +17,9 @@ multiple physical rows of aligned blank cells under printed column labels,
 including repeated forms divided into groups/categories.
 
 Your ONLY task is COUNTING physical rows and identifying columns.
+A unit printed next to a cell (m², kg, cm, %, PLN etc.) is not a
+separate column or a separate writable cell. Count only actual blanks.
+If a caption is printed below a dotted line, it labels the line above.
 Do not generate fields, do not collapse repeated rows.
 Do not treat attachment bullet lists, legal notices, address blocks,
 or text paragraphs as tables.

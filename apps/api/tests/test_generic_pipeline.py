@@ -161,3 +161,23 @@ def test_exported_table_retains_source_row_and_column_grid():
         (0,0,1),(1,0,1),(2,0,1),
         (0,1,1),(1,1,1),(2,1,1),
     ]
+
+def test_unit_suffix_does_not_become_an_extra_input():
+    """General geometry regression: one numeric blank plus printed unit."""
+    page=inventory.Page(1,"Wielkość ................ m²",None)
+    result={"pages":[{"sections":[{"fields":[
+        {"label":"Wielkość","type":"NUMBER","source_line":1,"evidence":"Wielkość"},
+        {"label":"m²","type":"NUMBER","source_line":1,"evidence":"Wielkość ................ m²"},
+    ]}]}]}
+    assert inventory._remove_unit_only_phantoms(result,page)==1
+    assert [x["label"] for x in inventory._fields(result)]==["Wielkość"]
+
+
+def test_unit_suffix_does_not_remove_other_distinct_fields():
+    page=inventory.Page(1,"Masa ........ kg  Liczba ........ szt.",None)
+    result={"pages":[{"sections":[{"fields":[
+        {"label":"Masa","type":"NUMBER","source_line":1},
+        {"label":"Liczba","type":"NUMBER","source_line":1},
+    ]}]}]}
+    assert inventory._remove_unit_only_phantoms(result,page)==0
+    assert len(inventory._fields(result))==2
