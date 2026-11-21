@@ -1,9 +1,33 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v1.3.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v1.3.0 + bieżące poprawki. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
+
+## Bieżące wykonanie i najbliższe zadania — 21.11.2026
+
+**Zrobione i sprawdzone na VPS:**
+- [x] Uniwersalny OCR/PDF/Vision i ekstrakcja pól; niezależna kontrola checkboxów i tabel (bez formularzowych słowników poprawek).
+- [x] DOCX/XLSX/ODS przez Docling; PDF/JPG/PNG przez worker OCR/Vision.
+- [x] **Stary DOC:** osobny parser Antiword, działający na prawdziwym binarnym Word 97–2003 (HTTP 200). **Tylko tekst**; brak obrazu i pełnej geometrii.
+- [x] **CanonicalForm:** typowany kontrakt Pydantic w torze ekstrakcja → COI, bez dopisywania domniemanych pól.
+- [x] Eksport COI, walidacja oficjalnego schematu, React JSON Forms, podgląd i edytor.
+- [x] 101/101 testów backendu i 16/16 testów frontendu; uruchomione trzy kontenery i zdrowe API.
+
+**Dalej, według wagi konkursowej (nie tworzyć wyjątków dla wzorcowych formularzy):**
+- [ ] **P0 — COI importer:** potwierdzić faktyczny import wynikowego JSON do docelowego narzędzia COI. Schemat JSON sam nie dowodzi importowalności.
+- [ ] **P0 — Licencje i API:** zweryfikować wymagania konkursowe względem OpenRouter (niezgodny bez wyjątku) oraz GPL Antiword; udokumentować zależności przechodnie.
+- [ ] **P0 — Jakość formatów:** render/geometryczna analiza pól graficznych w Office i starym DOC; rozważyć pełny Docling PDF tylko jeśli przynosi poprawę jakości.
+- [ ] **P0 — Bezpieczeństwo/CI:** dostęp JWT, kontrola błędnych plików i cleanup; opublikować workflow CI i zweryfikować build na czystym środowisku.
+- [ ] **P0 — Submission:** wymagane JSON-y, README, architektura, film ≤3 min i prezentacja ≤10 slajdów.
+- [ ] **P1 — Integracje COI:** słowniki TERYT, zaawansowane warunki, walidacje obsługiwane przez oficjalny model i edytor.
+- [ ] **P1 — UX:** podświetlanie pochodzenia pól, trwałe wersjonowanie po weryfikacji podstawowego formatu.
+
+Testy z przykładowych formularzy służą wyłącznie kontroli regresji i NIE
+stanowią zestawu reguł/wyjątków implementacyjnych dla tych formularzy.
+Wcześniejsze datowane etapy poniżej zachowano jako historię projektu;
+**powyższa lista jest aktualnym planem**.
 
 ## Decyzja nadrzędna — API na konkurs
 
@@ -16,14 +40,14 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 
 ## Stan obecny
 
-- ✅ FastAPI 1.1.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
+- ✅ FastAPI 1.3.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
 - ✅ **Używane w development i planowane do zgłoszenia:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
-- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **70/70**.
+- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **101/101 backend, 16/16 frontend**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
-- ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
-- ✅ Lokalny PDF layout/OCR działa (pypdf/Tesseract). ❌ Pozostają pełny Docling PDF, stary `.doc`, zaawansowane funkcje JSON Forms i część słowników COI. Lokalny LLM jest poza zakresem hackathonu.
+- ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; weryfikować synchronizację historii lokalnego Git z GitHub po zapisach przez API.
+- ✅ Lokalny PDF layout/OCR działa (pypdf/Tesseract). ❌ Pozostają pełny Docling PDF, **wizualne odtworzenie starego DOC** (obecny parser jest tekstowy), część funkcji JSON Forms i słowników COI. Lokalny LLM jest poza zakresem hackathonu.
 
 ## Kolejność prac i checklista
 
@@ -32,8 +56,8 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 - [x] Materiały konkursowe COI przekazane w rozmowie: referencyjne JSON #1 i #5, schemat, słowniki, formularze #2–4 i #6–9.
 - [x] Utworzyć **prywatne** `Tymidymi/formflow-ai` i wykonać `git push -u origin main` (plik .env jest ignorowany).
 - [x] Wpiąć oryginalny JSON Schema COI (prywatne repo); [ ] dodać autoryzowane referencyjne fixture i potwierdzić prawa do publikacji.
-- [ ] Włączyć GitHub Actions CI: szablon w docs/CI_WORKFLOW_TEMPLATE.yml; zapis workflow przez OAuth wymaga uprawnienia workflow.
-- [ ] Uzupełnić `THIRD_PARTY_LICENSES.md` i przypiąć wszystkie wersje zależności.
+- [x] Opublikować GitHub Actions CI (.github/workflows/ci.yml: backend i frontend); [ ] potwierdzić udany run CI na GitHubie.
+- [x] Utworzyć wstępne `THIRD_PARTY_LICENSES.md` z wykazem pinów; [ ] pełny audyt pośrednich zależności i GPL Antiword.
 
 ### Etap B — Eksport JSON COI zgodny z wymaganiami · P0 — W TRAKCIE
 - [x] Prototyp `SemanticForm -> COI JSON` (`tabs`, `questions`, sekcje `SECTION`, `flow.links`, strona `FINISH`).
@@ -49,14 +73,14 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 - [x] Podstawowe wydobycie treści z PDF/DOCX/XLSX, obsługa JPG/PNG i obrazów skanowanego PDF w trybie developerskim.
 - [x] Izolowany Docling Office dla DOCX/XLSX/ODS, 384 MiB, HTTP 200; [ ] ciężki Docling PDF/OCR.
 - [x] Docling Office zachowuje tabele w Markdown; [ ] pełne współrzędne, numery stron i pochodzenie pól.
-- [x] Lekki parser `.ods` bez dodatkowych zależności, testy XML; [ ] adapter starego `.doc` i audyt konwersji.
+- [x] Lekki parser `.ods` bez dodatkowych zależności, testy XML; [x] izolowany adapter starego `.doc` (tekst, HTTP 200); [ ] pełny audyt geometrii i licencji.
 - [x] Lokalny OCR Tesseract pol+eng dla PDF/JPG/PNG, limit stron i pamięci; [ ] pełny Docling PDF z modelami.
 - [ ] Testy wszystkich wymaganych rozszerzeń na materiałach COI.
 
 ### Etap D — Model semantyczny i generowanie · P0
 - [x] Wstępny prompt Qwen, JSON mode, ustrukturyzowany pośredni wynik.
 - [x] Adapter OpenRouter w `compose.dev.yaml` (konfiguracja demo i planowanego zgłoszenia), zgoda przed przekazaniem dokumentu poza VPS.
-- [ ] Modele Pydantic dla `CanonicalForm`, schemat pośredni i walidacja typów.
+- [x] Modele Pydantic dla `CanonicalForm`, schemat pośredni i walidacja typów; brak domyślnych korekt źródłowych pól.
 - [x] Quality gate wykrywa potencjalnie brakujące etykiety; [ ] pełna detekcja halucynacji i pochodzenia pól.
 - [x] Lokalna ekstrakcja PDF do 25 stron, OCR do 4, limit wejścia 18 tys. znaków z blokadą niekompletnego eksportu; [ ] modelowe chunking/retry dla długich dokumentów.
 - [x] **Decyzja konkursowa:** używamy OpenRouter API, mimo że nie spełnia zakazu zewnętrznych API. Lokalny LLM: **opcjonalnie po konkursie**.
@@ -78,7 +102,7 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 
 ### Etap G — Jakość, bezpieczeństwo i submission · P0
 - [x] Podstawowe ograniczenia uploadu, weryfikacja nazw i formatów, Tailscale-only.
-- [x] Testy automatyczne v0.8.0: **50/50 backend + 7/7 frontend** oraz Chromium na desktopie i mobile; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
+- [x] Testy automatyczne **101/101 backend + 16/16 frontend** (21.11.2026); wcześniejsze testy Chromium oraz synthetic OpenRouter E2E.
 - [ ] Pełne testy MIME, ZIP-bomb, makr, limitu stron, cleanup, timeoutów, bezpieczeństwa wysyłki.
 - [ ] Konfiguracja JWT (wymagania konkursowe); [x] `readyz.competition_compliant=false` również przy wyłączonym AI.
 - [ ] Test Docker z czystego klona z OpenRouter API; test inferencji offline **poza aktualnym zakresem**. Ryzyko niezgodności z regulaminem pozostaje otwarte.
@@ -92,7 +116,7 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 1. **GitHub:** ✅ Repo utworzone, push zakończony; utrzymywać synchronizację `origin/main`.
 2. **P0:** ✅ Schemat COI, bezpośredni eksport i quality gate. **Dalej:** porównanie rzeczywistych referencji i poprawa mapowania.
 3. **P0:** test na jednym prawdziwym formularzu COI (np. #3), wykaz brakujących i nadmiarowych pól, poprawki promptu/adaptera.
-4. **P0:** Docling Office już działa; pozostały pełny Docling PDF/OCR i stary DOC. Potem słowniki i pełny benchmark oryginalnych dokumentów; React JSON Forms już działa, lokalny Qwen wyłącznie po hackathonie.
+4. **P0:** Obsługa DOC tekstowa działa. Dalej: wizualne pola Office, integracja importera COI i bezpieczeństwo. Lokalny Qwen pozostaje poza zakresem konkursu.
 5. **Decyzja zamknięta:** zgłoszenie korzysta z OpenRouter API. **Ryzyko regulaminowe otwarte**, ale nie planujemy lokalnego LLM na ten hackathon.
 
 **Definicja sukcesu MVP:** `POST /api/v1/forms/convert` przyjmuje **każdy wymagany format** i zwraca bezpośrednio **JSON zgodny ze schematem COI**, potwierdzony testem na nowych materiałach, działając z OpenRouter API (**niezgodność z wymogiem COI zakazującym zewnętrznych API jest jawnie udokumentowana**).
