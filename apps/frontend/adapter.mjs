@@ -6,6 +6,20 @@ const safeName=(f,i)=>NAME.test(f.techName||"")&&!["__proto__","constructor","pr
 const pointer=key=>"#/properties/"+key.replaceAll("~","~0").replaceAll("/","~1");
 const children=f=>Array.isArray(f.repeatingSectionGrid)?f.repeatingSectionGrid:(Array.isArray(f.repetingSectionGrid)?f.repetingSectionGrid:[]);
 const choices=f=>(Array.isArray(f.options)?f.options:[]).map(x=>typeof x==="string"?x:(x?.name??x?.id)).filter(x=>typeof x==="string"&&x.trim()).slice(0,100);
+const captionTokens=value=>String(value||"").normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"").toLowerCase()
+  .split(/[^a-z0-9]+/).filter(Boolean);
+function captionsEquivalent(a,b){
+  const aa=captionTokens(a),bb=captionTokens(b);
+  if(!aa.length||!bb.length)return false;
+  if(aa.join(" ")===bb.join(" "))return true;
+  // Only collapses redundant presentational group wrappers; it NEVER drops
+  // controls or source data. Require multiple informative shared tokens.
+  if(Math.min(aa.join("").length,bb.join("").length)<14)return false;
+  const aSet=new Set(aa),bSet=new Set(bb);
+  const shared=[...aSet].filter(x=>bSet.has(x));
+  return shared.length>=3 && shared.length/Math.min(aSet.size,bSet.size)>=.70;
+}
 
 export function collectFields(form){
   const fields=[];
@@ -84,7 +98,9 @@ function showRule(f,index,warnings){
   if(!choices(source.field).includes(parsed.value)&&!source.field.dictionaryName){
     warnings.push("Brak odpowiedzi źródłowej dla warunku: "+(f.title||f.techName));return null;
   }
-  return {effect:"SHOW",condition:{scope:pointer(source.key),schema:{const:parsed.value},failWhenUndefined:true}};
+  const isMultiChoice=source.field.type==="CHECKBOX" && choices(source.field).length>0;
+  const match=isMultiChoice ? {type:"array",contains:{const:parsed.value}} : {const:parsed.value};
+  return {effect:"SHOW",condition:{scope:pointer(source.key),schema:match,failWhenUndefined:true}};
 }
 export function coiToJsonForms(form){
   if(!form||typeof form!=="object"||!Array.isArray(form.tabs)||!form.tabs.length){
@@ -121,7 +137,12 @@ export function coiToJsonForms(form){
           out.push(control);count++;
         }else if(CONTAINERS.has(f.type)){
           const nested=[];walk(children(f),nested,depth+1);
-          if(nested.length)out.push({type:"Group",label:String(f.title||"Sekcja"),elements:nested});
+          if(nested.length){
+            const redundant= nested[0]?.type==="Control"
+              && captionsEquivalent(f.title,nested[0].label);
+            if(redundant)out.push(...nested);
+            else out.push({type:"Group",label:String(f.title||"Sekcja"),elements:nested});
+          }
         }else if(f.type==="TEXT_BLOCK"){
           const plain=String(f.description||"")
             .replace(/<br\s*\/?\s*>/gi,"\n")
@@ -145,13 +166,29 @@ export function coiToJsonForms(form){
 export function conditionIsVisible(rule,data){
   if(!rule||rule.effect!=="SHOW")return true;
   const key=rule.condition?.scope?.replace("#/properties/","").replaceAll("~1","/").replaceAll("~0","~");
-  return Boolean(key)&&data?.[key]===rule.condition.schema?.const;
+  if(!key)return false;
+  const predicate=rule.condition?.schema;
+  if(predicate?.type==="array" && predicate.contains?.const!==undefined){
+    return Array.isArray(data?.[key]) && data[key].includes(predicate.contains.const);
+  }
+  return data?.[key]===predicate?.const;
+}
+export function hasRealAnswer(value){
+  return value!==undefined && value!==null && value!=="" && value!==false
+    && (!Array.isArray(value)||value.length>0);
+}
+export function makePreviewAnswerPayload(form,answers,visibleKeys){
+  const visible=new Set(visibleKeys);
+  const output=Object.fromEntries(Object.entries(answers||{}).filter(
+    ([key,value])=>visible.has(key)&&hasRealAnswer(value)));
+  if(!Object.keys(output).length)return null;
+  return {form:String(form?.title||"COI"),previewOnly:true,answers:output};
 }
 export function calculateSummary(adapter,answers){
   let count=0;
   for(const field of adapter.fields){
     const v=answers?.[field.key];
-    if(v!==undefined&&v!==null&&v!==""&&(!Array.isArray(v)||v.length))count++;
+    if(hasRealAnswer(v))count++;
   }
   return {fields:adapter.fields.length,answered:count,pages:adapter.pages.length};
 }
