@@ -252,6 +252,8 @@ Zadania i priorytety: [TASKLIST.md](TASKLIST.md).
 - [x] Każda sekcja w źródłowym XLSX stanowi granicę interpretacji. Sekcje o pewnych etykietach drukowanych rozpoznaje się bez Qwen; złożone sekcje nadal są analizowane przez model i uzgadniane z oryginałem.
 - [x] Powtarzające się nazwy pól są zachowane oddzielnie w różnych sekcjach. Opcje checkbox w sąsiednich wierszach są grupowane, a dodatkowe pola mogą dostać warunek SHOW na podstawie wydrukowanej instrukcji i kolejności źródła.
 - [x] Testy niezależnego syntetycznego formularza narzędziowego i arkusza odtwarzającego geometrię problematycznego wniosku. Poprawne rozdzielenie danych wnioskodawcy i pełnomocnika w oddzielnych podsekcjach.
-- [x] 126 testów backendu i 20 testów frontendowych przeszło; build UI OK.
+- [x] 128 testów backendu i 20 testów frontendowych przeszło; build UI OK.
 - [ ] Nie przeprowadzono jeszcze pełnego testu binarnego **oryginalnego** XLSX na VPS, a jedynie odtworzenia geometrii z przeglądu oryginału.
 - [ ] VPS ma mało wolnego RAM; przy ostatnich równoległych uruchomieniach API jednokrotnie zakończyło się kodem 137. Wymaga monitorowania i ewentualnie rezerwacji pamięci, bez wyłączania innych usług.
+
+- [x] Dodatkowe testy usuwania zduplikowanych nagłówków `RADIO` oraz tekstowych pseudo-pól tworzonych z oznaczonych ikoną `ⓘ` instrukcji; warunek SHOW dla powiązanego pola zachowany.
