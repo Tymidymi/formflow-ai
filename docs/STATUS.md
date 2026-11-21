@@ -1,52 +1,38 @@
-# FormFlow AI — status wdrożenia (2026-11-21)
+# FormFlow AI — stan wdrożenia (21.11.2026)
 
-## Stan etapów
+## Wdrożone na VPS
 
-| Komponent | Status |
-|---|---|
-| Repozytorium lokalne | ✅ Gotowe: `/home/tymot/projects/formflow-ai`, branch `main`, commit `8f339f1` |
-| Repozytorium GitHub | ⏳ Jeszcze nieopublikowane — wymagana finalizacja sesji gh |
-| FastAPI | ✅ Uruchomione, `/healthz` = HTTP 200 |
-| Docker Compose | ✅ `formflow-ai-api-1` healthy, `127.0.0.1:18171` |
-| Tailscale Serve | ✅ `https://vibe.tail075c6f.ts.net:9466/` wyłącznie w Tailnet |
-| Walidacja plików | ✅ Etap 1: nazwa, rozszerzenie, limit, podstawowa sygnatura/MIME |
-| Frontend | 🟡 Prosty HTML/CSS/JS, bez React/JSON Forms |
-| Testy | ✅ 11 testów etapu 1 + smoke testy 200/415/501 |
-| Docling | ⬜ Nie zainstalowano |
-| Ollama + Qwen2.5-VL | ⬜ Nie zainstalowano |
-| JSON COI | ⬜ Nie generuje: `/api/v1/forms/convert` celowo zwraca HTTP 501 |
-| JSON Forms | ⬜ Jeszcze niezaimplementowane |
+- [x] FastAPI 0.3.0 i Docker Compose z portem 127.0.0.1:18171
+- [x] Prywatny Tailscale Serve: https://vibe.tail075c6f.ts.net:9466/
+- [x] Przesyłanie dokumentów, weryfikacja formatu, rozmiaru i nazwy
+- [x] Oddzielny dev-only adapter OpenRouter Qwen3-VL-8B-Instruct
+- [x] Rzeczywisty test wywołania API, HTTP 200: 5 stron, 15 pól (łącznie z sekcjami), 0 błędów walidacji strukturalnej
+- [x] Lekka ekstrakcja tekstu z PDF/DOCX/XLSX; vision dla JPG/PNG i skanowanych PDF (do 2 stron)
+- [x] Mapowanie z prostego JSON semantycznego na format tabs/sections/flow COI
+- [x] Wymagana jawna zgoda na wysyłkę dokumentu do OpenRouter
 
-## Weryfikacja
+## Ograniczenia
 
-- [x] HTTPS przez prywatny Tailscale Serve, bez Funnel.
-- [x] Kontener nie ma publicznie otwartego portu; `127.0.0.1:18171`.
-- [x] `GET /healthz`: `{"status":"ok","service":"formflow-ai-api","version":"0.1.0"}`.
-- [x] `GET /readyz`: `{"status":"foundation_ready","conversion_ready":false}`.
-- [x] Odrzucenie nieprawidłowego PDF: HTTP 415.
-- [x] Brak pozornej konwersji: HTTP 501.
-- [ ] JSON w formacie konkursowym COI.
+- [ ] Docling nie jest jeszcze uruchomiony
+- [ ] Stare DOC oraz ODS nie mają jeszcze ekstraktora (API zwraca 501)
+- [ ] Walidacja pełnym oficjalnym JSON Schema COI **nie została wdrożona** — działa walidator strukturalny
+- [ ] Wersja konkursowa musi działać bez zewnętrznego API; compose.yaml nie zawiera OpenRouter, compose.dev.yaml służy wyłącznie do rozwoju
+- [ ] JSON Forms (renderer) nie jest jeszcze podłączony
+- [ ] Nie zmierzono jeszcze jakości na prawdziwych formularzach konkursowych
+- [ ] GitHub remote nie został jeszcze opublikowany (gh CLI niedostępne z zapisanym logowaniem)
 
-## GitHub — problem autoryzacji
-
-Logowanie kodem urządzenia przeszło weryfikację, ale CLI nie zapisało tokenu: katalog `/home/tymot/.config` ma właściciela `root`, a użytkownik `tymot` nie może tam zapisać `gh/hosts.yml`. Do bezpiecznego rozwiązania przygotowano `/home/tymot/.local/share/gh-cli`. Po nowym zatwierdzeniu urządzenia używać `GH_CONFIG_DIR=/home/tymot/.local/share/gh-cli gh ...`; nie zmieniać uprawnień całego `~/.config`.
-
-## Co następne
-
-1. Dokończyć uwierzytelnienie i utworzyć prywatne `Tymidymi/formflow-ai`, następnie push.
-2. Pobrać materiały COI: wzorcowe JSON-y, przykładowe dokumenty i specyfikację.
-3. Dodać worker Docling i parser do `DocumentBlocks` z testami na PDF/DOCX/skanie.
-4. Zbadać zasoby inferencji — VPS miał około 1,1 GiB dostępnego RAM, więc nie wdrażać pochopnie ciężkiego Qwen.
-5. Dopiero potem stworzyć `CanonicalForm`, lokalny pipeline AI, adapter COI JSON i podgląd JSON Forms.
-
-## Komendy kontrolne
+## Komendy operacyjne
 
 ```bash
 cd /home/tymot/projects/formflow-ai
-docker compose ps
-curl -fsS http://127.0.0.1:18171/healthz
-tailscale serve status
-GH_CONFIG_DIR=/home/tymot/.local/share/gh-cli gh auth status
-git status -sb
-git remote -v
+# Development — używa lokalnego pliku .env, który nie trafia do Git.
+docker compose -f compose.yaml -f compose.dev.yaml up -d --build
+# Konkurs / offline — bez OpenRouter
+docker compose -f compose.yaml -f compose.dev.yaml down
+docker compose -f compose.yaml up -d --build
 ```
+
+## Następny krok
+
+Przenieść pełny schemat COI z materiałów konkursowych, wdrożyć Docling/ODS/DOC,
+zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formularzach.

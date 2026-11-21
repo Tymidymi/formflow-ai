@@ -1,90 +1,105 @@
-"""FormFlow AI — phase 1: safe upload inspection and self-hosted frontend."""
-
+"""FormFlow AI v0.3.0 — development Qwen adapter, COI JSON mapping, validation."""
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, Header, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from .settings import max_upload_bytes
-from .uploads import RejectedFile, inspect_upload
+from .uploads import RejectedFile, validate_filename, detect_mime, inspect_upload
+from .ai_provider import AIProviderError, enabled, generate
+from .document_text import extract_document
+from .coi_builder import convert as to_coi
+from .coi_validation import validate_coi_form
 
-ROOT = Path(__file__).resolve().parent
-app = FastAPI(
-    title="FormFlow AI",
-    description="COI HackNation – etap 1: walidacja dokumentów; konwersja JSON COI jeszcze niedostępna.",
-    version="0.1.0",
-    docs_url="/api/docs",
-    redoc_url=None,
-    openapi_url="/api/openapi.json",
-)
-app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
-
+ROOT=Path(__file__).resolve().parent
+app=FastAPI(title="FormFlow AI",version="0.3.0",
+    description="COI prototype. OpenRouter is development ONLY, not competition-compliant.",
+    docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
+app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
 
 @app.middleware("http")
-async def security_and_upload_limit(request: Request, call_next):
-    correlation_id = str(uuid4())
-    limit = max_upload_bytes()
-    length = request.headers.get("content-length")
-    if length:
-        try:
-            declared_size = int(length)
+async def security(request:Request, call_next):
+    size=request.headers.get("content-length")
+    if size:
+        try: n=int(size)
         except ValueError:
-            return JSONResponse(status_code=400, content={"detail": "Błędny Content-Length."})
-        if declared_size < 0 or declared_size > limit + 1024 * 1024:
-            return JSONResponse(status_code=413, content={"detail": "Przekroczono limit przesyłania."})
-    response = await call_next(request)
-    response.headers["X-Request-ID"] = correlation_id
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    response.headers["Cache-Control"] = "no-store"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+            return JSONResponse(status_code=400,content={"detail":"Błędny Content-Length."})
+        if n<0 or n>max_upload_bytes()+1024*1024:
+            return JSONResponse(status_code=413,content={"detail":"Przekroczono limit uploadu."})
+    response=await call_next(request)
+    response.headers["X-Request-ID"]=str(uuid4())
+    response.headers["X-Content-Type-Options"]="nosniff"
+    response.headers["Referrer-Policy"]="no-referrer"
+    response.headers["Cache-Control"]="no-store"
+    response.headers["Content-Security-Policy"]="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'"
     return response
 
-
 @app.exception_handler(RejectedFile)
-async def rejected_file_handler(_request: Request, exc: RejectedFile):
-    return JSONResponse(status_code=exc.status, content={"detail": str(exc)})
+async def reject_upload(request:Request,exc:RejectedFile):
+    return JSONResponse(status_code=exc.status,content={"detail":str(exc)})
 
-
-@app.get("/", include_in_schema=False)
-async def index():
-    return FileResponse(ROOT / "static" / "index.html")
-
+@app.get("/",include_in_schema=False)
+def home():
+    return FileResponse(ROOT/"static"/"index.html")
 
 @app.get("/healthz")
-async def healthz():
-    return {"status": "ok", "service": "formflow-ai-api", "version": "0.1.0"}
-
+def health():
+    return {"status":"ok","service":"formflow-ai-api","version":"0.3.0"}
 
 @app.get("/readyz")
-async def readyz():
-    return {"status": "foundation_ready", "conversion_ready": False}
-
+def ready():
+    return {"status":"development" if enabled() else "foundation_ready",
+            "conversion_ready":enabled(),"competition_compliant":not enabled()}
 
 @app.get("/api/v1/capabilities")
-async def capabilities():
-    return {
-        "inspection": True,
-        "conversion": False,
-        "preview": False,
-        "supported_extensions": [".pdf", ".doc", ".docx", ".ods", ".xlsx", ".jpg", ".jpeg", ".png"],
-        "max_upload_bytes": max_upload_bytes(),
-        "note": "Silnik Docling / Ollama / eksport COI zostaną dodane w kolejnych etapach.",
-    }
-
+def capabilities():
+    return {"inspection":True,"conversion":enabled(),"preview":False,
+            "coi_structural_validation":True,"coi_schema_validation":False,
+            "model_provider":"openrouter-development" if enabled() else "disabled",
+            "supported_extensions":[".pdf",".doc",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
+            "conversion_extensions":[".pdf",".docx",".xlsx",".jpg",".jpeg",".png"],
+            "max_upload_bytes":max_upload_bytes(),
+            "note":"OpenRouter development only; full COI JSON Schema, Docling and DOC/ODS parsing pending."}
 
 @app.post("/api/v1/forms/inspect")
-async def inspect(file: UploadFile = File(...)):
-    return {"status": "validated", "document": await inspect_upload(file)}
+async def inspect(file:UploadFile=File(...)):
+    return {"status":"validated","document":await inspect_upload(file)}
 
+@app.post("/api/v1/forms/validate-json")
+async def validate_json(request:Request):
+    try: data=await request.json()
+    except ValueError:
+        return JSONResponse(status_code=400,content={"detail":"Nieprawidłowy JSON."})
+    return validate_coi_form(data)
 
 @app.post("/api/v1/forms/convert")
-async def convert(file: UploadFile = File(...)):
-    await file.close()
-    return JSONResponse(status_code=501, content={
-        "detail": "Konwersja nie jest jeszcze wdrożona. Wymaga wzorcowego schematu JSON COI i lokalnego silnika AI.",
-        "code": "CONVERSION_NOT_IMPLEMENTED",
-    })
+async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=Header(default=None)):
+    if not enabled():
+        await file.close()
+        return JSONResponse(status_code=503,content={"detail":"AI wyłączone. Uruchom compose.dev.yaml.",
+                                                      "code":"AI_DISABLED"})
+    if x_external_ai_consent!="true":
+        await file.close()
+        return JSONResponse(status_code=403,content={"detail":"Wymagana świadoma zgoda na wysłanie dokumentu do zewnętrznego API.",
+                                                      "code":"EXTERNAL_API_CONSENT_REQUIRED"})
+    ext=validate_filename(file.filename)
+    try:content=await file.read(max_upload_bytes()+1)
+    finally:await file.close()
+    if not content:raise RejectedFile("Nie można przesłać pustego pliku.")
+    if len(content)>max_upload_bytes():raise RejectedFile("Przekroczony limit.",413)
+    mime=detect_mime(content,ext)
+    try:
+        text,images=extract_document(content,ext)
+        semantic,info=await generate(text,images)
+        result,validation=to_coi(semantic)
+    except AIProviderError as exc:
+        return JSONResponse(status_code=502,content={"detail":str(exc),"code":"AI_PROVIDER_ERROR"})
+    except ValueError as exc:
+        return JSONResponse(status_code=422,content={"detail":str(exc),"code":"INVALID_SEMANTIC_FORM"})
+    return {"status":"generated" if validation["valid"] else "needs_review",
+            "provider":"openrouter-development","model":info["model"],"usage":info.get("usage",{}),
+            "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime},
+            "form":result,"validation":validation,
+            "warning":"Tryb developerski wysyła zawartość formularza do OpenRouter. Nie jest wersją konkursową."}

@@ -48,3 +48,19 @@ Nie zapisujemy wgrywanych dokumentów na dysku aplikacyjnym ani do repozytorium.
 ## Status / dalszy plan
 
 Zobacz [architekturę](docs/ARCHITECTURE.md). Materiały konkursowe z Discorda są konieczne przed implementacją adaptera eksportującego JSON COI.
+
+## Development AI (OpenRouter)
+
+This mode sends documents to an external API and is **not suitable for the COI submission**.
+The default compose.yaml does NOT enable external AI. To enable development mode,
+put a key and model in the ignored .env file and run:
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up -d --build
+```
+
+Current development features: PDF/DOCX/XLSX text, JPG/PNG and scanned PDF vision,
+semantic extraction with Qwen3-VL, deterministic COI JSON mapping, preliminary structure validation.
+
+Limitations: full COI JSON Schema and Docling not integrated; old DOC/ODS unsupported for conversion;
+real competition dataset benchmarking pending.

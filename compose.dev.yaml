@@ -1,0 +1,8 @@
+# DEVELOPMENT ONLY: deliberately separate from competition compose.yaml
+services:
+  api:
+    env_file:
+      - .env
+    environment:
+      FORMFLOW_AI_PROVIDER: openrouter
+    mem_limit: 384m
