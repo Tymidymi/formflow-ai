@@ -169,7 +169,9 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         semantic,inventory_meta,page_reports=await extract_structured(
             zones.body,images,
             image_page_numbers=extraction_meta.get("vision_page_numbers"),
-            pages_expected=extraction_meta.get("pages"))
+            pages_expected=extraction_meta.get("pages"),
+            source_sections=extraction_meta.get("source_sections"),
+            source_title=extraction_meta.get("document_title"))
         extraction_meta["model_images_sent"]=inventory_meta["images_sent"]
         extraction_meta["source_pages_processed"]=inventory_meta["pages_processed"]
         extraction_meta["independently_checked_pages"]=inventory_meta["rechecked_pages"]
