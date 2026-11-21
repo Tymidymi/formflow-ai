@@ -5,6 +5,19 @@
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
 
+## Poprawki po testach rzeczywistego formularza — 21.11.2026
+
+- [x] Krótkie drukowane linie odpowiedzi (również daty w górnej części dokumentu): OCR → niezależna kontrola fragmentu obrazu → tylko pole potwierdzone przez źródło.
+- [x] Deduplikacja grup odpowiedzi pomiędzy różnymi przebiegami AI i sekcjami, także dla opcji zaznaczonych strzałką.
+- [x] Rozdzielenie końcowych informacji/pouczeń od pytań; tekst zachowany jako nieedytowalny blok bez pola odpowiedzi.
+- [x] Główny eksport pełnego JSON COI także na ekranie podsumowania; pusty eksport odpowiedzi wyłączony.
+- [x] Kontrolki zależne od wielokrotnego checkboxa używają poprawnych warunków `contains` w JSON Forms.
+- [x] Testy z innych kategorii dokumentów i test end-to-end wycięcia strefy informacyjnej z JPEG.
+- [x] 109/109 testów backendu i 20/20 testów frontendu przechodzi.
+- [ ] Pełny ponowny test przez Qwen na dokładnie tym samym oryginalnym JPEG; zrzuty i lokalny OCR sprawdzone, ale binarny upload nie został powtórzony na VPS.
+
+Żadne reguły produkcyjne nie zawierają nazw pól urzędu Młynary ani nazw konkretnych formularzy.
+
 ## Bieżące wykonanie i najbliższe zadania — 21.11.2026
 
 **Zrobione i sprawdzone na VPS:**
@@ -13,7 +26,7 @@
 - [x] **Stary DOC:** osobny parser Antiword, działający na prawdziwym binarnym Word 97–2003 (HTTP 200). **Tylko tekst**; brak obrazu i pełnej geometrii.
 - [x] **CanonicalForm:** typowany kontrakt Pydantic w torze ekstrakcja → COI, bez dopisywania domniemanych pól.
 - [x] Eksport COI, walidacja oficjalnego schematu, React JSON Forms, podgląd i edytor.
-- [x] 101/101 testów backendu i 16/16 testów frontendu; uruchomione trzy kontenery i zdrowe API.
+- [x] 109/109 testów backendu i 20/20 testów frontendu; uruchomione trzy kontenery i zdrowe API.
 
 **Dalej, według wagi konkursowej (nie tworzyć wyjątków dla wzorcowych formularzy):**
 - [ ] **P0 — COI importer:** potwierdzić faktyczny import wynikowego JSON do docelowego narzędzia COI. Schemat JSON sam nie dowodzi importowalności.

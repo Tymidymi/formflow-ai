@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { coiToJsonForms, parseShowQuery, conditionIsVisible, calculateSummary } from "../adapter.mjs";
+import { coiToJsonForms, parseShowQuery, conditionIsVisible, calculateSummary, makePreviewAnswerPayload } from "../adapter.mjs";
 
 const uuid=n=>("00000000-0000-4000-8000-"+String(n).padStart(12,"0"));
 const fld=(type,name,title,options=[],states=[],validation=[])=>({
@@ -103,4 +103,57 @@ test("Long legal COI TEXT_BLOCK is read-only and not counted as user input",()=>
   assert.equal(res.pages[1].fieldCount,0);
   assert(res.pages[1].blocks[0].length>450);
   assert(!Object.keys(res.jsonSchema.properties).includes("rodo_notice"));
+});
+
+test("Companion input visibility handles multiple-choice checkbox selections",()=>{
+  const data=sample();
+  const tab=data.tabs[0];
+  const parent=tab.questions[0].field;
+  const multi=fld("CHECKBOX","metoda_dostarczenia","Metoda dostarczenia",[
+    {id:"kurier",name:"kurier"},{id:"punkt",name:"punkt"}]);
+  const query='("kurier" in tabs[\'Dane wnioskodawcy\' in title].questions[\'sekcja_0_0\' in field.techName].field.repeatingSectionGrid[\'metoda_dostarczenia\' in field.techName].field.__userAnswer)';
+  const dependent=fld("TEXT_FIELD","adres_doreczenia","Adres doręczenia",[],[{type:"SHOW",query}]);
+  parent.repeatingSectionGrid.push(wrap(multi),wrap(dependent));
+  const result=coiToJsonForms(data);
+  const controls=result.pages[0].uiSchema.elements[0].elements;
+  const input=controls.find(c=>c.scope==="#/properties/adres_doreczenia");
+  assert.deepEqual(input.rule.condition.schema,{type:"array",contains:{const:"kurier"}});
+  assert.equal(conditionIsVisible(input.rule,{}),false);
+  assert.equal(conditionIsVisible(input.rule,{metoda_dostarczenia:["punkt"]}),false);
+  assert.equal(conditionIsVisible(input.rule,{metoda_dostarczenia:["kurier","punkt"]}),true);
+});
+
+test("Presentational group wrapper is not repeated when its sole control has the same question",()=>{
+  const data=sample();
+  data.tabs[0].questions=[section("Rodzaj dostawy",[
+    fld("CHECKBOX","rodzaj_dostawy","Rodzaj dostawy",[
+      {id:"kurier",name:"kurier"},{id:"punkt",name:"punkt"}])])];
+  const result=coiToJsonForms(data);
+  assert.equal(result.pages[0].uiSchema.elements.length,1);
+  assert.equal(result.pages[0].uiSchema.elements[0].type,"Control");
+  assert.equal(result.fields.length,1);
+});
+
+test("Answer preview never exports empty answers while COI definition remains intact",()=>{
+  const data=sample();
+  const preview=coiToJsonForms(data);
+  assert.equal(makePreviewAnswerPayload(data,{},preview.fields.map(x=>x.key)),null);
+  assert.equal(makePreviewAnswerPayload(data,{pesel:"",legal:false},["pesel","legal"]),null);
+  const payload=makePreviewAnswerPayload(data,{pesel:"01234567890",hidden:"secret"},["pesel"]);
+  assert.deepEqual(payload,{form:data.title,previewOnly:true,
+    answers:{pesel:"01234567890"}});
+  assert.equal(calculateSummary(preview,{pesel:"",kto_jest_osoba_odpowiedzialna:undefined}).answered,0);
+  // The source configuration is not serialized as preview answers: it retains
+  // the COI tabs and flow required by importers.
+  assert.ok(Array.isArray(data.tabs) && data.flow && Object.keys(data).includes("flow"));
+});
+
+test("Closely matching heading and question do not render duplicate visible labels",()=>{
+  const data=sample();
+  data.tabs[0].questions=[section("Prośba o udostępnienie dokumentów",[
+    fld("CHECKBOX","typ_dokumentow","Proszę o udostępnienie dokumentów",[
+      {id:"papierowa",name:"papierowa"},{id:"cyfrowa",name:"cyfrowa"}])])];
+  const model=coiToJsonForms(data);
+  assert.equal(model.pages[0].uiSchema.elements.length,1);
+  assert.equal(model.pages[0].uiSchema.elements[0].type,"Control");
 });

@@ -19,8 +19,8 @@ from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
 from .field_grounding import analyze_grounding,norm
 from .conversion_audit import REQUEST_ID,record
-from .document_zones import split_legal_notice
-from .structured_extraction import extract as extract_structured
+from .document_zones import split_legal_notice, primary_image_crop, suppress_readonly_source_controls
+from .structured_extraction import extract as extract_structured, response_slot_count
 from .legal_actions import extract_actions
 from .demo_fixture import create_demo
 
@@ -161,6 +161,11 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         extraction_meta["legal_notice_detected"]=zones.was_split
         extraction_meta["main_text_characters"]=len(zones.body)
         extraction_meta["legal_text_characters"]=len(zones.legal)
+        if zones.was_split and ext in (".jpeg",".jpg",".png") and images:
+            cropped,crop_meta=primary_image_crop(content,ext,zones)
+            extraction_meta.update(crop_meta)
+            if crop_meta.get("vision_cropped"):
+                images=[("image/jpeg",cropped)]
         semantic,inventory_meta,page_reports=await extract_structured(
             zones.body,images,
             image_page_numbers=extraction_meta.get("vision_page_numbers"),
@@ -168,6 +173,25 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         extraction_meta["model_images_sent"]=inventory_meta["images_sent"]
         extraction_meta["source_pages_processed"]=inventory_meta["pages_processed"]
         extraction_meta["independently_checked_pages"]=inventory_meta["rechecked_pages"]
+        # Classify field provenance against the operative text separately
+        # from any read-only notice, regardless of the model's page layout.
+        readonly_phantoms=suppress_readonly_source_controls(
+            semantic,zones.body,zones.legal)
+        extraction_meta["readonly_phantom_fields_rejected"]=readonly_phantoms
+        # The quality report must be based on fields that actually survive
+        # source-zoning, not on earlier model claims that were discarded.
+        if readonly_phantoms:
+            for source_report in page_reports:
+                page_no=source_report.get("source_page")
+                surviving={"pages":[{"sections":[{"fields":[
+                    f for p in semantic.get("pages",[])
+                    for section in p.get("sections",[])
+                    for f in section.get("fields",[])
+                    if f.get("source_page")==page_no
+                    and f.get("type") not in ("INFO_BLOCK","TEXT_BLOCK")
+                ]}]}]}
+                source_report["detected_fields"]=len(surviving["pages"][0]["sections"][0]["fields"])
+                source_report["detected_slots"]=response_slot_count(surviving)
         # The original legal appendix is retained verbatim as ONE read-only
         # text block. Never turn individual legal paragraphs into questions.
         # This is a document-wide safety rule, not a form-specific patch.

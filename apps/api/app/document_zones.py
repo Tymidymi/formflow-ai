@@ -130,3 +130,38 @@ def primary_image_crop(content: bytes, extension: str, zones: Zones) -> tuple[by
             "vision_original_height":h,
             "vision_crop_reason":"separate_legal_notice",
         }
+
+
+def suppress_readonly_source_controls(semantic:dict, body:str, notice:str)->int:
+    """Drop model-invented inputs that originate only inside read-only text.
+
+    Match page/section/field evidence to the actual split source zones, never
+    to an administrative form title, municipality, or a known field list.
+    Fields also grounded in the operative part are retained.
+    """
+    if not notice.strip():
+        return 0
+    from .field_grounding import norm
+    active=norm(body)
+    passive=norm(notice)
+    def unique_notice_phrase(value:object)->bool:
+        phrase=norm(str(value or '')).strip().strip(' .:;')
+        return (len(phrase)>=5 and phrase!='image-only'
+                and phrase in passive and phrase not in active)
+    removed=0
+    for page in semantic.get('pages',[]):
+        for section in page.get('sections',[]):
+            section_only=unique_notice_phrase(section.get('title'))
+            kept=[]
+            for field in section.get('fields',[]):
+                source=field.get('evidence') or ''
+                field_only=unique_notice_phrase(source) or unique_notice_phrase(field.get('label'))
+                active_evidence=source and norm(str(source)).strip() in active
+                if (field.get('type') not in ('INFO_BLOCK','TEXT_BLOCK')
+                    and not active_evidence and (field_only or section_only)):
+                    removed+=1
+                    continue
+                kept.append(field)
+            section['fields']=kept
+        page['sections']=[s for s in page.get('sections',[]) if s.get('fields')]
+    return removed

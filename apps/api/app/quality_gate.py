@@ -45,8 +45,14 @@ def assess(source:str,semantic:dict,*,pages:list[dict]|None=None,
     minor_gap=bool(expected>=5 and detected<0.93*expected)
     incomplete=bool(pages_expected is not None and page_count<pages_expected)
     choice_audit_failed=any(p.get("choice_audit_error") for p in seen_pages)
+    slot_audit_failed=any(p.get("slot_audit_error") for p in seen_pages)
+    unresolved_short=sum(p.get("short_blank_unresolved",0) for p in seen_pages)
     review_choices=sum(p.get("visual_review_groups",0) for p in seen_pages)
     issues=[]
+    if slot_audit_failed:
+        issues.append("Nie zakończono kontroli krótkich pustych miejsc na obrazie.")
+    if unresolved_short:
+        issues.append("Część krótkich pustych miejsc wymaga weryfikacji w oryginale.")
     if choice_audit_failed:
         issues.append("Nie ukończono osobnej kontroli grup wyboru na obrazie.")
     if review_choices:
@@ -65,7 +71,8 @@ def assess(source:str,semantic:dict,*,pages:list[dict]|None=None,
     # noisy OCR. Expose it, but never fabricate additional fields from it.
     return {
         "ok": bool(fields) and not major_omission and not incomplete
-              and not vision_incomplete and not truncated and not choice_audit_failed,
+              and not vision_incomplete and not truncated and not choice_audit_failed
+              and not slot_audit_failed,
         "input_fields":len(fields),
         "source_blank_slots":expected,
         "blank_coverage_ratio":round(ratio,3) if ratio is not None else None,
@@ -74,6 +81,7 @@ def assess(source:str,semantic:dict,*,pages:list[dict]|None=None,
         "visually_seen_pages":visual_seen,
         "manual_review_recommended":minor_gap or bool(issues),
         "choice_options_detected":sum(p.get("choice_options",0) for p in seen_pages),
+        "short_blank_unresolved":unresolved_short,
         "possible_missing":issues,
         "note":"Source-blank and per-page completeness signals; not proof of semantic accuracy."
     }
