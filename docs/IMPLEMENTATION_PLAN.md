@@ -1,5 +1,8 @@
 # FormFlow AI — plan realizacji projektu COI „Cyfryzacja formularzy”
 
+> **AKTUALIZACJA DECYZJI (21.11.2026):** Ten dokument jest historycznym planem zakładającym lokalny model i brak zewnętrznych API. **Nie jest już obowiązującym planem runtime.** Dla HackNation zgłaszamy wariant **OpenRouter API / Qwen**, **bez** lokalnej inferencji. To **nie spełnia zakazu zewnętrznych API COI**. Aktualne priorytety w [TASKLIST.md](TASKLIST.md), pełna decyzja w [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md). Punktów offline poniżej **nie realizujemy w tym hackathonie**.
+
+
 > **HackNation 2026 · Plan wdrożeniowy / checklista**  
 > **Stack:** [Docling](https://github.com/docling-project/docling) + [Ollama](https://github.com/ollama/ollama) / [Qwen2.5-VL](https://ollama.com/library/qwen2.5vl) + [JSON Forms](https://github.com/eclipsesource/jsonforms)  
 > **Backend:** Python (preferowane przez COI: 3.14+) + FastAPI + Pydantic  

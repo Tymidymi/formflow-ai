@@ -53,7 +53,7 @@ file=@wniosek.docx
 
 **W trybie developerskim** odpowiedź HTTP 200 to bezpośrednio konfiguracja JSON COI. Po dodaniu `?mode=diagnostic` odpowiedź to obiekt `status, form, validation, model, usage` do prezentacji w UI.
 
-Tryb OpenRouter to narzędzie developerskie, **nie spełnia wymagania konkursowego zakazującego zależności od zewnętrznych API**.
+Tryb OpenRouter **jest wybrany również do planowanego zgłoszenia**, mimo że **nie spełnia wymagania COI zakazującego zewnętrznych API**. [Decyzja](DECISION_API_SUBMISSION.md).
 
 ## Dodatkowe usprawnienia
 
@@ -65,7 +65,7 @@ Tryb OpenRouter to narzędzie developerskie, **nie spełnia wymagania konkursowe
 ## Niewykonane
 
 - Pełny parser Docling / konwersja starego DOC / pełny lokalny OCR.
-- Lokalna inferencja z Open Weight model bez żadnego API.
+- Lokalna inferencja z open-weight modelem — **opcjonalnie po hackathonie; nie jest celem obecnego zgłoszenia**.
 - Test importu w prawdziwej aplikacji COI (nie otrzymaliśmy działającego importera).
 - Kompleksowe porównanie jakości na referencjach #1 i #5 oraz oryginalnych formularzach #2–9.
 - Słowniki, reguły warunkowe, JSON Forms i prezentacja konkursowa.

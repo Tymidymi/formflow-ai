@@ -1,20 +1,29 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; stan wdrożenia v0.4.0 (commit w repozytorium).
+**Data przeglądu:** 2026-11-21; wersja v0.7.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
+
+## Decyzja nadrzędna — API na konkurs
+
+- [x] **Na hackathon dostarczamy wersję z OpenRouter/Qwen API.** Nie wdrażamy lokalnego modelu ani nie wykonujemy offline inference na ten konkurs.
+- [x] Kod Ollama pozostaje wyłącznie **opcjonalnym backlogiem po konkursie**, nie P0.
+- [ ] **Otwarte ryzyko regulaminowe:** zakaz zewnętrznych API w zadaniu COI; wersja OpenRouter **nie spełnia tego wymogu**. Ewentualnie uzyskać pisemne stanowisko organizatora.
+- [ ] Opisać jawnie korzystanie z API i zgodę użytkownika w materiałach zgłoszeniowych; nie reklamować produktu jako zgodnego z zakazem API.
+
+Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 
 ## Stan obecny
 
 - ✅ FastAPI 0.7.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
-- ✅ **Development only:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
+- ✅ **Używane w development i planowane do zgłoszenia:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
 - ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **46/46**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
 - ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
-- ❌ PDF layout/OCR offline działa (pypdf/Tesseract), ale brak pełnego Docling PDF i obsługi starego `.doc` w konwersji, JSON Forms, słowników COI, walidacji reguł i rozwiązania lokalnego LLM dla konkursu.
+- ✅ Lokalny PDF layout/OCR działa (pypdf/Tesseract). ❌ Pozostają pełny Docling PDF, stary `.doc`, JSON Forms i część słowników COI. Lokalny LLM jest poza zakresem hackathonu.
 
 ## Kolejność prac i checklista
 
@@ -46,11 +55,11 @@
 
 ### Etap D — Model semantyczny i generowanie · P0
 - [x] Wstępny prompt Qwen, JSON mode, ustrukturyzowany pośredni wynik.
-- [x] Adapter OpenRouter w **oddzielnym** `compose.dev.yaml`, zgoda użytkownika przed przekazaniem dokumentu poza VPS.
+- [x] Adapter OpenRouter w `compose.dev.yaml` (konfiguracja demo i planowanego zgłoszenia), zgoda przed przekazaniem dokumentu poza VPS.
 - [ ] Modele Pydantic dla `CanonicalForm`, schemat pośredni i walidacja typów.
 - [x] Quality gate wykrywa potencjalnie brakujące etykiety; [ ] pełna detekcja halucynacji i pochodzenia pól.
 - [x] Lokalna ekstrakcja PDF do 25 stron, OCR do 4, limit wejścia 18 tys. znaków z blokadą niekompletnego eksportu; [ ] modelowe chunking/retry dla długich dokumentów.
-- [ ] **Wersja konkursowa:** uruchomić lokalny model z otwartymi wagami (Ollama/Qwen lub inny) i przejść test całkowicie bez OpenRouter; potrzebny odpowiedni sprzęt z RAM/VRAM.
+- [x] **Decyzja konkursowa:** używamy OpenRouter API, mimo że nie spełnia zakazu zewnętrznych API. Lokalny LLM: **opcjonalnie po konkursie**.
 - [ ] Testy na niewidzianych wcześniej formularzach.
 
 ### Etap E — Reguły i słowniki · P1
@@ -72,7 +81,7 @@
 - [x] Testy automatyczne nowego kodu: 46/46; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
 - [ ] Pełne testy MIME, ZIP-bomb, makr, limitu stron, cleanup, timeoutów, bezpieczeństwa wysyłki.
 - [ ] Konfiguracja JWT (wymagania konkursowe); [x] `readyz.competition_compliant=false` również przy wyłączonym AI.
-- [ ] Test Docker z czystego klona, test offline, brak wyjściowych zależności SaaS.
+- [ ] Test Docker z czystego klona z OpenRouter API; test inferencji offline **poza aktualnym zakresem**. Ryzyko niezgodności z regulaminem pozostaje otwarte.
 - [ ] Benchmark: wszystkie formaty, trafność pól i typów, zgodność COI JSON, czas mediany/p95.
 - [ ] Wygenerować komplet JSON-ów dla wszystkich siedmiu formularzy konkursowych (#2–4, #6–9).
 - [ ] README, architektura, audyt licencji, prezentacja PDF ≤10 slajdów, film ≤3 minut, dostępne repozytorium, opis projektu.
@@ -83,10 +92,10 @@
 1. **GitHub:** ✅ Repo utworzone, push zakończony; utrzymywać synchronizację `origin/main`.
 2. **P0:** ✅ Schemat COI, bezpośredni eksport i quality gate. **Dalej:** porównanie rzeczywistych referencji i poprawa mapowania.
 3. **P0:** test na jednym prawdziwym formularzu COI (np. #3), wykaz brakujących i nadmiarowych pól, poprawki promptu/adaptera.
-4. **P0:** Docling Office już działa; pozostały pełny Docling PDF/OCR i stary DOC. Potem słowniki, JSON Forms i offline Qwen.
-5. **P0:** rozstrzygnąć konkursowy runtime bez zewnętrznego API; OpenRouter pozostaje wyłącznie narzędziem developerskim.
+4. **P0:** Docling Office już działa; pozostały pełny Docling PDF/OCR i stary DOC. Potem słowniki i JSON Forms; lokalny Qwen wyłącznie po hackathonie.
+5. **Decyzja zamknięta:** zgłoszenie korzysta z OpenRouter API. **Ryzyko regulaminowe otwarte**, ale nie planujemy lokalnego LLM na ten hackathon.
 
-**Definicja sukcesu MVP:** `POST /api/v1/forms/convert` przyjmuje **każdy wymagany format** i zwraca bezpośrednio **JSON zgodny ze schematem COI**, potwierdzony testem na nowych materiałach, działając **bez zewnętrznych API**.
+**Definicja sukcesu MVP:** `POST /api/v1/forms/convert` przyjmuje **każdy wymagany format** i zwraca bezpośrednio **JSON zgodny ze schematem COI**, potwierdzony testem na nowych materiałach, działając z OpenRouter API (**niezgodność z wymogiem COI zakazującym zewnętrznych API jest jawnie udokumentowana**).
 
 
 ## Weryfikacja chunku v0.5.0
@@ -98,7 +107,7 @@
 - [x] Pierwszy benchmark na tekstach wyciągniętych z oryginalnych PDF COI #3 i #4.
 - [x] Próba długiego promptu i wycofanie po regresji liczby pól.
 - [ ] Benchmark na oryginalnych plikach binarnych wszystkich formatów.
-- [ ] Pełny Docling dla PDF/OCR, legacy DOC, słowniki/dynamika, JSON Forms i offline LLM.
+- [ ] Pełny Docling PDF/OCR, legacy DOC, słowniki/dynamika, JSON Forms. Lokalny LLM: po konkursie.
 
 
 ## Etap v0.6.0 — PDF Layout i OCR
@@ -112,20 +121,20 @@
 - [x] Lokalna ekstrakcja binarnych oryginalnych PDF-ów/PNG COI #3/#4.
 - [ ] **Pełny benchmark binarnych oryginalnych dokumentów przez VPS + LLM** i ręczny scoring recall/precision/types; obecne testy są częściowe.
 - [ ] Pełny Docling PDF/layout z modelami, jeśli zasoby pozwolą.
-- [ ] Legacy DOC, słowniki, warunki, JSON Forms, lokalny Qwen i sprawdzenie licencji transytywnych.
+- [ ] Legacy DOC, słowniki, warunki, JSON Forms i audyt licencji. Lokalny Qwen: po konkursie.
 
 Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).
 
-## Etap v0.7.0 — Quality Engine i lokalny Qwen (przygotowanie)
+## Etap v0.7.0 — Quality Engine (Ollama jako opcja przyszła)
 
 - [x] Ręczna lista referencyjnych pól dla COI #3/#4 i benchmark etykiet oraz typów.
 - [x] Replay na zapisanych wynikach Qwen: #3 10/11 → 11/11; #4 15/18 → 18/18 etykiet.
 - [x] JSONata SHOW dla danych innej osoby odpowiedzialnej oraz warunkowego oświadczenia w #4.
 - [x] Obsługa dictionaryName — słownik Kraje dla SELECT; [ ] pełne słowniki TERYT.
-- [x] Adapter lokalnego Ollama/Qwen i testy mock; [ ] inferencja na GPU i rzeczywisty test offline.
+- [x] Eksperymentalny adapter Ollama/Qwen i testy mock. Realna inferencja: opcjonalny backlog po hackathonie.
 - [x] Testy FastAPI 46/46; PDF/OCR worker 5/5.
 - [ ] Full E2E na oryginalnych binarnych PDF #3/#4 i statystyczny benchmark recall/precision.
 - [ ] Test wykonywania stanów JSONata w docelowym rendererze COI.
-- [ ] Wersja bez zależności od zewnętrznych API i audyt licencji.
+- [ ] Audyt licencji; wersji bez API nie planujemy na konkurs. **Niezgodność z zakazem API pozostaje nieusunięta.**
 
 Szczegóły: V07_QUALITY_REPORT.md i LOCAL_QWEN.md.

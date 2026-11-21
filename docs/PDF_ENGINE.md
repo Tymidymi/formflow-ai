@@ -10,7 +10,7 @@ Tailscale HTTPS :9466
             → pypdf — ekstrakcja z zachowaniem wierszy
             → pypdfium2 — lokalne renderowanie PDF
             → Tesseract pol+eng — OCR stron bez warstwy tekstowej
-       → OpenRouter Qwen3-VL-30B-A3B (WYŁĄCZNIE DEV)
+       → OpenRouter Qwen3-VL-30B-A3B (DEV + PLANOWANE ZGŁOSZENIE; NIEZGODNE Z ZAKAZEM API COI)
        → Semantic normalization → COI JSON → official JSON Schema
 ```
 
@@ -47,7 +47,7 @@ PDF Engine nie ma wystawionych portów ani dostępu do Internetu. Limit 384 MiB 
 - OCR może pomijać pola lub błędnie odczytywać symbole; `schema_valid=true` nie gwarantuje jakości merytorycznej.
 - Podgląd stron przez Qwen (obrazy PDF) jest konfigurowalny `FORMFLOW_PDF_VISION=true`; domyślnie wyłączony, aby zachować oszczędność RAM/transferu.
 - Nadal brak pełnego pakietu Docling PDF/layout z modelami AI. Używamy lekkiego pypdf + pypdfium2 + Tesseract, ponieważ VPS ma ograniczoną pamięć.
-- Nadal brak starszego .doc, słowników/warunków, JSON Forms oraz **konkursowego lokalnego LLM** (OpenRouter tylko podczas developmentu).
+- Nadal brak starego .doc, pełnych słowników i JSON Forms. **Konkursowy runtime to OpenRouter API**, a nie lokalny LLM (niezgodność z zakazem zewnętrznych API COI).
 - Tesseract: Apache-2.0; pypdfium2: Apache-2.0/BSD-3-Clause; pełny audyt pozostałych transytywnych licencji wciąż wymagany.
 
 ## Polecenia operacyjne
@@ -79,4 +79,4 @@ docker compose -f compose.yaml -f compose.dev.yaml \
 1. Sprawdzić rzeczywiste oryginalne pliki źródłowe w pełnym pipeline (PDF/JPG/PNG).
 2. Ocenić kompletność pól i poprawność typów względem ręcznie zweryfikowanych wzorców, nie tylko schematu JSON.
 3. Przetestować warunki oraz słowniki COI i dodać preview JSON Forms.
-4. Wdrożyć offline Qwen na dedykowanej maszynie GPU — wymagane dla finalnej zgodności konkursowej.
+4. Lokalny Qwen na maszynie GPU to wyłącznie opcja po konkursie. **Obecne zgłoszenie z OpenRouter pozostaje niezgodne z zakazem API COI**; zob. [decyzja](DECISION_API_SUBMISSION.md).

@@ -1,6 +1,6 @@
 # FormFlow AI · HackNation 2026 · COI
 
-Prywatny prototyp systemu cyfryzacji urzędowych formularzy. Projekt docelowo użyje **Docling → lokalny Ollama / Qwen2.5-VL → JSON COI** i **JSON Forms** do podglądu. **Etap 1** dostarcza działającą, zabezpieczoną warstwę uploadu i interfejs webowy – jeszcze **nie** generuje JSON COI.
+Prywatny prototyp cyfryzacji urzędowych formularzy: PDF/OCR i Docling → **OpenRouter API / Qwen3-VL** → JSON COI. **Na konkurs dostarczamy wersję z API; nie stawiamy lokalnego LLM.** Ollama to opcjonalna możliwość na przyszłość. **Uwaga: wersja z OpenRouter nie spełnia dosłownego zakazu zależności od zewnętrznych API w zadaniu COI.** Zobacz [decyzję i ryzyko](docs/DECISION_API_SUBMISSION.md).
 
 ## Uruchomienie
 
@@ -51,7 +51,7 @@ Zobacz [architekturę](docs/ARCHITECTURE.md). Materiały konkursowe z Discorda s
 
 ## Development AI (OpenRouter)
 
-This mode sends documents to an external API and is **not suitable for the COI submission**.
+This mode sends documents to an external API. **The team has chosen to use it in the competition submission.** The resulting dependency is **not compliant with the COI external-API ban**; see [the documented decision](docs/DECISION_API_SUBMISSION.md).
 The default compose.yaml does NOT enable external AI. To enable development mode,
 put a key and model in the ignored .env file and run:
 
@@ -75,7 +75,7 @@ real competition dataset benchmarking pending.
 - Official supplied COI JSON Schema is bundled in `apps/api/app/contracts/coi_form_schema.json` for local validation. Its redistribution rights outside the private challenge repository have not yet been confirmed.
 - `POST /api/v1/forms/validate-json` checks the official schema plus supplementary business rules. It returns `schema_valid` separately from `valid`.
 - `POST /api/v1/forms/convert` returns **only COI JSON** when successful (requires configured provider). To receive the debug envelope, specify `?mode=diagnostic`.
-- `compose.dev.yaml` is **development only**; never publish it as an offline competition runner.
+- `compose.dev.yaml` currently runs OpenRouter and is planned for the API-based contest submission. **This is not an offline or rules-compliant configuration.**
 - `POST /api/v1/forms/convert` requires header `X-External-AI-Consent: true` when using OpenRouter.
 - IDs are deterministic for identical semantic inputs, basic PESEL/NIP/REGON/email/ZIP_CODE validators are inferred from exact field names.
 
@@ -94,7 +94,7 @@ See docs/COI_BENCHMARKS.md and docs/EXTRACTION.md for test findings and limitati
 
 A separate PDF Engine processes text PDFs with pypdf's layout extraction and
 scans/images with local PDFium + Tesseract pol+eng. There is **no external API**
-in the extraction pipeline. The separate OpenRouter model remains DEV-only.
+in the extraction pipeline. OpenRouter powers development **and is planned for the contest submission**, despite the external-API prohibition.
 
 Enable (with the existing Office worker):
 
@@ -114,5 +114,5 @@ Source-grounded conditional JSONata SHOW states for the rural hall application.
 Known COI dictionaryName support, reference field/type benchmark and an
 optional internal Ollama Qwen adapter (mock tested only).
 
-See docs/V07_QUALITY_REPORT.md and docs/LOCAL_QWEN.md.
-OpenRouter remains development-only. Offline competition readiness is NOT verified.
+See docs/V07_QUALITY_REPORT.md, docs/LOCAL_QWEN.md (future option) and [API submission decision](docs/DECISION_API_SUBMISSION.md).
+OpenRouter is planned for submission, **without claiming compliance with COI rules**. Local Ollama is a future-only option.

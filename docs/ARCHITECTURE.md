@@ -1,5 +1,8 @@
 # FormFlow AI – architektura (etap 1)
 
+> **Nota aktualizacyjna:** diagram poniżej opisuje dawny etap 1 i nie odzwierciedla całej v0.7.0. **Wersja zgłoszeniowa korzysta z OpenRouter API, a nie lokalnego LLM**. Nie jest zgodna z zakazem zewnętrznych API COI. [Aktualna decyzja](DECISION_API_SUBMISSION.md), [tasklista](TASKLIST.md).
+
+
 ```text
 Browser --Tailscale Serve HTTPS :9466--> 127.0.0.1:18171 --Docker--> FastAPI
                                                      |-- / (minimalny interfejs)

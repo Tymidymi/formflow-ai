@@ -33,7 +33,7 @@ W repozytorium zapytanie generowane jest dla rzeczywistych identyfikatorów i ty
 
 - **46/46** testów FastAPI, eksportu, inferencji warunków, słownika `Kraje`, błędów i adaptera offline (mock).
 - Dodatkowe **5/5** testów izolowanego silnika PDF/OCR (z v0.6).
-- Wersja produkcyjna konkursowa wciąż wymaga prawdziwego offline Qwen i testu importera.
+- **Aktualna decyzja zgłoszeniowa:** używamy OpenRouter API. Nie wdrażamy lokalnego Qwen podczas hackathonu. To oznacza niezgodność z zakazem zewnętrznych API w COI. Nadal potrzebny jest test importera; szczegóły w [decyzji](DECISION_API_SUBMISSION.md).
 
 ## Ograniczenia i ryzyka
 
@@ -45,4 +45,4 @@ W repozytorium zapytanie generowane jest dla rzeczywistych identyfikatorów i ty
 
 ## Następny krok
 
-Przenieść oryginalne binarne formularze na urządzenie z dostępem do modelu, uruchomić pełny benchmark, sprawdzić JSONata w rendererze oraz wykonać próbę Ollama całkowicie bez Internetu.
+Przetestować oryginalne binarne formularze na bieżącym VPS z OpenRouter API, uruchomić pełny benchmark i sprawdzić JSONata w rendererze. Próbę Ollama bez internetu skreślono z planu hackathonu (opcjonalny backlog po konkursie).

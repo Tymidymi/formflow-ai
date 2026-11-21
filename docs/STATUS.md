@@ -1,8 +1,11 @@
 # FormFlow AI — stan wdrożenia (21.11.2026)
 
+**Nadrzędna decyzja dla zgłoszenia:** OpenRouter API / Qwen3-VL; **bez lokalnego LLM** na hackathonie. Ollama ewentualnie po konkursie. **To nie spełnia zakazu zewnętrznych API COI.** Szczegóły: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
+
+
 ## Wdrożone na VPS
 
-- [x] FastAPI 0.5.0 i Docker Compose z portem 127.0.0.1:18171
+- [x] FastAPI 0.7.0 i Docker Compose z portem 127.0.0.1:18171
 - [x] Prywatny Tailscale Serve: https://vibe.tail075c6f.ts.net:9466/
 - [x] Przesyłanie dokumentów, weryfikacja formatu, rozmiaru i nazwy
 - [x] Oddzielny dev-only adapter OpenRouter Qwen3-VL-8B-Instruct
@@ -16,7 +19,7 @@
 - [ ] Docling nie jest jeszcze uruchomiony
 - [x] Parser ODS dodany; [ ] stary DOC nadal nieobsługiwany (501)
 - [x] Oryginalny JSON Schema COI podłączony; [ ] nadal brak testu importu w systemie docelowym
-- [ ] Wersja konkursowa musi działać bez zewnętrznego API; compose.yaml nie zawiera OpenRouter, compose.dev.yaml służy wyłącznie do rozwoju
+- [x] Wybrano konkursowe demo z OpenRouter API (`compose.dev.yaml`); [ ] niezgodność z zakazem API w COI pozostaje otwartym ryzykiem.
 - [ ] JSON Forms (renderer) nie jest jeszcze podłączony
 - [ ] Nie zmierzono jeszcze jakości na prawdziwych formularzach konkursowych
 - [x] GitHub: prywatne repo https://github.com/Tymidymi/formflow-ai; origin/main opublikowany
@@ -27,7 +30,7 @@
 cd /home/tymot/projects/formflow-ai
 # Development — używa lokalnego pliku .env, który nie trafia do Git.
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
-# Konkurs / offline — bez OpenRouter
+# Opcja po hackathonie, NIE bieżąca konfiguracja zgłoszeniowa: bez OpenRouter
 docker compose -f compose.yaml -f compose.dev.yaml down
 docker compose -f compose.yaml up -d --build
 ```
@@ -70,7 +73,7 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - `/api/v1/forms/extract-preview` i przycisk UI: ekstrakcja bez OpenRouter.
 - Normalizacja semantyczna: usunięcie podpisu papierowego, odzysk daty, pola podania, rozdzielenie miejscowości i daty, wynajem/użyczenie, poprawa liczby uczestników.
 - Oryginalne pliki COI #3/#4 sprawdzone lokalnie pod kątem PDF tekstowego i OCR, ale pełny binarny end-to-end na VPS nadal jest niezrobiony.
-- OpenRouter nadal DEV; brak konkursowej inferencji offline. Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).
+- OpenRouter planowany również do konkursowego zgłoszenia pomimo zakazu zewnętrznych API; lokalna inferencja poza zakresem. Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).
 
 ## Etap v0.7.0 — 21 listopada 2026
 
@@ -78,4 +81,12 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Dynamiczne stany JSONata SHOW i słownik Kraje.
 - Opcjonalny adapter Ollama/Qwen, testy protokołu mock; nie wykonano inferencji na VPS.
 - 46/46 testów FastAPI.
-- Wciąż brak pełnego testu offline i testu warunków w realnym rendererze.
+- Test offline przeniesiony do opcjonalnego backlogu po konkursie; nadal brak testu warunków w realnym rendererze.
+
+## Decyzja nadrzędna po v0.7.0
+
+- **Oddajemy wersję z API OpenRouter/Qwen**, nie wersję offline.
+- Nie robimy w kolejnych runach lokalnej inferencji, konfiguracji GPU ani testu uruchomienia Ollama.
+- Kolejne prace: benchmark prawdziwych dokumentów, jakość konwersji, JSON Forms, testy i submission.
+- **Ryzyko:** wymaganie COI wyklucza zależności od zewnętrznych API; nasza wersja go nie spełnia, a organizator nie potwierdził wyjątku.
+- [Decyzja i ryzyko](DECISION_API_SUBMISSION.md).
