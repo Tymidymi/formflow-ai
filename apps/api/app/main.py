@@ -1,4 +1,4 @@
-"""FormFlow AI v0.5.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v0.6.0 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -14,9 +14,10 @@ from .extraction_router import extract_with_backend
 from .coi_builder import convert as to_coi
 from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
+from .semantic_quality import normalize_semantic
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="0.5.0",
+app=FastAPI(title="FormFlow AI",version="0.6.0",
     description="COI prototype. OpenRouter is development ONLY, not competition-compliant.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
@@ -48,7 +49,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"0.5.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"0.6.0"}
 
 @app.get("/readyz")
 def ready():
@@ -57,18 +58,36 @@ def ready():
 
 @app.get("/api/v1/capabilities")
 def capabilities():
-    return {"inspection":True,"conversion":enabled(),"preview":False,
+    return {"inspection":True,"conversion":enabled(),"preview":True,
             "coi_structural_validation":True,"coi_schema_validation":True,
             "model_provider":"openrouter-development" if enabled() else "disabled",
             "docling_office_enabled":__import__("os").environ.get("FORMFLOW_DOCLING_URL")=="http://docling-office:8001",
+            "pdf_ocr_enabled":__import__("os").environ.get("FORMFLOW_PDF_WORKER_URL")=="http://pdf-engine:8002",
+            "pdf_vision_enabled":__import__("os").environ.get("FORMFLOW_PDF_VISION")=="true",
             "supported_extensions":[".pdf",".doc",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "conversion_extensions":[".pdf",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "max_upload_bytes":max_upload_bytes(),
-            "note":"OpenRouter development only. Official COI JSON Schema enabled; Docling Office active when configured; full PDF/OCR and legacy DOC pending."}
+            "note":"OpenRouter development only. PDF layout + Polish Tesseract OCR worker and Docling Office available; Docling PDF models, legacy DOC and offline LLM pending."}
 
 @app.post("/api/v1/forms/inspect")
 async def inspect(file:UploadFile=File(...)):
     return {"status":"validated","document":await inspect_upload(file)}
+
+@app.post("/api/v1/forms/extract-preview")
+async def extract_preview(file:UploadFile=File(...)):
+    """Local-only preview: does NOT call OpenRouter or any external API."""
+    ext=validate_filename(file.filename)
+    try:
+        content=await file.read(max_upload_bytes()+1)
+    finally:
+        await file.close()
+    if not content:raise RejectedFile("Pusty dokument.",422)
+    if len(content)>max_upload_bytes():raise RejectedFile("Przekroczono limit pliku.",413)
+    mime=detect_mime(content,ext)
+    text,images,meta=await extract_with_backend(content,ext)
+    return {"external_api_used":False,"filename":file.filename,"mime":mime,
+            "extraction":meta,"characters":len(text),
+            "text_preview":text[:4000],"images_for_vision":len(images)}
 
 @app.post("/api/v1/forms/validate-json")
 async def validate_json(request:Request):
@@ -97,8 +116,12 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
     try:
         text,images,extraction_meta=await extract_with_backend(content,ext)
         semantic,info=await generate(text,images)
+        semantic,normalization=normalize_semantic(text,semantic)
         result,validation=to_coi(semantic)
         quality=assess_quality(text,semantic)
+        if extraction_meta.get("truncated"):
+            quality["ok"]=False
+            quality.setdefault("possible_missing",[]).append("Źródło przekroczyło limit tekstu")
     except AIProviderError as exc:
         return JSONResponse(status_code=502,content={"detail":str(exc),"code":"AI_PROVIDER_ERROR"})
     except ValueError as exc:
@@ -113,4 +136,5 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
             "provider":"openrouter-development","model":info["model"],"usage":info.get("usage",{}),
             "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime,"extraction":extraction_meta},
             "form":result,"validation":validation,"quality":quality,
+            "normalization":normalization,
             "warning":"Tryb developerski wysyła zawartość formularza do OpenRouter. Nie jest wersją konkursową."}

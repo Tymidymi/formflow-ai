@@ -7,14 +7,14 @@
 
 ## Stan obecny
 
-- ✅ FastAPI 0.5.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
+- ✅ FastAPI 0.6.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
 - ✅ **Development only:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
-- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **32/32**.
+- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **40/40**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
 - ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
-- ❌ Brak pełnego Docling PDF/OCR i obsługi starego `.doc` w konwersji, JSON Forms, słowników COI, walidacji reguł i rozwiązania lokalnego LLM dla konkursu.
+- ❌ PDF layout/OCR offline działa (pypdf/Tesseract), ale brak pełnego Docling PDF i obsługi starego `.doc` w konwersji, JSON Forms, słowników COI, walidacji reguł i rozwiązania lokalnego LLM dla konkursu.
 
 ## Kolejność prac i checklista
 
@@ -41,7 +41,7 @@
 - [x] Izolowany Docling Office dla DOCX/XLSX/ODS, 384 MiB, HTTP 200; [ ] ciężki Docling PDF/OCR.
 - [x] Docling Office zachowuje tabele w Markdown; [ ] pełne współrzędne, numery stron i pochodzenie pól.
 - [x] Lekki parser `.ods` bez dodatkowych zależności, testy XML; [ ] adapter starego `.doc` i audyt konwersji.
-- [ ] OCR i fallback dla obrazów/skanów (w trybie konkursowym bez żadnego zewnętrznego API).
+- [x] Lokalny OCR Tesseract pol+eng dla PDF/JPG/PNG, limit stron i pamięci; [ ] pełny Docling PDF z modelami.
 - [ ] Testy wszystkich wymaganych rozszerzeń na materiałach COI.
 
 ### Etap D — Model semantyczny i generowanie · P0
@@ -49,7 +49,7 @@
 - [x] Adapter OpenRouter w **oddzielnym** `compose.dev.yaml`, zgoda użytkownika przed przekazaniem dokumentu poza VPS.
 - [ ] Modele Pydantic dla `CanonicalForm`, schemat pośredni i walidacja typów.
 - [x] Quality gate wykrywa potencjalnie brakujące etykiety; [ ] pełna detekcja halucynacji i pochodzenia pól.
-- [ ] Przetwarzanie dokumentów wielostronicowych z łączeniem wyników, retry i limitami.
+- [x] Lokalna ekstrakcja PDF do 25 stron, OCR do 4, limit wejścia 18 tys. znaków z blokadą niekompletnego eksportu; [ ] modelowe chunking/retry dla długich dokumentów.
 - [ ] **Wersja konkursowa:** uruchomić lokalny model z otwartymi wagami (Ollama/Qwen lub inny) i przejść test całkowicie bez OpenRouter; potrzebny odpowiedni sprzęt z RAM/VRAM.
 - [ ] Testy na niewidzianych wcześniej formularzach.
 
@@ -69,7 +69,7 @@
 
 ### Etap G — Jakość, bezpieczeństwo i submission · P0
 - [x] Podstawowe ograniczenia uploadu, weryfikacja nazw i formatów, Tailscale-only.
-- [x] Testy automatyczne nowego kodu: 32/32; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
+- [x] Testy automatyczne nowego kodu: 40/40; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
 - [ ] Pełne testy MIME, ZIP-bomb, makr, limitu stron, cleanup, timeoutów, bezpieczeństwa wysyłki.
 - [ ] Konfiguracja JWT (wymagania konkursowe); [x] `readyz.competition_compliant=false` również przy wyłączonym AI.
 - [ ] Test Docker z czystego klona, test offline, brak wyjściowych zależności SaaS.
@@ -99,3 +99,19 @@
 - [x] Próba długiego promptu i wycofanie po regresji liczby pól.
 - [ ] Benchmark na oryginalnych plikach binarnych wszystkich formatów.
 - [ ] Pełny Docling dla PDF/OCR, legacy DOC, słowniki/dynamika, JSON Forms i offline LLM.
+
+
+## Etap v0.6.0 — PDF Layout i OCR
+
+- [x] Oddzielny PDF/OCR worker: pypdf layout + pypdfium2 + Tesseract pol+eng, prywatna sieć i 384 MiB RAM.
+- [x] Lokalny podgląd ekstrakcji z PDF/PNG/JPG bez OpenRouter.
+- [x] Testy workera: tekst PDF, OCR PDF skan, OCR PNG, uszkodzony PDF i limit 25 stron — 5/5.
+- [x] Testy API: 40/40 (mock bez zewnętrznych zapytań).
+- [x] Syntetyczny PDF skanowany przeszedł OCR → Qwen → JSON COI (HTTP 200, schema_valid=true).
+- [x] Reguły odzyskujące jawnie obecne pola, korekty typów i filtrowanie podpisu papierowego; sprawdzone na poprzednich wynikach COI #3/#4.
+- [x] Lokalna ekstrakcja binarnych oryginalnych PDF-ów/PNG COI #3/#4.
+- [ ] **Pełny benchmark binarnych oryginalnych dokumentów przez VPS + LLM** i ręczny scoring recall/precision/types; obecne testy są częściowe.
+- [ ] Pełny Docling PDF/layout z modelami, jeśli zasoby pozwolą.
+- [ ] Legacy DOC, słowniki, warunki, JSON Forms, lokalny Qwen i sprawdzenie licencji transytywnych.
+
+Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).

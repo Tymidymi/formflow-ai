@@ -7,6 +7,8 @@ const checkbox=document.querySelector('#external-consent');
 const generateButton=document.querySelector('#generate');
 const downloadButton=document.querySelector('#download');
 const providerStatus=document.querySelector('#provider-status');
+const previewButton=document.querySelector('#extract-preview');
+const extractionResult=document.querySelector('#extraction-result');
 let currentFile=null;
 let generated=null;
 
@@ -22,6 +24,7 @@ function show(container,title,details,failed=false){
 }
 function updateButton(){
   generateButton.disabled=!currentFile||!checkbox.checked;
+  previewButton.disabled=!currentFile;
 }
 async function inspect(file){
   if(!file)return;
@@ -47,6 +50,25 @@ zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag
 zone.addEventListener('dragleave',()=>zone.classList.remove('dragging'));
 zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('dragging');inspect(e.dataTransfer.files[0]);});
 checkbox.addEventListener('change',updateButton);
+previewButton.addEventListener('click',async()=>{
+  if(!currentFile)return;
+  previewButton.disabled=true;
+  show(extractionResult,'Analiza lokalna…','Odczytuję dokument. Do zewnętrznego API nic nie jest wysyłane.');
+  const payload=new FormData();payload.append('file',currentFile,currentFile.name);
+  try{
+    const response=await fetch('/api/v1/forms/extract-preview',{method:'POST',body:payload});
+    const data=await response.json();
+    if(!response.ok)throw Error(data.detail||'Nie udało się wydobyć tekstu.');
+    const ext=data.extraction||{};
+    show(extractionResult,'✓ Ekstrakcja lokalna zakończona',
+      'Silnik: '+(ext.engine||'local')+'\\nStrony: '+(ext.pages||ext.source_pages||'—')+
+      '\\nStrony OCR: '+(ext.ocr_pages||0)+
+      '\\nTekst skrócony: '+(ext.truncated?'TAK':'nie')+
+      '\\n\\n'+(data.text_preview||'[Brak czytelnego tekstu — użyj podglądu wizualnego]'));
+  }catch(err){show(extractionResult,'Błąd ekstrakcji',err.message||'Błąd.',true);}
+  updateButton();
+});
+
 
 generateButton.addEventListener('click',async()=>{
   if(!currentFile||!checkbox.checked)return;
@@ -60,6 +82,7 @@ generateButton.addEventListener('click',async()=>{
     if(!response.ok)throw Error(data.detail||'Błąd generowania.');
     generated=data.form;
     const report=data.validation;const quality=data.quality||{};
+    const normalization=data.normalization||[];
     const errors=(report.errors||[]).slice(0,10).map(v=>v.code+': '+v.message).join('\n');
     show(convertResult,data.status==='generated'?'✓ JSON COI wygenerowany':'JSON wymaga kontroli',
         'Model: '+data.model+'\nEkstrakcja: '+(data.document?.extraction?.engine||'local')+'\nStrony: '+report.summary.tabs+
@@ -83,6 +106,7 @@ downloadButton.addEventListener('click',()=>{
 });
 fetch('/api/v1/capabilities').then(r=>r.json()).then(data=>{
   limit.textContent=Math.round(data.max_upload_bytes/1024/1024)+' MB';
-  providerStatus.textContent=data.conversion?'● OpenRouter DEV aktywny':'● AI wyłączone';
+  providerStatus.textContent=(data.conversion?'● OpenRouter DEV':'● AI wyłączone')+
+    (data.pdf_ocr_enabled?' · PDF/OCR':'');
   generateButton.disabled=!data.conversion;
 }).catch(()=>{providerStatus.textContent='● Brak połączenia';});

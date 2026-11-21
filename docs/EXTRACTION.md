@@ -41,3 +41,11 @@ Nie uruchamiać pełnego Docling PDF/OCR na tym VPS bez sprawdzenia zasobów. Po
 - [ ] Sprawdzenie pełnego łańcucha licencji wszystkich zależności, zanim projekt zostanie publiczny.
 
 **VPS:** aktualnie worker Docling Office działa jako oddzielny proces w prywatnej sieci Dockera; ma limit 384 MiB. Ciężki Docling PDF/OCR nie jest uruchamiany.
+
+
+## v0.6 PDF + OCR
+
+A separate offline worker \`pdf-engine\` (pypdf + pypdfium2 + Tesseract pol+eng)
+is added in \`compose.pdf.yaml\`. It runs inside the same isolated internal network
+and never publishes a host port. See [PDF_ENGINE.md](PDF_ENGINE.md).
+Full Docling PDF with layout models remains out of scope on the current VPS.

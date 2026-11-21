@@ -59,3 +59,15 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Długi prompt pogorszył liczby pól (11→5 w COI #3 i 17→12 w COI #4), więc został cofnięty; quality gate rozszerzono o terminy, uczestników i odpowiedzialność.
 - 32/32 testy automatyczne.
 - Niewykonane: pełny Docling PDF/OCR, starszy DOC, test pełnych oryginalnych plików i lokalny LLM konkursowy.
+
+
+## Etap v0.6.0 — 21 listopada 2026
+
+- FastAPI v0.6.0, lokalny PDF layout + OCR Tesseract pol+eng w osobnym kontenerze.
+- PDF OCR worker offline, prywatna sieć, 384 MiB, brak publicznego portu.
+- 5/5 testów workera i 40/40 testów API.
+- Syntetyczny skan PDF → lokalny OCR → Qwen3-VL-30B-A3B → JSON COI: HTTP 200, schema_valid=true, quality=true.
+- `/api/v1/forms/extract-preview` i przycisk UI: ekstrakcja bez OpenRouter.
+- Normalizacja semantyczna: usunięcie podpisu papierowego, odzysk daty, pola podania, rozdzielenie miejscowości i daty, wynajem/użyczenie, poprawa liczby uczestników.
+- Oryginalne pliki COI #3/#4 sprawdzone lokalnie pod kątem PDF tekstowego i OCR, ale pełny binarny end-to-end na VPS nadal jest niezrobiony.
+- OpenRouter nadal DEV; brak konkursowej inferencji offline. Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).

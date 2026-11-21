@@ -88,3 +88,22 @@ Sparse model outputs are flagged needs_review; the raw COI JSON endpoint rejects
 Office documents DOCX, XLSX and ODS can be processed by a separate Docling-slim 2.151.1 Docker worker. It has no public port, uses an internal Docker network, and has a 384 MiB memory limit. The API falls back to built-in parsers if the worker fails. Enable via compose.docling.yaml and --profile docling. Full PDF layout/OCR and legacy DOC are pending.
 
 See docs/COI_BENCHMARKS.md and docs/EXTRACTION.md for test findings and limitations.
+
+
+## v0.6 — Offline PDF Layout + Polish OCR
+
+A separate PDF Engine processes text PDFs with pypdf's layout extraction and
+scans/images with local PDFium + Tesseract pol+eng. There is **no external API**
+in the extraction pipeline. The separate OpenRouter model remains DEV-only.
+
+Enable (with the existing Office worker):
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml -f compose.docling.yaml \
+  -f compose.pdf.yaml --profile docling --profile pdf up -d --build
+```
+
+The local extraction preview `POST /api/v1/forms/extract-preview` does not use
+OpenRouter. The UI has a button to inspect the OCR text before consenting to AI.
+
+See [PDF engine](docs/PDF_ENGINE.md) for limits, tests and open gaps.
