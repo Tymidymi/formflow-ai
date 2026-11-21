@@ -5,7 +5,10 @@ COPY apps/extractor/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt \
     && groupadd -g 10002 docling \
     && useradd -u 10002 -g 10002 -M -d /nonexistent docling
+RUN apt-get update && apt-get install -y --no-install-recommends antiword \
+    && rm -rf /var/lib/apt/lists/*
 COPY apps/extractor/app.py /app/app.py
+COPY apps/extractor/legacy_doc.py /app/legacy_doc.py
 USER 10002:10002
 EXPOSE 8001
 CMD ["uvicorn","app:app","--host","0.0.0.0","--port","8001","--workers","1"]
