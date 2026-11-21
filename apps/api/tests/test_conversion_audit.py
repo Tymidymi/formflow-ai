@@ -88,11 +88,11 @@ def test_browser_error_gets_same_request_id_as_server_audit(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY","synthetic-test-key")
     async def extracted(*_args,**_kwargs):
         return "Imię i nazwisko\nTelefon\nPESEL\nMiejscowość",[],{"engine":"synthetic","pages":1}
-    async def generated(*_args,**_kwargs):
+    async def structured(*_args,**_kwargs):
         raise AIProviderError("Model nie zwrócił poprawnego JSON.",
                               code="MODEL_INVALID_JSON")
     monkeypatch.setattr(api,"extract_with_backend",extracted)
-    monkeypatch.setattr(api,"generate",generated)
+    monkeypatch.setattr(api,"extract_structured",structured)
     seen=[]
     monkeypatch.setattr(conversion_audit.logger,"info",seen.append)
     response=TestClient(app).post("/api/v1/forms/convert?mode=diagnostic",

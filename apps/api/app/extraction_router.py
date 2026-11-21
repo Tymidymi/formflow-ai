@@ -50,7 +50,7 @@ async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="au
     if pdf_enabled and extension in PDF_INPUTS:
         try:
             payload=await _request(PDF_URL,extension,content,previews=pdf_vision)
-            source_text=payload["text"][:18000]
+            source_text=payload["text"][:100000]
             images=[]
             if extension in (".jpg",".jpeg",".png"):
                 mime="image/png" if extension==".png" else "image/jpeg"
@@ -58,7 +58,7 @@ async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="au
             page_numbers=[]
             rejected_images=[]
             if extension==".pdf" and pdf_vision:
-                for entry in payload.get("preview_images",[])[:3]:
+                for entry in payload.get("preview_images",[])[:12]:
                     page=entry.get("page")
                     if entry.get("mime")!="image/jpeg":
                         rejected_images.append(page)
@@ -75,7 +75,7 @@ async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="au
                 "pages":count,
                 "ocr_pages":payload.get("ocr_pages"),
                 "page_sources":payload.get("page_sources",[]),
-                "truncated":payload.get("truncated",False),
+                "truncated":payload.get("truncated",False) or len(payload["text"])>100000,
                 "vision_enabled":bool(pdf_vision) if extension==".pdf" else True,
                 "vision_pages":len(images) if extension==".pdf" else 1,
                 "vision_page_numbers":page_numbers if extension==".pdf" else [1],
@@ -99,9 +99,9 @@ async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="au
             payload=await _request(DOCLING_URL,extension,content)
             text=payload["text"]
             if text.strip():
-                return text[:18000],[],{"engine":"docling-office","tables":payload.get("tables",0),
+                return text[:100000],[],{"engine":"docling-office","tables":payload.get("tables",0),
                     "source_pages":payload.get("page_count",0),
-                    "truncated":len(text)>18000}
+                    "truncated":len(text)>100000}
         except RejectedFile:raise
         except (httpx.HTTPError,ValueError,KeyError,TypeError):
             text,images=await asyncio.to_thread(extract_document,content,extension)

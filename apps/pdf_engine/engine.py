@@ -16,10 +16,10 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from pypdf import PdfReader
 
 MAX_PAGES=25
-MAX_OCR_PAGES=4
-MAX_TEXT_CHARS=18000
+MAX_OCR_PAGES=12
+MAX_TEXT_CHARS=100000
 MAX_IMAGE_PIXELS=5_000_000
-MAX_PREVIEW_PAGES=3
+MAX_PREVIEW_PAGES=12
 
 class PdfExtractionError(Exception):
     def __init__(self, message: str, code: int=422):

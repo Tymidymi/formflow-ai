@@ -162,3 +162,26 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Przeszłych błędów nie da się odtworzyć bez historycznych logów. Kolejne zgłoszenia będą miały identyfikatory.
 - Pełny opis: [V12_CONVERSION_LOGGING.md](V12_CONVERSION_LOGGING.md).
 - Test live: zdarzenia zapisują się w prywatnym pliku, znajdują po request_id, zachowują się po restarcie; uszkodzony PDF ma odrębny kod DOCUMENT_REJECTED.
+
+
+## Etap v1.3.0 — 21 listopada 2026
+
+- Usunięto produkcyjne poprawki oparte na konkretnych przykładach: `form_repair`,
+  `semantic_quality`, `conditional_rules`, `benchmark_gold`.
+- Zastąpiono jednoprzebiegowy prompt uniwersalną analizą stron, wyodrębnianiem
+  wydrukowanych komórek tabel i niezależną kontrolą geometrii przez Vision.
+- Odpowiedzi OCR/VLM są scalane przez cytaty źródłowe, kolumny, wiersze i strony;
+  duplikaty tabel oraz oświadczeń RODO są usuwane przed eksportem.
+- Quality gate: luka pól vs drukowane puste miejsca skutkuje ostrzeżeniem
+  lub blokadą, a nie automatycznym zatwierdzeniem.
+- COI zachowuje siatkę wiersz/kolumna i nie obcina pól po cichu.
+- [Raport v1.3](V13_UNIVERSAL_EXTRACTION.md).
+
+### Kontrola jakości v1.3.0 — ograniczenie aktualne
+
+- Testy: 75/75 backend, 16/16 frontend, 7/7 worker PDF.
+- Syntetyczny skan robót: odtworzono poprawnie 4 × 2 × 3 = 24 komórki tabeli; JSON COI poprawny.
+- Ostatni pełny przebieg Qwen wykrył fałszywą tabelę w liście załączników. Następnie dodano OGÓLNY filtr wymagający powtarzających się wierszy/kolumn w OCR; testy list i prawdziwych tabel przeszły.
+- [ ] Powtórzyć test LIVE przez OpenRouter po tym filtrze. Test jednostkowy NIE jest równoważny walidacji jakościowej na nowym pliku.
+- [ ] Zweryfikować na niezależnych oryginalnych dokumentach, że nie ma duplikatów i fałszywych tabel, w tym PDF/DOCX/XLSX/ODS/JPG.
+- Mechanizm nie jest jeszcze bezbłędnym konwerterem dowolnego pliku; słabe OCR i model Vision nadal mogą popełniać błędy.

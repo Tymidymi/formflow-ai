@@ -1,56 +1,71 @@
-"""Heuristic omission warnings for administrative blank forms.
+"""Source-derived conversion completeness checks, independent of form category.
 
-This does not prove semantic quality. It prevents a structurally valid form with
-almost no input fields from being labeled an unqualified success.
+No example-specific fields. A correct COI JSON Schema is not evidence that the
+underlying paper form has been faithfully digitized.
 """
 from __future__ import annotations
-import re
-import unicodedata
 
-SIGNALS = (
-    ("imię i nazwisko", r"imi[eę]\s+i\s+nazwisko|nazwisko", ("imie", "nazwisk")),
-    ("adres", r"\badres\b", ("adres", "ulica", "zamieszkania")),
-    ("PESEL", r"\bpesel\b", ("pesel",)),
-    ("telefon", r"\btelefonu?\b|\btel\.", ("telefon", "kontaktowy", "tel")),
-    ("data", r"\bdnia\b|\bdata\b", ("data", "dnia")),
-    ("rodzaj zaświadczenia", r"prosz[eę]\s+o\s+wydanie\s+za[sś]wiadczenia\s+o", ("zaswiadczen", "rodzaj")),
-    ("cel zaświadczenia", r"potrzebne\s+jest\s+celem|cel\s+(?:wydania|wniosku)", ("cel", "przedlozen", "zaswiadczen")),
-    ("NIP", r"\bnip\b", ("nip",)),
-    ("REGON", r"\bregon\b", ("regon",)),
-    ("kod pocztowy", r"kod\s+pocztowy", ("pocztowy",)),
-    ("e-mail", r"e-?mail", ("email", "mail")),
-    ("wynajem/użyczenie", r"wynaj[eę]cie/u[zż]yczenie|wynajem/u[zż]yczenie", ("wynajem", "wynajec", "uzyczen", "rodzaj", "forma")),
-    ("okres od-do", r"terminie\s+od|termin\s+od", ("termin", "od", "do", "data")),
-    ("uczestnicy", r"ilo[sś][cć]\s+uczestnik", ("uczestnik", "osob", "ilosc")),
-    ("odpowiedzialny", r"osoba\s+odpowiedzialna", ("odpowiedzial", "osoba")),
-    ("cel wynajęcia", r"cel\s+wynaj[eę]cia", ("cel", "rodzaj uroczystosci")),
-    ("oświadczenia", r"o[sś]wiadczam", ("oswiadcz", "zapoznal", "przestrzegania", "odpowiadam")),
-)
+from .structured_extraction import blank_hints
 
-def fold(s: str) -> str:
-    return unicodedata.normalize("NFKD",s).encode("ascii","ignore").decode("ascii").casefold()
+NON_INPUT={"INFO_BLOCK","TEXT_BLOCK"}
 
-def assess(text: str, semantic: dict) -> dict:
-    source=fold(text)
-    fields=[
-        f for page in semantic.get("pages",[]) if isinstance(page,dict)
-        for sec in page.get("sections",[]) if isinstance(sec,dict)
-        for f in sec.get("fields",[]) if isinstance(f,dict) and f.get("label")
-        and f.get("type") not in ("INFO_BLOCK","TEXT_BLOCK")
-    ]
-    labels=[fold(str(f["label"])) for f in fields]
-    signals=[(title, keys) for title, pattern, keys in SIGNALS if re.search(fold(pattern),source)]
-    # ^ Basic regex simplification is deliberate: fold(pattern) handles accented
-    #    character classes, while the positive signals remain conservative.
-    detected=[title for title,keys in signals if any(any(key in lab for key in keys) for lab in labels)]
-    missing=[title for title,keys in signals if title not in detected]
-    ratio=(len(detected)/len(signals)) if signals else 1.0
-    # A RODO-only result is never a valid application, even if JSON Schema passes.
-    # The user asked to digitize a form. Returning only legal information
-    # should NEVER be treated as a successful form conversion.
-    severe=bool(len(fields)==0
-                or (len(signals)>=4 and (len(fields)<3 or ratio<0.55)))
-    return {"ok":not severe,"input_fields":len(fields),"source_signals":len(signals),
-            "matched_signals":len(detected),"signal_coverage":round(ratio,3),
-            "possible_missing":missing,
-            "note":"Heuristic omissions check; not an authoritative field-coverage benchmark."}
+def all_fields(semantic:dict)->list[dict]:
+    return [f for page in semantic.get("pages",[]) if isinstance(page,dict)
+            for section in page.get("sections",[]) if isinstance(section,dict)
+            for f in section.get("fields",[]) if isinstance(f,dict)
+            and f.get("type") not in NON_INPUT]
+
+def assess(source:str,semantic:dict,*,pages:list[dict]|None=None,
+           pages_expected:int|None=None,
+           vision_incomplete:bool=False,
+           truncated:bool=False) -> dict:
+    fields=all_fields(semantic)
+    stats=blank_hints(source)
+    seen_pages=pages or []
+    if seen_pages:
+        expected=sum(p.get("blank_slots",0) for p in seen_pages)
+        detected=sum(p.get("detected_fields",0) for p in seen_pages)
+        evidence=sum(p.get("source_evidence_count",0) for p in seen_pages)
+        sourced=sum(p.get("source_blank_slots",0) for p in seen_pages)
+        visual_seen=sum(bool(p.get("with_image")) for p in seen_pages)
+        page_count=len(seen_pages)
+    else:
+        expected=stats["blank_slots"]
+        detected=len(fields)
+        evidence=0
+        sourced=expected
+        visual_seen=0
+        page_count=0
+    # Blank-run count is a lower-bound *indicator*, not a legal requirement
+    # for exact one-to-one fields. Fail a major omission; a small mismatch
+    # remains a review note rather than silently proclaiming success.
+    ratio=(detected/expected) if expected else None
+    major_omission=bool(expected>=5 and detected<0.72*expected)
+    minor_gap=bool(expected>=5 and detected<0.93*expected)
+    incomplete=bool(pages_expected is not None and page_count<pages_expected)
+    issues=[]
+    if not fields:
+        issues.append("Nie wykryto żadnych pytań do wypełnienia.")
+    if major_omission:
+        issues.append("Wykryto znacznie mniej pól niż pustych miejsc w dokumencie.")
+    elif minor_gap:
+        issues.append("Część pustych miejsc może nie mieć odpowiednika w formularzu.")
+    if vision_incomplete or incomplete:
+        issues.append("Nie przeanalizowano obrazowo wszystkich stron źródła.")
+    if truncated:
+        issues.append("Tekst wejściowy został ucięty.")
+    # Source evidence may be visible only in images and impossible to match in
+    # noisy OCR. Expose it, but never fabricate additional fields from it.
+    return {
+        "ok": bool(fields) and not major_omission and not incomplete
+              and not vision_incomplete and not truncated,
+        "input_fields":len(fields),
+        "source_blank_slots":expected,
+        "blank_coverage_ratio":round(ratio,3) if ratio is not None else None,
+        "matched_source_quotes":evidence,
+        "page_count":page_count,
+        "visually_seen_pages":visual_seen,
+        "manual_review_recommended":minor_gap or bool(issues),
+        "possible_missing":issues,
+        "note":"Source-blank and per-page completeness signals; not proof of semantic accuracy."
+    }

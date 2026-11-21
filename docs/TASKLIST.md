@@ -1,6 +1,6 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v1.2.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v1.3.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
@@ -243,3 +243,39 @@ Status regulaminowy OpenRouter: **bez zmian — zgłoszenie planowane z API, mim
 - [ ] Opcjonalny mechanizm poprawy/skrócenia zbyt długich odpowiedzi w jednym zgłoszeniu, po ocenie kosztu i jakości.
 
 Dokumentacja: [V12_CONVERSION_LOGGING.md](V12_CONVERSION_LOGGING.md).
+
+
+## Etap v1.3.0 — Uniwersalne przetwarzanie dokumentów
+
+- [x] Usunąć z produkcji poprawki wymuszające wartości z konkretnych
+  przykładowych dokumentów (świetlica, numeracja nieruchomości).
+- [x] Każda strona analizowana osobno przez OCR + VLM, bez obcinania całości
+  do pierwszych 18 tys. znaków.
+- [x] Rozpoznawanie dowolnych wielokolumnowych wierszy na podstawie drukowanych
+  pustych miejsc, bez znanych nazw pól.
+- [x] Osobny model geometrii tabel (wiersze, kolumny, podgrupy, siatka).
+- [x] Deduplikacja pól przez cytaty źródłowe i nazwy kolumn;
+  deduplikacja oświadczeń informacyjnych.
+- [x] Mapa źródłowych cytatów/numerów stron oraz ostrzeżenia jakości.
+- [x] Eksport COI zachowuje siatkę pól x/y/cols i odrzuca nadmierne zakresy
+  zamiast pomijać dane po cichu.
+- [x] 72 testy backendu i 16 frontendu, testy bez realnych żądań OpenRouter.
+- [ ] Pełny human-labeled precision/recall benchmark na oryginalnych
+  formularzach i różnych układach tabel, skanów i Office.
+- [ ] Wizualny render DOCX/XLSX/ODS oraz starsze formaty `.doc`.
+- [ ] Bounding boxes, podświetlenie w źródle, zapisywanie wersji.
+
+[Raport v1.3](V13_UNIVERSAL_EXTRACTION.md).
+
+### v1.3.0 — uniwersalny pipeline OCR/Vision
+
+- [x] Usunąć per-przykład hardkodowane poprawki pól z produkcyjnej konwersji.
+- [x] Dzielić dokument na strony i analizować stronę osobno wraz z obrazem.
+- [x] Wykrywać uniwersalnie powtarzalne komórki tabel z OCR i geometrii Vision.
+- [x] Scalanie identycznych wierszy z kilku ekstraktorów, bez znanych etykiet.
+- [x] Eksport tabel w siatce COI; nie ucinać automatycznie po 80 polach.
+- [x] Quality gate i cytaty/numery źródłowych stron w podglądzie.
+- [x] Odrzucać fałszywe tabele bez niezależnego potwierdzenia powtarzalnych kolumn przez OCR.
+- [x] Testy regresyjne: 75 backend, 16 frontend, 7 PDF worker.
+- [ ] Pełna konwersja na żywo po ostatnim filtrze fałszywych tabel.
+- [ ] Benchmark jakości na losowych oryginalnych dokumentach z metrykami field-level precision/recall.

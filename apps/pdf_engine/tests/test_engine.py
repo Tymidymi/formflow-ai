@@ -57,7 +57,7 @@ class EngineTest(unittest.TestCase):
         self.assertLess(result["text"].index("PESEL"),result["text"].index("RODO"))
 
 
-    def test_three_visual_previews_and_missing_fourth_page_are_explicit(self):
+    def test_four_visual_previews_are_complete(self):
         pages=[]
         for page in range(4):
             img=Image.new("RGB",(900,700),"white")
@@ -67,9 +67,9 @@ class EngineTest(unittest.TestCase):
         pages[0].save(out,"PDF",save_all=True,append_images=pages[1:])
         res=pdf_extract(out.getvalue(),include_previews=True)
         self.assertEqual(res["page_count"],4)
-        self.assertEqual([p["page"] for p in res["preview_images"]],[1,2,3])
-        self.assertEqual(res["preview_page_numbers"],[1,2,3])
-        self.assertTrue(res["vision_incomplete"])
+        self.assertEqual([p["page"] for p in res["preview_images"]],[1,2,3,4])
+        self.assertEqual(res["preview_page_numbers"],[1,2,3,4])
+        self.assertFalse(res["vision_incomplete"])
         no_images=pdf_extract(out.getvalue(),include_previews=False)
         self.assertEqual(no_images["preview_images"],[])
         self.assertFalse(no_images["vision_incomplete"])

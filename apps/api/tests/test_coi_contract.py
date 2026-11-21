@@ -90,9 +90,12 @@ def test_api_default_returns_only_coi_json(monkeypatch):
     import app.main as api
     monkeypatch.setenv("FORMFLOW_AI_PROVIDER","openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY","fake-token")
-    async def fake_gen(text,images):
-        return semantic(), {"model":"mock", "usage":{}}
-    monkeypatch.setattr(api,"generate",fake_gen)
+    async def fake_structured(text,images,**kwargs):
+        return semantic(),{"images_sent":0,"pages_processed":1,
+                           "rechecked_pages":0,"pages_expected":1},[
+                           {"source_page":1,"blank_slots":0,"detected_fields":4,
+                            "source_evidence_count":4,"with_image":False}]
+    monkeypatch.setattr(api,"extract_structured",fake_structured)
     doc=Document()
     doc.add_paragraph("Wniosek o wydanie zaświadczenia")
     stream=BytesIO();doc.save(stream)

@@ -260,3 +260,29 @@ Qwen output token limit increased from 4000 to 6500. Truncated responses
 (`MODEL_INVALID_JSON`). No automatic additional billable retry.
 
 See [v1.2 conversion diagnostic documentation](docs/V12_CONVERSION_LOGGING.md).
+
+
+## v1.3 — source-grounded extraction without sample-specific patches
+
+Real user documents now flow through **generic per-page OCR + Qwen Vision**,
+followed by **source-derived repeated-row table recognition**, an independent
+image table-geometry audit, duplicate-cell reconciliation, and the official
+COI JSON exporter. OCR source quotes/page references are available for review.
+The new quality gate checks source blank counts and page coverage; a valid COI
+JSON alone is not treated as proof of correct digitization.
+
+The previous `form_repair`, `semantic_quality`, `conditional_rules` and
+`benchmark_gold` sample-specific modules have been REMOVED from the production
+workflow and repository. The synthetic demo is a self-contained fixture, not a
+source of inference rules.
+
+Model inference performs independent requests per source page. The system
+may call the model again on a page if detected inputs seem incomplete. This
+is potentially slower and more costly than previous one-shot generation.
+
+Supported conversion inputs: PDF, JPG/JPEG, PNG, DOCX, XLSX and ODS.
+Old `.doc` and other formats still require conversion before upload.
+OCR-heavy PDF supports up to 12 pages; longer scans may be rejected.
+Office uses Docling text/table extraction, not full-page image rendering.
+
+See [v1.3 general extraction](docs/V13_UNIVERSAL_EXTRACTION.md).

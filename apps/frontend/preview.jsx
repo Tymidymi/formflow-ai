@@ -124,7 +124,7 @@ function DocumentView({file, extraction}) {
     {loadedText && <pre className="ff-extracted">{loadedText}</pre>}
   </div>;
 }
-function PreviewApp({form, file, extraction, validation, quality, grounding, source, wizardMode=false}) {
+function PreviewApp({form, file, extraction, validation, quality, grounding, inventory, source, wizardMode=false}) {
   const [pageIndex, setPageIndex] = useState(0);
   const [view, setView] = useState("form");
   const [answers, setAnswers] = useState({});
@@ -342,6 +342,21 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, sou
     {extraction?.vision_incomplete && <div className="ff-warning" role="alert">
       Uwaga: obrazowo sprawdzono tylko {extraction.vision_pages||0} z {extraction.pages||"?"}
       {" "}stron PDF. Przejrzyj także pozostałe strony oryginału.</div>}
+    {quality && !quality.ok && !editing && <div className="ff-warning" role="alert">
+      <strong>Formularz może być niekompletny.</strong>{" "}
+      {quality.source_blank_slots>0 && <>W źródle wykryto {quality.source_blank_slots} pustych miejsc,
+      a formularz ma {quality.input_fields} pól. </>}
+      {quality.possible_missing?.join(" ")} Sprawdź oryginał przed eksportem.
+    </div>}
+    {inventory?.source_map?.length>0 && !editing && <details className="ff-ocr-evidence">
+      <summary>Skąd pochodzą wykryte pola? — zobacz dowody w dokumencie</summary>
+      <p>Lista fragmentów oryginału użytych do rozpoznania pól. Jest to powiązanie tekstowe, nie dokładne podświetlenie na skanie.</p>
+      <ul>{inventory.source_map.slice(0,120).map((item,index)=>
+        <li key={index}><strong>{item.label}</strong>{" "}
+          {item.source_page && <em>(strona {item.source_page})</em>} —{" "}
+          {item.source_quote||"Do sprawdzenia na obrazie"}</li>
+      )}</ul>
+    </details>}
     {grounding?.requires_review>0 && !editing && <details className="ff-ocr-evidence">
       <summary>
         Sprawdź dokładniej {grounding.requires_review} {grounding.requires_review===1?"pytanie":"pytań"} — OCR nie znalazł jednoznacznego potwierdzenia
@@ -430,7 +445,7 @@ if(mount && section){
       section.hidden=false;
       root.render(<PreviewApp key={Date.now()} form={form} file={options.file}
         extraction={options.extraction} quality={options.quality} grounding={options.grounding}
-        validation={options.validation} source={options.source} wizardMode={options.wizardMode===true}/>);
+        inventory={options.inventory} validation={options.validation} source={options.source} wizardMode={options.wizardMode===true}/>);
       if(options.scrollIntoView!==false)
         section.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
     },

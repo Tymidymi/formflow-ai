@@ -48,6 +48,15 @@ def split_legal_notice(text: str) -> Zones:
         legal = text[match.start():].strip()
         if len(body) >= 45 and OPERATIVE.search(body) and len(legal) >= 120:
             return Zones(body, legal, True, "explicit_legal_heading")
+    # GDPR information may start directly with a legal citation, without
+    # a separate "KLAUZULA INFORMACYJNA" heading. Keep it read-only.
+    article13=re.compile(r"(?im)^\s*zgodnie\s+z\s+art\.?\s*13\b[^\n]*$")
+    for match in article13.finditer(text):
+        body=text[:match.start()].rstrip()
+        appendix=text[match.start():].strip()
+        if (len(body)>=100 and len(appendix)>=160 and OPERATIVE.search(body)
+                and LEGAL_PARAGRAPHS.search(appendix[:1100])):
+            return Zones(body,appendix,True,"gdpr_legal_citation")
     for match in ADVISORY_HEADER.finditer(text):
         body=text[:match.start()].rstrip()
         appendix=text[match.start():].strip()

@@ -1,13 +1,6 @@
 """Fully synthetic COI eService fixture for safe, API-free demos."""
 from .coi_builder import convert
-from .conditional_rules import apply_conditions
 
-DEMO_SOURCE = (
-    "Wniosek o wynajęcie/użyczenie świetlicy wiejskiej. "
-    "Osoba odpowiedzialna za utrzymanie porządku i bezpieczeństwo. "
-    "W przypadku innej osoby niż wnioskodawca zbiorcze oświadczenie "
-    "tej osoby załączyć do wniosku."
-)
 
 def sample():
     return {
@@ -29,10 +22,16 @@ def sample():
                     {
                         "title": "Odpowiedzialność za wydarzenie",
                         "fields": [
-                            {
-                                "label": "Osoba odpowiedzialna (pełnoletnia) za utrzymanie porządku",
-                                "type": "TEXT_FIELD", "required": False, "options": [],
-                            },
+                            {"label":"Kto jest osobą odpowiedzialną?","type":"RADIO",
+                             "required":False,"options":["Wnioskodawca","Inna osoba"]},
+                            {"label":"Osoba odpowiedzialna (pełnoletnia) za utrzymanie porządku",
+                             "type":"TEXT_FIELD","required":False,"options":[],
+                             "show_when":{"field":"kto_jest_osoba_odpowiedzialna",
+                                          "value":"Inna osoba"}},
+                            {"label":"Oświadczenie osoby odpowiedzialnej",
+                             "type":"FILE_UPLOADER","required":False,"options":[],
+                             "show_when":{"field":"kto_jest_osoba_odpowiedzialna",
+                                          "value":"Inna osoba"}},
                         ],
                     },
                 ],
@@ -60,15 +59,16 @@ def sample():
     }
 
 def create_demo():
-    semantic, changes = apply_conditions(DEMO_SOURCE, sample())
-    form, validation = convert(semantic)
+    # Conditional fields exist only as explicit synthetic fixture data.
+    # They are NEVER inferred from a user's document by a fixed rule.
+    form, validation = convert(sample())
     return {
         "status": "demo",
         "provider": "synthetic-local-fixture",
         "form": form,
         "validation": validation,
         "quality": {"ok": True, "note": "To syntetyczny formularz demonstracyjny, nie wynik AI."},
-        "normalization": changes,
+        "normalization": [],
         "warning": "Przykładowy formularz DEMO z fikcyjnymi polami. Bez wysyłki danych do OpenRouter.",
         "source": "synthetic",
     }

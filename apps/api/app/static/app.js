@@ -138,10 +138,13 @@ generateButton.addEventListener("click",async()=>{
       "\nStrony: "+(report.summary?.tabs??"—")+
       "\nPola: "+(report.summary?.input_fields??"—")+
       "\nStruktura COI: "+(report.valid?"poprawna":"wymaga poprawy")+
-      "\nKontrola jakości: "+(quality.ok?"OK":"wymaga weryfikacji")+
-      (warnings?"\nUwagi: "+warnings:""),!report.valid||!quality.ok);
+      "\nKontrola jakości: "+(data.status==="generated"?"OK":"wymaga sprawdzenia przez człowieka")+
+      (quality.possible_missing?.length?"\nWeryfikacja: "+quality.possible_missing.join("; "):"")+
+      (warnings?"\nUwagi: "+warnings:""),
+      !report.valid||data.status!=="generated");
     showPreview(data.form,{file,validation:report,quality,
-      extraction:data.document?.extraction,grounding:data.grounding,source:"generated"});
+      extraction:data.document?.extraction,grounding:data.grounding,
+      inventory:data.inventory,source:"generated"});
   }catch(error){
     show(result,"Nie udało się przygotować formularza",
       (error.message||"Spróbuj ponownie.")+

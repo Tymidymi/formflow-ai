@@ -22,7 +22,8 @@ VALIDATORS = [
     (re.compile(r"(?i)\b(e-mail|email|adres e.?mail)\b"), "EMAIL"),
 ]
 def slug(text: str) -> str:
-    raw=unicodedata.normalize("NFKD",text).encode("ascii","ignore").decode("ascii")
+    raw=(unicodedata.normalize("NFKD",text.translate(str.maketrans("łŁ","lL")))
+         .encode("ascii","ignore").decode("ascii"))
     return (re.sub(r"[^a-z0-9]+","_",raw.lower()).strip("_") or "pole")[:55]
 
 def identifier(*parts: str) -> str:
@@ -55,17 +56,36 @@ def field_validation(label: str, required: bool) -> list[str]:
     return rules
 
 def convert(semantic: dict) -> tuple[dict,dict]:
-    pages=safe_list(semantic,"pages")[:6]
+    pages=safe_list(semantic,"pages")
     if not pages:raise ValueError("Model nie zidentyfikował stron.")
+    if len(pages)>24:
+        raise ValueError("Zbyt wiele stron formularza do bezpiecznego eksportu COI.")
     title=str(semantic.get("title") or "Formularz urzędowy")[:255]
     tabs=[];used=set();total=0
     for pi,page in enumerate(pages):
         if not isinstance(page,dict): continue
         questions=[];y=0
-        for si,section in enumerate(safe_list(page,"sections")[:8]):
+        sections=safe_list(page,"sections")
+        if len(sections)>24:
+            raise ValueError("Zbyt wiele sekcji na stronie.")
+        for si,section in enumerate(sections):
             if not isinstance(section,dict):continue
             children=[]
-            for fi,data in enumerate(safe_list(section,"fields")[:30]):
+            source_fields=safe_list(section,"fields")
+            # The source may describe a real table. COI supports a 3-column
+            # grid; preserve its printed row/column structure instead of
+            # flattening multiple cells into a vertical list.
+            tabular=bool(source_fields and all(
+                isinstance(f,dict) and isinstance(f.get("row"),int)
+                and isinstance(f.get("column"),str) and f["row"]>0
+                for f in source_fields))
+            columns=list(dict.fromkeys(str(f.get("column")) for f in source_fields))
+            tabular=tabular and 2<=len(columns)<=3
+            column_positions={name:i for i,name in enumerate(columns)}
+
+            if len(source_fields)>120:
+                raise ValueError("Zbyt wiele pól w pojedynczej sekcji.")
+            for fi,data in enumerate(source_fields):
                 if not isinstance(data,dict): continue
                 label=str(data.get("label") or "").strip()[:220]
                 if not label:continue
@@ -115,22 +135,31 @@ def convert(semantic: dict) -> tuple[dict,dict]:
                     item["dictionaryName"] = dictionary
                 if isinstance(data.get("show_when"), dict):
                     item["__show_when"] = data["show_when"]
-                children.append(wrap(item,len(children),len(children)))
+                placement=wrap(item,len(children),len(children))
+                if tabular:
+                    placement["x"]=column_positions[data["column"]]
+                    placement["y"]=max(0,data["row"]-1)
+                    placement["cols"]=1
+                children.append(placement)
                 total+=1
-                if total>=80:break
+                if total>400:
+                    raise ValueError("Formularz przekracza maksymalną liczbę 400 pól.")
             if not children:continue
             heading=str(section.get("title") or "Dane")[:220]
             item=field(heading,"SECTION",f"sekcja_{pi}_{si}_{slug(heading)}",
                        f"{title}/section/{pi}/{si}/{heading}",children=children,
                        description="<html><head></head><body></body></html>")
-            questions.append({"x":0,"y":y,"rows":len(children)+1,"cols":3,
+            section_height=max((cell["y"]+cell["rows"] for cell in children),default=0)+1
+            questions.append({"x":0,"y":y,"rows":section_height,"cols":3,
                               "field":{**item,"questionOrder":len(questions)}})
-            y+=len(children)+1
-            if total>=80:break
+            y+=section_height
+            if total>400:
+                raise ValueError("Formularz przekracza maksymalną liczbę 400 pól.")
         if questions:
             tabs.append({"id":identifier(title,"tab",str(pi)), "title":str(page.get("title") or f"Dane {pi+1}")[:220],
                          "type":"MAIN","questions":questions})
-        if total>=80:break
+        if total>400:
+            raise ValueError("Formularz przekracza maksymalną liczbę 400 pól.")
     if not tabs:raise ValueError("Model nie wykrył pól.")
     info=field("","TEXT_BLOCK","tekst_koncowy",f"{title}/finish/text",
                description="<html><head></head><body><p>Sprawdź dane przed wysłaniem wniosku.</p></body></html>")

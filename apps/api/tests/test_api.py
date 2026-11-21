@@ -8,7 +8,7 @@ from app.coi_builder import convert
 client=TestClient(app)
 
 def test_health():
-    assert client.get("/healthz").json()["version"]=="1.2.0"
+    assert client.get("/healthz").json()["version"]=="1.3.0"
 
 def test_validation_pdf_signature():
     r=client.post("/api/v1/forms/inspect",files={"file":("test.pdf",b"%PDF-1.7\n%%EOF\n","application/pdf")})
@@ -43,11 +43,14 @@ def test_mocked_conversion(monkeypatch):
     import app.main as api
     monkeypatch.setenv("FORMFLOW_AI_PROVIDER","openrouter")
     monkeypatch.setenv("OPENROUTER_API_KEY","fake-key-for-test")
-    async def fake_model(text,images):
+    async def fake_structured(text,images,**kwargs):
         return {"title":"Wniosek testowy","pages":[{"title":"Dane",
-          "sections":[{"title":"Wnioskodawca","fields":[{"label":"Nazwisko","type":"TEXT_FIELD","required":False,"options":[]}]}]}]}, {
-          "model":"mock-qwen","usage":{"total_tokens":3}}
-    monkeypatch.setattr(api,"generate",fake_model)
+          "sections":[{"title":"Wnioskodawca","fields":[{"label":"Nazwisko","type":"TEXT_FIELD",
+                     "required":False,"options":[],"evidence":"Nazwisko"}]}]}]}, {
+            "images_sent":0,"pages_processed":1,"rechecked_pages":0,"pages_expected":1},[
+            {"source_page":1,"blank_slots":0,"detected_fields":1,
+             "source_evidence_count":1,"with_image":False}]
+    monkeypatch.setattr(api,"extract_structured",fake_structured)
     d=Document();d.add_paragraph("Wniosek o zaświadczenie");d.add_paragraph("Nazwisko")
     stream=BytesIO();d.save(stream)
     r=client.post("/api/v1/forms/convert?mode=diagnostic",headers={"X-External-AI-Consent":"true"},
