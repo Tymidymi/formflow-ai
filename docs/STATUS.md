@@ -218,3 +218,14 @@ Szczegóły: [V13_CHOICE_AUDIT.md](V13_CHOICE_AUDIT.md). Syntetyczny benchmark n
 - [ ] Synchronizacja historii lokalnego Git i gałęzi GitHub po zapisach API.
 
 Zadania i priorytety: [TASKLIST.md](TASKLIST.md).
+
+
+## Poprawki jakości po testach — 21.11.2026
+
+- [x] Niezależne wykrywanie krótkich źródłowych pustych miejsc (`source_slot_audit.py`) z VLM na wycinku strony; przypisanie brakującego pola do istniejącej sekcji po kolejności OCR.
+- [x] Zachowawcza reguła type-inference dla fizycznie wydrukowanego pola daty (nie dla konkretnego wniosku).
+- [x] Scalanie grup wyboru, usuwanie duplikatów opcji/sekcji, zachowanie pól tekstowych zależnych od wybranej opcji.
+- [x] Odczytywalne informacje wyłączone ze źródłowego obszaru wizualnej analizy i z odpowiedzi; zachowana pełna kopia tekstu w COI.
+- [x] Eksport COI/eksport odpowiedzi rozdzielone w interfejsie. Wstępnie zapobiega pustym eksportom odpowiedzi.
+- [x] 109 testów backendu + 20 testów frontendu.
+- [ ] Ponowny rzeczywisty upload dostarczonego JPEG z Qwen — niepotwierdzony w tej sesji.
