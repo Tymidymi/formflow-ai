@@ -38,6 +38,16 @@ FIRST locate ALL fillable elements on the physical page:
   remaining form fields. Read the headings, single blank lines and checkboxes.
   For visually detected tables NOT in the mechanical list, add their cells.
 - Repeated table entries are multiple controls, not one global input.
+- ONE physical answer area is ONE field even when its caption is printed
+  BELOW the dotted line or the same instruction is repeated above it.
+  A caption below a blank explains that blank; it is NOT a second input.
+- A measurement unit printed AFTER a blank (e.g. cm, kg, m², %, PLN)
+  is metadata for the preceding field, NOT an additional answer area.
+  The preceding printed caption and its unit describe ONE value.
+- Count actual writable regions, not every noun or label in OCR.
+  Do not split one continuous blank across wrapped lines into two fields.
+- For each proposed field, mentally identify the unique physical blank,
+  checkbox, or table cell it maps to. Never map two fields to one region.
 - Preserve table row/column meaning, using precise labels such as
   '<group> — wiersz 1 — <column name>'. Derive group/column names
   directly from this document. Number repeated rows within their group.
@@ -88,6 +98,11 @@ page, in the SAME JSON schema (title/pages/sections/fields).
   Those mechanically extracted table cells will be included separately;
   do not duplicate them.
 - Remove guessed fields that do not exist on this source page.
+- MERGE two draft questions if they refer to the SAME physical writable
+  region, including an above-line instruction and its below-line caption.
+- A printed unit after a blank is not another input. Keep the measurement
+  value as one field, with its unit in the label or validation metadata.
+- Conversely, keep two distinct physical blanks even if their captions match.
 - Never classify explanatory paragraphs or attachment instructions as
   compulsory checkboxes.
 - Keep fields in physical page order, preserve headings, labels, evidence.
@@ -206,6 +221,32 @@ def _sanitize_page(result:dict,page:Page)->dict:
             "pages":[{"title":real_page_title or f"Strona źródłowa {page.number}",
                       "sections":valid}] if valid else []}
 
+def _remove_unit_only_phantoms(inventory:dict,page:Page)->int:
+    """Reject a unit-only model field when source shows unit AFTER its blank.
+
+    This uses physical punctuation ordering, not any document-specific label.
+    A unit with its own preceding label/blank is not removed.
+    """
+    unit=re.compile(r"^(?:m[²2³3]?|cm[²2³3]?|mm|km|kg|g|ha|%|zł|pln|szt\.?)$",re.I)
+    suffix=re.compile(r"(?:\.{5,}|…{3,}|_{4,}|﹏{3,})\s*(?:m[²2³3]?|cm[²2³3]?|mm|km|kg|g|ha|%|zł|pln|szt\.?)\b",re.I)
+    removed=0
+    for formpage in inventory.get("pages",[]):
+        for section in formpage.get("sections",[]):
+            kept=[]
+            for field in section.get("fields",[]):
+                label=str(field.get("label","")).strip().rstrip(".: ")
+                line_no=field.get("source_line")
+                evidence=str(field.get("evidence", ""))
+                line=(page.text.splitlines()[line_no-1]
+                      if isinstance(line_no,int) and 1<=line_no<=len(page.text.splitlines())
+                      else evidence)
+                if unit.fullmatch(label) and suffix.search(line):
+                    removed+=1
+                    continue
+                kept.append(field)
+            section["fields"]=kept
+    return removed
+
 def _review_needed(hints:dict,inventory:dict)->bool:
     count=len(_fields(inventory))
     # A model detecting 8 out of 30 explicit blanks is a likely omission,
@@ -234,6 +275,7 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
             proposal,usage=await generate(diagnostic,images_for_page,
                                          prompt=PAGE_PROMPT)
             initial=_sanitize_page(proposal,page)
+            unit_phantoms=_remove_unit_only_phantoms(initial,page)
             vision_tables=[]
             same_table=False
             if page.image:
@@ -291,6 +333,7 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
                 second,second_info=await generate(input_text,images_for_page,
                                                   prompt=REVIEW_PROMPT)
                 revision=_sanitize_page(second,page)
+                unit_phantoms+=_remove_unit_only_phantoms(revision,page)
                 # Prefer the revised inventory only if it detects more physical
                 # slots. The quality gate will still report any remaining gap.
                 if len(_fields(revision))>=len(_fields(initial)):
@@ -347,6 +390,7 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
                     "with_image":bool(page.image),
                     "mechanically_extracted_cells":len(table_fields)-len(vision_tables),
                     "visually_reconstructed_cells":len(vision_tables),
+                    "unit_only_fields_rejected":unit_phantoms,
                     "source_evidence_count":sum(_evidence_ok(f,page.text)
                                                 for f in _fields(initial))}
             return initial,report,usage
