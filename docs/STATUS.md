@@ -239,7 +239,7 @@ Zadania i priorytety: [TASKLIST.md](TASKLIST.md).
 - [x] W innych przypadkach `MODEL_OUTPUT_TRUNCATED` i `MODEL_TIMEOUT`: stopniowy podział 2 → 4 → 8 fragmentów OCR lub obrazów strony; zachowanie wszystkich części i source evidence.
 - [x] XLSX w izolowanym workerze: strukturalny odczyt niepustych komórek ze współrzędnymi arkusz/wiersz/kolumna zamiast rozwijania pustych komórek do rozległych tabel Markdown.
 - [x] Dla DOCX/ODS: jawna informacja o ucięciu eksportu, bez cichej utraty tekstu.
-- [x] 118 zaliczonych testów backendu: recovery PDF/Excel, timeouty, brak ubytków tekstu, ponowienie OpenRouter, niezależne strukturalne XLSX.
+- [x] 119 zaliczonych testów backendu: recovery PDF/Excel, timeouty, brak ubytków tekstu, ponowienie OpenRouter, niezależne strukturalne XLSX.
 - [x] Test LIVE niezależnego XLSX na VPS: HTTP 200, COI schema valid, quality true, 37 pól wejściowych.
 - [ ] Pełny ponowny test ORYGINALNEGO załączonego XLSX/PDF binarnie na VPS (w tym przebiegu test LIVE był wykonany na syntetycznym formularzu).
-- [ ] Potwierdzić, jak działa złożony PDF z nowym proaktywnym dzieleniem stron.
+- [x] Test LIVE syntetycznego gęstego PDF na VPS: HTTP 200, COI schema valid, quality true; analiza 2 fragmentów. Po drodze wykryto i naprawiono błędną metadaną wiersza bez kolumny.
