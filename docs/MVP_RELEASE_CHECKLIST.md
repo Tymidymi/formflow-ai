@@ -8,7 +8,7 @@
 2. Darmowy, syntetyczny przykład w UI (**Uruchom przykład**) bez zewnętrznego API.
 3. Przejście od źródłowego dokumentu do COI JSON przez Qwen3-VL na OpenRouter, o ile świadomie wyrażono zgodę. AI może ominąć pola i musi być weryfikowane przez człowieka.
 4. Podgląd oryginału, weryfikację i edytor definicji pól, zapis ręcznych poprawek do pliku oraz walidację strukturalną JSON COI.
-5. Przy `needs_review` UI wymaga potwierdzenia, że użytkownik porównał każdą stronę z oryginałem. Nie jest to certyfikat wierności i nie zastępuje audytu.
+5. Po **każdej** konwersji AI UI wymaga potwierdzenia ręcznego porównania ze źródłem (nawet przy `quality.ok=true`). Nie pozwala wyeksportować formularza z zerem pól wejściowych. Nie jest to certyfikat wierności i nie zastępuje audytu.
 
 ## Środowiska
 

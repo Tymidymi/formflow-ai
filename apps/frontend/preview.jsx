@@ -134,7 +134,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
   const [workingForm, setWorkingForm] = useState(() => structuredClone(form));
   const [editing, setEditing] = useState(false);
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
-  const manualReviewRequired = source === "generated" && Boolean(quality && (!quality.ok || quality.manual_review_recommended));
+  const manualReviewRequired = source === "generated";
   const [editError, setEditError] = useState("");
   const [editMessage, setEditMessage] = useState("");
   const [validating, setValidating] = useState(false);
@@ -200,6 +200,11 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
       if (!response.ok || !data.valid || !data.schema_valid) {
         setEditError("Konfiguracja COI wymaga poprawy: "+(
           data.errors||[]).slice(0,4).map(x=>x.message).join("; "));
+        setSavedReview(data);
+        return false;
+      }
+      if ((data.summary?.input_fields ?? 0) < 1) {
+        setEditError("Formularz nie zawiera żadnego pola do wypełnienia. Dodaj brakujące pytania przed eksportem.");
         setSavedReview(data);
         return false;
       }
@@ -359,7 +364,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
     {extraction?.vision_incomplete && <div className="ff-warning" role="alert">
       Uwaga: obrazowo sprawdzono tylko {extraction.vision_pages||0} z {extraction.pages||"?"}
       {" "}stron PDF. Przejrzyj także pozostałe strony oryginału.</div>}
-    {manualReviewRequired && !editing && <div className="ff-warning" role="alert">
+    {quality && !quality.ok && !editing && <div className="ff-warning" role="alert">
       <strong>Formularz może być niekompletny.</strong>{" "}
       {quality.source_blank_slots>0 && <>W źródle wykryto {quality.source_blank_slots} pustych miejsc,
       a formularz ma {quality.input_fields} pól. </>}
