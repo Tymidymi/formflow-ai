@@ -64,3 +64,7 @@ semantic extraction with Qwen3-VL, deterministic COI JSON mapping, preliminary s
 
 Limitations: full COI JSON Schema and Docling not integrated; old DOC/ODS unsupported for conversion;
 real competition dataset benchmarking pending.
+
+## Project status / roadmap
+
+[Aktualna lista zadań](docs/TASKLIST.md) · [Pełny plan](docs/IMPLEMENTATION_PLAN.md) · [Status wdrożenia](docs/STATUS.md)

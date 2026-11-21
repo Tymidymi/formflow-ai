@@ -6,22 +6,23 @@
 > **Frontend:** React + TypeScript + JSON Forms  
 > **Uruchomienie:** Docker Compose, inferencja lokalna, bez wywołań zewnętrznych API podczas pracy aplikacji
 
-## Status wdrożenia — 21 listopada 2026
+## Status wdrożenia — 21 listopada 2026, 13:50
 
-> **Etap 1 jest wdrożony na VPS.** Kontener działa z prywatnym Tailscale Serve. **Docling, Qwen/Ollama, JSON COI i JSON Forms nie są jeszcze zaimplementowane.**
+**Aktualna szczegółowa checklista:** [TASKLIST.md](TASKLIST.md) — ta sekcja zastępuje nieaktualny opis etapu 1.
 
-| Obszar | Status |
+| Obszar | Stan zweryfikowany |
 |---|---|
-| Docker + FastAPI | ✅ `formflow-ai-api-1` healthy, `127.0.0.1:18171` |
-| Prywatny HTTPS | ✅ `https://vibe.tail075c6f.ts.net:9466/` (tailnet only) |
-| Git lokalny | ✅ `main`, commit `8f339f1` |
-| GitHub | ⏳ Autoryzacja CLI do dokończenia; jeszcze bez opublikowanego repo |
-| Upload | ✅ `/api/v1/forms/inspect` — wstępna walidacja plików |
-| Konwersja | ⬜ `/api/v1/forms/convert` — świadomie HTTP 501 |
-| Frontend | 🟡 Statyczny HTML/CSS/JS; jeszcze nie React/JSON Forms |
-| Testy | ✅ 11 testów etapu 1 i smoke testy HTTP |
+| Docker/FastAPI/Tailscale | ✅ VPS, wersja 0.3.0, prywatny HTTPS :9466 |
+| Git lokalny | ✅ `main`, ostatni commit przed aktualizacją `f22ab19` |
+| GitHub | ❌ Repo jeszcze nieutworzone / brak zdalnego `origin` |
+| OpenRouter / Qwen3-VL-8B | ✅ **Wyłącznie DEV:** przetestowana syntetyczna konwersja (HTTP 200) |
+| Mapowanie JSON COI | 🟡 Prototyp, brak walidacji oficjalnym schematem i benchmarku na materiałach COI |
+| Docling / stare DOC / ODS | ❌ Niezaimplementowane |
+| JSON Forms / React | ❌ Niezaimplementowane |
+| Konkursowy lokalny LLM | ❌ Niezaimplementowany; OpenRouter nie spełnia zakazu zewnętrznych API |
+| Testy | ✅ 13/13 testów na wersji 0.3.0, bez benchmarków COI |
 
-Szczegóły: [STATUS.md](STATUS.md). Następny chunk: GitHub, materiały COI, parser Docling, testy ekstrakcji.
+**Następna bramka MVP:** wpiąć oficjalny JSON Schema, naprawić eksport i testować rzeczywiste formularze COI.
 
 ---
 
