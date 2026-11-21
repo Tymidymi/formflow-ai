@@ -18,24 +18,16 @@ przechodnie oraz dołączyć wymagane teksty licencji i informacje o źródłach
 | Pillow | 12.0.0 | MIT-CMU | obrazy |
 | python-docx | 1.2.0 | MIT | DOCX fallback |
 | openpyxl | 3.1.5 | MIT | XLSX fallback |
-| Docling Slim | 2.151.1 | do weryfikacji wraz z transitive dependencies | Office |
+| Docling Slim | 2.151.1 | MIT | Office source structure |
+| Docling Core | 2.108.0 | MIT (weryfikacja licencji zależności przechodnich wymagana) | struktura dokumentów |
 | Tesseract OCR | Debian Bookworm | Apache-2.0 (sprawdzić wersję i paczki językowe) | PDF/OCR |
-| Antiword | 0.37-16+deb12u1 | **GNU GPL**, wg /usr/share/doc/antiword/copyright w obrazie | stary DOC (osobny program) |
 | React, React DOM | 18.3.1 | MIT | frontend |
 | JSON Forms (core/react/vanilla) | 3.8.0 | MIT | frontend |
 | esbuild | 0.25.12 | MIT | build frontendu |
 
-## Istotne ryzyko: Antiword
+## Normalizacja Office
 
-Antiword jest wywoływany jako **oddzielny program procesowy** wewnątrz
-izolowanego kontenera, a nie importowany/linkowany jako biblioteka aplikacji.
-Jego licencja GPL dotyczy samego programu. Nie należy jednak deklarować
-pełnej zgodności licencyjnej dla redystrybucji bez osobnej analizy
-obowiązków dotyczących udostępniania kodu źródłowego Antiword,
-wymaganych powiadomień i akceptowalności komponentu w COI.
-Jeśli organizator wyklucza samą obecność GPL, adapter musi zostać
-zastąpiony przed zgłoszeniem (np. przez osobny parser oparty na
-dopuszczalnych bibliotekach/licencjach). Nie ukrywać tego ryzyka.
+Worker uruchamia pakiety LibreOffice Writer i Calc z Debian Trixie oraz fonts-dejavu-core. Dokładne informacje licencyjne instalowanych pakietów znajdują się w obrazie w `/usr/share/doc/libreoffice-common/copyright` i `/usr/share/doc/fonts-dejavu-core/copyright`. Docling Slim 2.151.1 jest instalowany z extras format-office i format-opendocument; bez modeli PyTorch i nowego OCR. Antiword nie jest używany.
 
 ## Ryzyko regulaminowe niezależne od licencji
 

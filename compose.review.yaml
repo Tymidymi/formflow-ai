@@ -1,0 +1,9 @@
+# Candidate-only model override; production remains untouched.
+services:
+  api:
+    environment:
+      OPENROUTER_MODEL: "${FORMFLOW_REVIEW_MODEL:-qwen/qwen3-vl-30b-a3b-instruct}"
+      OPENROUTER_REASONING_EFFORT: ""
+      OPENROUTER_TEMPERATURE: "0"
+  docling-office:
+    image: formflow-office:docling-slim-review

@@ -5,4 +5,4 @@ services:
       - .env
     environment:
       FORMFLOW_AI_PROVIDER: openrouter
-    mem_limit: 384m
+    mem_limit: 768m

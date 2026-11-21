@@ -23,7 +23,7 @@ jobs:
         run: python -m pip install -r apps/api/requirements-test.txt
       - name: Compile backend
         run: python -m compileall -q apps/api/app apps/extractor
-      - name: Test API, COI schema, generic extraction and legacy DOC wrapper
+      - name: Test API, COI and source-page contracts
         env:
           PYTHONPATH: apps/api
           FORMFLOW_AI_PROVIDER: disabled
