@@ -66,6 +66,29 @@ def _choice_clusters(anchors:list[dict])->list[list[dict]]:
     return clusters
 
 
+def _unboxed_printed_instruction(field:dict,page,anchors:list[dict])->bool:
+    """A marked note is read-only unless its row has a printed answer box.
+
+    The Unicode information icon is source geometry, not a domain keyword.
+    Also accept a visually marked instruction line with evidence grounded
+    to that exact line. Do not remove adjacent labelled response fields.
+    """
+    label=_norm(field.get("label",""))
+    if len(label)<12 or field.get("source")=="workbook_printed_answer_box":
+        return False
+    anchored={a.get("row") for a in anchors}
+    for line in page.text.splitlines():
+        marker=re.match(r"^\[Wiersz (\d+)\]",line)
+        if not marker or int(marker.group(1)) in anchored:
+            continue
+        if not re.search(r"[ⓘℹ]",line) or "DRUKOWANE PUSTE POLE" in line:
+            continue
+        normalized=_norm(line)
+        if label in normalized and len(label)/max(1,len(normalized))>=.50:
+            return True
+    return False
+
+
 def _printed_box_rows(text:str)->set[int]:
     return {int(number) for number in re.findall(
         r"(?m)^\[Wiersz (\d+)\][^\n]*DRUKOWANE PUSTE POLE",text)}
@@ -222,6 +245,10 @@ def enforce_source_region(inventory:dict,page)->tuple[dict,int]:
                  all(not _matched(f.get("label"),a.get("label"))
                      for a in anchors)))]
 
+    # Information icons distinguish an explanation of another answer from
+    # a writable response. They are not standalone fields.
+    fields=[f for f in fields if not _unboxed_printed_instruction(
+        f,page,anchors)]
     # A model can render a source field twice. Allow as many occurrences as
     # physically printed anchors, otherwise keep one. No global label dedupe.
     capacities=Counter(_norm(a.get("label")) for a in anchors)

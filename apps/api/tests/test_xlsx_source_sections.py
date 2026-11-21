@@ -270,3 +270,27 @@ def test_radio_guess_for_choice_heading_does_not_duplicate_printed_checkbox_grou
     assert len(fields)==2,fields
     assert [f['type'] for f in fields]==['CHECKBOX','TEXT_FIELD']
     assert fields[0]['options']==['Osobiście','Kurierem']
+
+
+def test_marked_readonly_instruction_is_not_a_text_field():
+    from app.source_region_reconcile import enforce_source_region
+    page=structured_extraction.Page(
+        1,'Sekcja źródłowa: 3. Metoda odbioru\n'
+          '[Wiersz 3] L: [DRUKOWANE PUSTE POLE L3:L3] | N: Osobiście\n'
+          '[Wiersz 5] L: [DRUKOWANE PUSTE POLE L5:L5] | N: Przesyłką\n'
+          '[Wiersz 7] H: ⓘ Jeśli wybierzesz tę metodę, podaj miejsce odbioru\n'
+          '[Wiersz 9] A: Miejsce odbioru | L: [DRUKOWANE PUSTE POLE L9:Z9]',
+        None,'3. Metoda odbioru','3. Metoda odbioru',
+        ({'label':'Osobiście','row':3,'kind_hint':'CHECKBOX'},
+         {'label':'Przesyłką','row':5,'kind_hint':'CHECKBOX'},
+         {'label':'Miejsce odbioru','row':9,'kind_hint':'TEXT_FIELD'}))
+    proposal={'title':'Ankieta','pages':[{'title':'Ankieta','sections':[{
+       'title':'Dane','fields':[
+          {'label':'Jeśli wybierzesz tę metodę, podaj miejsce odbioru',
+           'type':'TEXT_FIELD'},
+          {'label':'Miejsce odbioru','type':'TEXT_FIELD'}]}]}]}
+    recovered,_=enforce_source_region(proposal,page)
+    fields=recovered['pages'][0]['sections'][0]['fields']
+    assert [f['type'] for f in fields]==['CHECKBOX','TEXT_FIELD'],fields
+    assert fields[1]['label']=='Miejsce odbioru'
+    assert fields[1]['show_when']['value']=='Przesyłką'

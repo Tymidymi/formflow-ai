@@ -33,7 +33,7 @@
 - [x] Geometria drukowanych pustych ramek z wykluczeniem scalonych instrukcji.
 - [x] Oddzielne konteksty powtarzających się etykiet (np. dwie różne osoby); źródłowe pola deterministyczne przy wysokiej pewności.
 - [x] Warunki SHOW i grupowanie checkboxów na podstawie wydrukowanego wyboru, a nie rodzaju wniosku.
-- [x] Testy regresyjne niezależnych formularzy, 126 testów backend, 20 frontendu.
+- [x] Testy regresyjne niezależnych formularzy, 128 testów backend, 20 frontendu.
 - [ ] Test binarny oryginału na VPS; ocena poprawności pochodzenia pól z XLSX oraz niezależny test nieznanego formularza.
 - [ ] Ograniczenia hostingu VPS: mało wolnego RAM i sporadyczne zabicie procesu API podczas uruchamiania.
 
