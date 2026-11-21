@@ -186,3 +186,7 @@
 #coi-preview-section .ff-ocr-evidence summary{cursor:pointer;font-weight:720;padding:15px 17px;line-height:1.45;color:#3b6d4e}
 #coi-preview-section .ff-ocr-evidence p{padding:0 17px;margin:3px 0 12px;line-height:1.6}
 #coi-preview-section .ff-ocr-evidence ul{padding:0 20px 12px 35px;margin:0;line-height:1.8}
+
+.ff-review-ack { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; margin:14px 0; border:1px solid var(--ff-border,#ccd6df); border-radius:12px; font-size:14px; line-height:1.55; }
+.ff-review-ack input { flex:none; width:18px; height:18px; margin-top:2px; cursor:pointer; }
+.ff-review-ack strong { display:block; margin-bottom:3px; }

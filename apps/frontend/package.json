@@ -17,5 +17,9 @@
   },
   "devDependencies": {
     "esbuild": "0.25.12"
+  },
+  "overrides": {
+    "ajv": "8.17.1",
+    "json-schema-traverse": "1.0.0"
   }
 }
