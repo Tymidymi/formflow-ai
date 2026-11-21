@@ -9,7 +9,7 @@ from functools import lru_cache
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
 app = FastAPI(title="FormFlow Docling Office Worker", docs_url=None, openapi_url=None)
-FORMATS = {".docx": "DOCX", ".xlsx": "XLSX", ".ods": "ODS"}
+FORMATS = {".doc": "DOC", ".docx": "DOCX", ".xlsx": "XLSX", ".ods": "ODS"}
 MAX_UPLOAD = 15 * 1024 * 1024
 
 @lru_cache(maxsize=1)
@@ -32,6 +32,17 @@ def extract(file: UploadFile = File(...)):
     data = file.file.read(MAX_UPLOAD + 1)
     if not data or len(data) > MAX_UPLOAD:
         raise HTTPException(status_code=413, detail="Pusty lub zbyt duży plik.")
+    if extension == ".doc":
+        from legacy_doc import extract_doc,LegacyDocError
+        try:
+            text=extract_doc(data)
+        except LegacyDocError as exc:
+            raise HTTPException(status_code=422,detail=str(exc)) from exc
+        return {"engine":"antiword-legacy-doc", "format":extension,
+                "text":text[:50000],"page_count":0,"tables":0,
+                "layout_fidelity":"text_only",
+                "warning":"Stary DOC: możliwa utrata graficznych pól i tabel; wymagana kontrola wyniku.",
+                "truncated":len(text)>50000}
     from docling.datamodel.base_models import DocumentStream
     try:
         result = converter().convert(DocumentStream(name=filename, stream=BytesIO(data)))

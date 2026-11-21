@@ -198,3 +198,23 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - [ ] Testy na wielu dowolnych oryginalnych binariach i mierzalna precyzja/recall pól.
 
 Szczegóły: [V13_CHOICE_AUDIT.md](V13_CHOICE_AUDIT.md). Syntetyczny benchmark nie jest dowodem niezawodności dla każdego formularza. Ryzyko konkursowego zakazu zewnętrznych API pozostaje bez zmian.
+
+
+## Bieżąca aktualizacja — 21.11.2026 — kontrakt CanonicalForm i stary DOC
+
+- [x] Model `CanonicalForm` oparty na Pydantic: strony, sekcje, pola,
+  opcje, source evidence, tabelaryczne wiersze/kolumny i zależności SHOW;
+  walidacja przed eksportem COI. Nie tworzy ani nie zgaduje pól.
+- [x] Izolowany parser `.doc` oparty na Antiword w workerze Docling Office
+  (osobny proces, ograniczony czas/CPU/pamięć). Prawdziwy plik Word 97–2003,
+  26 112 B: endpoint /extract i /api/v1/forms/extract-preview HTTP 200.
+- [x] `/api/v1/capabilities` uwzględnia DOC tylko przy skonfigurowanym workerze.
+- [x] 101 testów backend i 16 frontend przeszło po zmianach.
+- [ ] DOC layout/checkboxy graficzne: obecny adapter jest **text-only** i zgłasza
+  wymaganie weryfikacji wyniku.
+- [ ] Formalny audyt GPL Antiword i wszystkich zależności obrazu.
+- [ ] Import do oficjalnego narzędzia COI i zgodność z zakazem zewnętrznych API.
+- [x] CI workflow opublikowany na GitHub; [ ] potwierdzić wynik uruchomienia.
+- [ ] Synchronizacja historii lokalnego Git i gałęzi GitHub po zapisach API.
+
+Zadania i priorytety: [TASKLIST.md](TASKLIST.md).

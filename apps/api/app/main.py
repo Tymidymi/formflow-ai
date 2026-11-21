@@ -14,6 +14,7 @@ from .uploads import RejectedFile, validate_filename, detect_mime, inspect_uploa
 from .ai_provider import AIProviderError, enabled
 from .extraction_router import extract_with_backend
 from .coi_builder import convert as to_coi
+from .canonical_form import canonicalize
 from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
 from .field_grounding import analyze_grounding,norm
@@ -94,9 +95,9 @@ def capabilities():
             "pdf_ocr_enabled":__import__("os").environ.get("FORMFLOW_PDF_WORKER_URL")=="http://pdf-engine:8002",
             "pdf_vision_enabled":__import__("os").environ.get("FORMFLOW_PDF_VISION")=="true",
             "supported_extensions":[".pdf",".doc",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
-            "conversion_extensions":[".pdf",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
+            "conversion_extensions":[".pdf",*([".doc"] if __import__("os").environ.get("FORMFLOW_DOCLING_URL")=="http://docling-office:8001" else []),".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "max_upload_bytes":max_upload_bytes(),
-            "note":"OpenRouter used for prototype and planned submission despite COI external-API ban. JSON Forms preview enabled; old DOC and full Docling PDF pending."}
+            "note":"OpenRouter is used despite the COI external-API ban. Legacy DOC uses text-only antiword extraction; full Docling PDF and visual Office layout remain pending."}
 
 @app.post("/api/v1/forms/inspect")
 async def inspect(file:UploadFile=File(...)):
@@ -204,6 +205,7 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
             semantic["pages"].append({
                 "title":"Informacje dla wnioskodawcy",
                 "sections":legal_sections})
+        semantic=canonicalize(semantic)
         result,validation=to_coi(semantic)
         quality=assess_quality(
             zones.body,semantic,pages=page_reports,
@@ -215,10 +217,12 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         quality["ocr_evidence_coverage"]=grounding["support_ratio"]
         quality["ocr_evidence_unverified"]=grounding["requires_review"]
         quality["legal_notice_readonly"]=bool(zones.legal)
+        quality["legacy_doc_layout_unverified"]=bool(extraction_meta.get("legacy_doc_review_required"))
         quality["manual_review_recommended"]=bool(
             quality.get("manual_review_recommended")
             or grounding["requires_review"]
-            or inventory_meta.get("rechecked_pages"))
+            or inventory_meta.get("rechecked_pages")
+            or extraction_meta.get("legacy_doc_review_required"))
         normalization=[]
         info={"model":__import__("os").getenv(
                  "OPENROUTER_MODEL","qwen/qwen3-vl-30b-a3b-instruct"),

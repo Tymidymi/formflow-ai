@@ -1,7 +1,7 @@
 """Route extraction to isolated private Docker workers with safe fallback.
 
 PDF/JPG/PNG: local PDFium/pypdf layout + Tesseract pol+eng worker.
-DOCX/XLSX/ODS: docling-slim Office worker.
+DOCX/XLSX/ODS: docling-slim Office worker. Legacy DOC: antiword text-only.
 All URLs are fixed hostnames on an internal Docker network (no SSRF).
 """
 from __future__ import annotations
@@ -15,7 +15,7 @@ import httpx
 from .document_text import extract_document
 from .uploads import RejectedFile
 
-OFFICE={".docx",".xlsx",".ods"}
+OFFICE={".doc",".docx",".xlsx",".ods"}
 PDF_INPUTS={".pdf",".png",".jpg",".jpeg"}
 DOCLING_URL="http://docling-office:8001"
 PDF_URL="http://pdf-engine:8002"
@@ -99,12 +99,24 @@ async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="au
             payload=await _request(DOCLING_URL,extension,content)
             text=payload["text"]
             if text.strip():
-                return text[:100000],[],{"engine":"docling-office","tables":payload.get("tables",0),
+                legacy=extension==".doc"
+                return text[:100000],[],{
+                    "engine":payload.get("engine","antiword-legacy-doc") if legacy else "docling-office",
+                    "tables":payload.get("tables",0),
                     "source_pages":payload.get("page_count",0),
-                    "truncated":len(text)>100000}
+                    "truncated":payload.get("truncated",False) or len(text)>100000,
+                    "layout_fidelity":payload.get("layout_fidelity","structured"),
+                    "legacy_doc_review_required":legacy,
+                    **({"warning":payload.get("warning",
+                        "Stary DOC wymaga kontroli układu.")} if legacy else {}),
+                }
         except RejectedFile:raise
         except (httpx.HTTPError,ValueError,KeyError,TypeError):
+            if extension==".doc":
+                raise RejectedFile("Moduł odczytu starego formatu DOC jest niedostępny.",503)
             text,images=await asyncio.to_thread(extract_document,content,extension)
             return text,images,{"engine":"local-fallback","warning":"Docling worker unavailable"}
+    if extension==".doc":
+        raise RejectedFile("Obsługa DOC wymaga izolowanego workera dokumentów.",503)
     text,images=await asyncio.to_thread(extract_document,content,extension)
     return text,images,{"engine":"local"}

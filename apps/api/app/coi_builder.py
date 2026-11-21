@@ -7,6 +7,7 @@ from html import escape
 from uuid import NAMESPACE_URL, uuid5
 from .coi_validation import validate_coi_form
 from .coi_conditions import attach_states
+from .canonical_form import canonicalize
 
 KINDS = {
     "TEXT_FIELD", "TEXTAREA", "NUMBER", "DATEPICKER",
@@ -56,6 +57,7 @@ def field_validation(label: str, required: bool) -> list[str]:
     return rules
 
 def convert(semantic: dict) -> tuple[dict,dict]:
+    semantic=canonicalize(semantic)
     pages=safe_list(semantic,"pages")
     if not pages:raise ValueError("Model nie zidentyfikował stron.")
     if len(pages)>24:
