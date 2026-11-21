@@ -21,7 +21,11 @@ EVERY small square/circle indicating a choice. Check horizontal rows with
 multiple choices as carefully as vertical lists. Your total number of
 options across groups must reflect ALL actually visible marks; do not
 invent boxes to satisfy a heuristic count.
-One group is a question followed by TWO OR MORE printed choice marks.
+One group is a source question followed by TWO OR MORE alternatives marked
+with squares, circles, or arrow-style choice bullets. Arrow/bullet lists count
+ONLY when they are direct alternatives following a user response question;
+never turn legal explanations, attachment inventories, or numbered notices
+into selectable answers. The choice group heading is NOT a separate input.
 For each mark, transcribe its printed caption exactly. Inspect whether
 there is also a DISTINCT dotted/underlined writable blank beside THAT
 choice (e.g. an optional identifier, quantity or specification).
@@ -29,7 +33,7 @@ Such a blank is a separate text response, not another checkbox option.
 A blank in the GROUP HEADING is not automatically a companion blank.
 A printed caption or a measurement unit alone is not an input.
 
-Do not interpret bullet lists, attachment inventories, RODO disclosures,
+Do not interpret NON-CHOICE bullet lists, attachment inventories, RODO disclosures,
 printed instructions without marks, or table column headings as choices.
 Do not invent possible choices, labels, blanks or legal obligations.
 Do not repeat the same physical group in multiple entries.
@@ -304,17 +308,33 @@ def merge_choices(semantic:dict,groups:list[dict],source_page:int) -> dict:
                          if isinstance(x,str)}
                 caption=_clean(str(field.get("label","")))
                 parent=_clean(question)
-                if caption==parent or (len(current & wanted)>=2 and
-                    (caption in parent or parent in caption)):
+                label_similarity=SequenceMatcher(None,caption,parent).ratio()
+                common=len(current & wanted)
+                same_group=(caption==parent or
+                    (common>=2 and (caption in parent or parent in caption)) or
+                    (common>=3 and common>=min(len(current),len(wanted))*.75
+                     and label_similarity>=.68))
+                if same_group:
                     choice=field;target_section=section;break
             if choice is not None:break
         if choice is None:
             # Attach to the same section and position as the originally
             # extracted individual options, not an unrelated new section.
-            matches=[(section,[i for i,f in enumerate(section.get("fields",[]))
-                               if _is_group_option(f,question,opt_names)])
-                     for section in sections]
-            matches=[(section,indices) for section,indices in matches if indices]
+            matches=[]
+            for section in sections:
+                section_name=_clean(str(section.get("title","")))
+                parent=_clean(question)
+                group_match=SequenceMatcher(None,section_name,parent).ratio()>=.70
+                independent=[(i,f) for i,f in enumerate(section.get("fields",[]))
+                    if f.get("type") in {"CHECKBOX","RADIO"} and not f.get("options")
+                    and _clean(str(f.get("label",""))) in wanted]
+                enough_distinct=len({_clean(str(f.get("label",""))) for _,f in independent})>=3
+                contextual=group_match or (enough_distinct and
+                    sum(len(_clean(str(f.get("label",""))))>=10 for _,f in independent)>=3)
+                indices=[i for i,f in enumerate(section.get("fields",[]))
+                    if _is_group_option(f,question,opt_names) or
+                       (contextual and (i,f) in independent)]
+                if indices:matches.append((section,indices))
             if matches:
                 target_section,indices=max(matches,key=lambda item:len(item[1]))
                 insert_at=indices[0]
@@ -331,13 +351,26 @@ def merge_choices(semantic:dict,groups:list[dict],source_page:int) -> dict:
             counts["choice_groups"]+=1
         else:
             existing=[x for x in choice.get("options",[]) if isinstance(x,str)]
-            choice["options"]=list(dict.fromkeys(existing+opt_names))
+            seen_names={_clean(x) for x in existing}
+            for name in opt_names:
+                if _clean(name) not in seen_names:
+                    existing.append(name);seen_names.add(_clean(name))
+            choice["options"]=existing
         choice["source_choice_ref"]=ref
-        # Remove ONLY fields with the option AND the shared question prefix;
-        # a generic standalone checkbox elsewhere may have the same caption.
+        # Detect option rows originally recognized as independent CHECKBOXes.
+        # The same group must contain at least two uniquely matching options,
+        # otherwise a generic label like "yes" could be deleted elsewhere.
         for section in sections:
+            present=[f for f in section.get("fields",[])
+                if f is not choice and f.get("type") in {"CHECKBOX","RADIO"}
+                and not f.get("options") and _clean(str(f.get("label",""))) in wanted]
+            clustered=len({_clean(str(f.get("label",""))) for f in present})>=2
+            compatible_section=(section is target_section or
+                (len(present)>=3 and SequenceMatcher(
+                    None,_clean(str(section.get("title",""))),_clean(question)).ratio()>=.70))
             section["fields"]=[f for f in section.get("fields",[])
-                if f is choice or not _is_group_option(f,question,opt_names)]
+                if f is choice or not (_is_group_option(f,question,opt_names) or
+                     (clustered and compatible_section and f in present))]
         counts["choice_options"]+=len(opt_names)
         counts["visual_review_groups"]+=int(group.get("needs_visual_review",False))
         for option in group["options"]:
@@ -350,9 +383,26 @@ def merge_choices(semantic:dict,groups:list[dict],source_page:int) -> dict:
                 and (_clean(question) in _clean(str(f.get("label","")))
                      or _clean(question) in _clean(str(f.get("evidence",""))))
             ),None)
+            if existing_detail is None:
+                nearby=[f for section in sections
+                    if (section is target_section or SequenceMatcher(None,
+                        _clean(str(section.get("title",""))),_clean(question)).ratio()>=.70)
+                    for f in section.get("fields",[])
+                    if f.get("type") in {"TEXT_FIELD","NUMBER","TEXTAREA"}
+                    and _clean(str(f.get("label","")))==_clean(option["label"])]
+                if len(nearby)==1:
+                    existing_detail=nearby[0]
             if existing_detail is not None:
                 existing_detail.setdefault("show_when",{
                     "field_ref":ref,"value":option["label"]})
+                # A model may put the option's text blank in a separate
+                # section while its companion choice is recognized later.
+                # Reconcile the same physical answer into one group.
+                for other_section in sections:
+                    if other_section is not target_section and existing_detail in other_section.get("fields",[]):
+                        other_section["fields"].remove(existing_detail)
+                        target_section["fields"].append(existing_detail)
+                        break
                 continue
             target_section["fields"].append({
                 "label":detail_name,"type":"TEXT_FIELD",
@@ -366,3 +416,61 @@ def merge_choices(semantic:dict,groups:list[dict],source_page:int) -> dict:
             counts["detail_inputs_added"]+=1
         sections[:]=[section for section in sections if section.get("fields")]
     return counts
+
+
+def deduplicate_overlapping_choice_groups(semantic:dict)->int:
+    """Reconcile two models creating the same choice group in different sections.
+
+    Requires three distinct, overlapping option captions and a closely
+    matching source question. Never merges generic yes/no sets or groups
+    with two explicitly different source-line positions.
+    """
+    removed=0
+    for page in semantic.get('pages',[]):
+        sections=page.get('sections',[])
+        observed=[]
+        for section in sections:
+            for item in section.get('fields',[]):
+                if item.get('type') not in {'RADIO','CHECKBOX','SELECT'}:
+                    continue
+                opts={_clean(str(x)) for x in item.get('options',[])
+                      if isinstance(x,str)}
+                if len(opts)<3:
+                    continue
+                previous=None
+                for prior in observed:
+                    old=prior['field']
+                    old_options={_clean(str(x)) for x in old.get('options',[])
+                                 if isinstance(x,str)}
+                    shared=len(opts & old_options)
+                    common=shared>=3 and shared/min(len(opts),len(old_options))>=.75
+                    similar=SequenceMatcher(None,
+                        _clean(str(item.get('label',''))),
+                        _clean(str(old.get('label','')))).ratio()>=.70
+                    line_a=item.get('source_line');line_b=old.get('source_line')
+                    separate=bool(isinstance(line_a,int) and isinstance(line_b,int)
+                                  and line_a!=line_b)
+                    if common and similar and not separate:
+                        previous=prior;break
+                if previous is None:
+                    observed.append({'field':item,'section':section})
+                    continue
+                kept=previous['field']
+                seen={_clean(str(x)) for x in kept.get('options',[])}
+                for option in item.get('options',[]):
+                    if _clean(str(option)) not in seen:
+                        kept.setdefault('options',[]).append(option)
+                        seen.add(_clean(str(option)))
+                old_ref=item.get('source_choice_ref')
+                if old_ref and not kept.get('source_choice_ref'):
+                    kept['source_choice_ref']=old_ref
+                elif old_ref and kept.get('source_choice_ref')!=old_ref:
+                    for other_section in sections:
+                        for field in other_section.get('fields',[]):
+                            when=field.get('show_when')
+                            if isinstance(when,dict) and when.get('field_ref')==old_ref:
+                                when['field_ref']=kept['source_choice_ref']
+                section['fields']=[f for f in section.get('fields',[]) if f is not item]
+                removed+=1
+        page['sections']=[s for s in sections if s.get('fields')]
+    return removed
