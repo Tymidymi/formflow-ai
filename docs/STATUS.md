@@ -185,3 +185,16 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - [ ] Powtórzyć test LIVE przez OpenRouter po tym filtrze. Test jednostkowy NIE jest równoważny walidacji jakościowej na nowym pliku.
 - [ ] Zweryfikować na niezależnych oryginalnych dokumentach, że nie ma duplikatów i fałszywych tabel, w tym PDF/DOCX/XLSX/ODS/JPG.
 - Mechanizm nie jest jeszcze bezbłędnym konwerterem dowolnego pliku; słabe OCR i model Vision nadal mogą popełniać błędy.
+
+## Hotfix v1.3.0 — niezależna kontrola grup wyboru (21.11.2026)
+
+- [x] Audyt wizualny wszystkich grup checkbox/radio, w tym poziomych i pionowych list w pojedynczym wierszu tabeli.
+- [x] Oddzielne rozpoznawanie miejsc na dane przypisane do konkretnych zaznaczanych opcji oraz warunki SHOW.
+- [x] Ogólna konsolidacja powielonych kontrolek z potwierdzonym wspólnym nagłówkiem i źródłową etykietą.
+- [x] Geometryczna kontrola liczby małych drukowanych kwadratów i reanaliza fragmentów strony, gdy Qwen zwróci za mało opcji.
+- [x] Benchmark LIVE na niezależnym, syntetycznym formularzu ewidencji urządzenia: 2 grupy, 5 opcji, 2 pola dodatkowe, bez duplikatów i EMPTY_CHOICES, JSON COI valid=true.
+- [x] 85 testów backendowych zaliczonych.
+- [ ] Przeprowadzić ponowny pełny upload **oryginalnego** formularza z informacją o posiadanym psie (w tej rozmowie dostarczono zrzuty ekranu, nie pełny plik PDF).
+- [ ] Testy na wielu dowolnych oryginalnych binariach i mierzalna precyzja/recall pól.
+
+Szczegóły: [V13_CHOICE_AUDIT.md](V13_CHOICE_AUDIT.md). Syntetyczny benchmark nie jest dowodem niezawodności dla każdego formularza. Ryzyko konkursowego zakazu zewnętrznych API pozostaje bez zmian.
