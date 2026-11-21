@@ -8,6 +8,7 @@ from __future__ import annotations
 import copy
 import re
 import unicodedata
+from difflib import SequenceMatcher
 
 def fold(value:str)->str:
     return unicodedata.normalize("NFKD",value.translate(str.maketrans("Łł", "Ll"))).encode("ascii","ignore").decode("ascii").lower()
@@ -36,11 +37,32 @@ def normalize_semantic(source:str,semantic:dict)->tuple[dict,list[dict]]:
         if not isinstance(collection,list):continue
         kept=[]
         for item in collection:
-            if isinstance(item,dict) and SIGNATURE.fullmatch(fold(str(item.get("label",""))).strip()):
+            if isinstance(item,dict) and SIGNATURE.fullmatch(fold(str(item.get("label",""))).strip(" /()[]*:")):
                 changes.append({"type":"paper_signature_removed","label":item["label"]})
             else:
                 kept.append(item)
         sec["fields"]=kept
+
+    # A parenthesized "e.g." printed below an existing purpose question
+    # explains the same input. It must NOT become another fillable question.
+    field_names=[fold(str(f.get("label",""))) for f in _fields(value)]
+    has_purpose=any("cel" in title and ("wynaj" in title or "uroczyst" in title)
+                    for title in field_names)
+    if has_purpose:
+        for section in sections:
+            entries=section.get("fields",[])
+            if not isinstance(entries,list):continue
+            kept=[]
+            for f in entries:
+                label=fold(str(f.get("label","")).strip())
+                if (f.get("type") in ("TEXT_FIELD","TEXTAREA") and
+                    label.startswith("(") and
+                    ("np." in label or "np " in label) and
+                    "rodzaj" in label and "uroczyst" in label):
+                    changes.append({"type":"parenthetical_example_removed",
+                                    "label":f.get("label")})
+                else:kept.append(f)
+            section["fields"]=kept
 
     # Explicit applicant labels rendered beneath their dotted lines in PDFs.
     rules=[
@@ -115,4 +137,46 @@ def normalize_semantic(source:str,semantic:dict)->tuple[dict,list[dict]]:
                     {"label":label,"type":"DATEPICKER","required":False,"options":[]})
                 changes.append({"type":"date_range_recovered","label":label})
 
+    # Numbered commitments following an explicit "oświadczam, że:" form
+    # preamble are separate applicant confirmations, not a single long
+    # free-text question. Use source text rather than model guesses.
+    declaration=re.search(r"(?is)\bo[sś]wiadczam\b[^:]{0,260}:",source)
+    if declaration:
+        follow=source[declaration.end():declaration.end()+1600]
+        points=re.findall(
+            r"(?ms)^\s*\d+\)\s*(.{12,300}?)(?=^\s*\d+\)|"
+            r"^\s*\(czytelny\s+podpis|^\s*\*\s*niepotrzebne|\Z)",
+            follow)
+        if len(points)>=2:
+            # Clear only generic header-as-input hallucinations, not
+            # substantive statements or recognized selectable answers.
+            for section in sections:
+                fields=section.get("fields",[])
+                if not isinstance(fields,list):continue
+                kept=[]
+                for field in fields:
+                    title=fold(str(field.get("label","")))
+                    if ("jednoczesnie oswiadczam" in title or
+                        (title.startswith("oswiadczam") and
+                         len(title)>65 and field.get("type") in
+                         ("TEXT_FIELD","TEXTAREA","CHECKBOX"))):
+                        changes.append({"type":"declaration_preamble_removed",
+                                        "label":field.get("label")})
+                    else:kept.append(field)
+                section["fields"]=kept
+            existing=[f for f in _fields(value) if f.get("type")=="CHECKBOX"]
+            for clause in points[:10]:
+                label=" ".join(clause.split()).strip().rstrip(".,; ")
+                normalized=fold(label)
+                if not normalized or len(normalized)<12:continue
+                if any(SequenceMatcher(
+                         None,normalized,fold(str(x.get("label","")))).ratio()>0.62
+                       for x in existing):
+                    continue
+                new={"label":label,"type":"CHECKBOX",
+                     "required":False,"options":[]}
+                first.setdefault("fields",[]).append(new)
+                existing.append(new)
+                changes.append({"type":"source_declaration_recovered",
+                                "label":label})
     return value,changes

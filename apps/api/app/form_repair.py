@@ -6,6 +6,7 @@ document. Legal notices remain READ-ONLY; they are never editable textareas.
 from __future__ import annotations
 import copy
 import re
+from difflib import SequenceMatcher
 from .document_zones import Zones, LEGAL_PARAGRAPHS, HTML_BLOCK_MAX
 from .semantic_quality import fold
 
@@ -56,6 +57,31 @@ def _labels(value: dict) -> list[str]:
 def _is_legal(label: str) -> bool:
     return len(label) > 55 and bool(LEGAL_FIELD.search(fold(label)))
 
+def _is_advisory_label(label: str, zones: Zones) -> bool:
+    """Reject text boxes reconstructed from a separately identified note.
+
+    Generic payment/pouczenie notes often do not mention RODO. Only match
+    a distinct label against the source appendix, not just a legal keyword.
+    """
+    if not zones.legal or len(label.strip())<22:
+        return False
+    normalized=fold(" ".join(label.split()))
+    operative=fold(zones.body)
+    appendix=fold(zones.legal)
+    if normalized in operative:
+        return False
+    if normalized in appendix:
+        return True
+    if len(normalized)<35:
+        return False
+    for line in appendix.splitlines():
+        passage=fold(" ".join(line.split()))
+        if len(passage)<30:continue
+        if (SequenceMatcher(None,normalized,passage).ratio()>=0.73 or
+                SequenceMatcher(None,normalized[:95],passage[:95]).ratio()>=0.77):
+            return True
+    return False
+
 def repair_form(semantic: dict, zones: Zones) -> tuple[dict,list[dict]]:
     result=copy.deepcopy(semantic)
     changes=[]
@@ -80,7 +106,8 @@ def repair_form(semantic: dict, zones: Zones) -> tuple[dict,list[dict]]:
             for field in fields:
                 if not isinstance(field,dict):continue
                 label=str(field.get("label",""))
-                if (section_legal or _is_legal(label)) and field.get("type") not in ("CHECKBOX","INFO_BLOCK","TEXT_BLOCK"):
+                if (section_legal or _is_legal(label) or
+                    _is_advisory_label(label,zones)) and field.get("type") not in ("CHECKBOX","INFO_BLOCK","TEXT_BLOCK"):
                     if label:legal_labels.append(label)
                     changes.append({"type":"legal_input_removed", "label":label[:100]})
                 else:kept.append(field)
@@ -187,6 +214,9 @@ def repair_form(semantic: dict, zones: Zones) -> tuple[dict,list[dict]]:
     # Preserve source-derived legal text as a READ-ONLY COI TEXT_BLOCK. If
     # extracted OCR has no separated notice, use model labels, never as input.
     notice=zones.legal.strip() or "\n\n".join(legal_labels)
+    information_title=("Informacje i pouczenia"
+        if zones.reason=="supplement_information_heading"
+        else "Klauzula informacyjna")
     if notice and not any(
         f.get("type")=="INFO_BLOCK"
         for p in result["pages"] for sec in p.get("sections",[])
@@ -198,9 +228,9 @@ def repair_form(semantic: dict, zones: Zones) -> tuple[dict,list[dict]]:
         ) if zones.legal else "TEKST ROBOCZY Z ROZPOZNANIA — WYMAGA KONTROLI.\n\n"
         preview=notice_prefix+notice[:HTML_BLOCK_MAX-len(notice_prefix)]
         result["pages"].append({
-            "title":"Klauzula informacyjna",
-            "sections":[{"title":"Informacja o przetwarzaniu danych",
-                         "fields":[{"label":"Klauzula informacyjna","type":"INFO_BLOCK",
+            "title":information_title,
+            "sections":[{"title":information_title,
+                         "fields":[{"label":information_title,"type":"INFO_BLOCK",
                                     "required":False,"content":preview}]}],
         })
         changes.append({"type":"legal_notice_readonly",

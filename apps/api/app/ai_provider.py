@@ -38,7 +38,19 @@ Critical semantic distinction:
 - DATEPICKER for a blank application date; TEXT_FIELD for plot/parcel identifier
   to preserve leading zeros and non-numeric characters.
 - If the source is unclear, do not invent missing values or legal requirements.
+Reading instructions for mixed OCR and page images:
+- Use the images to INDEPENDENTLY inspect layout: actual blank lines, small
+  captions, tables, checkbox groups, and separation of informational pages.
+- OCR may scramble reading order, miss small labels or columns. Resolve such
+  conflicts against the page image; do not blindly trust the OCR line order.
+- Do not invent administrative subdivisions or extra address fields merely
+  because they are often present in other applications.
+- Create a separate input only where the source asks the applicant for
+  information. Quote exactly where possible. Keep multiple questions distinct.
+- Images can be a subset of pages for long documents. Do not imply you have
+  visually inspected pages that were not supplied.
 Never output a FINISH page; exporter creates it.
+
 """
 
 class AIProviderError(Exception):
@@ -73,10 +85,14 @@ async def generate(text: str, images: list[tuple[str,bytes]] | None = None) -> t
         raise AIProviderError("Niedozwolony adres API OpenRouter.")
     model=os.getenv("OPENROUTER_MODEL","qwen/qwen3-vl-30b-a3b-instruct")
     user_content=[{"type":"text","text":"Dokument urzędowy:\n"+text[:18000]}]
-    for mime,payload in (images or [])[:3]:
+    image_count=0
+    for image_index,(mime,payload) in enumerate((images or [])[:3],1):
         if mime in ("image/png","image/jpeg") and len(payload)<=4*1024*1024:
+            user_content.append({"type":"text","text":
+                f"Obraz źródłowy {image_index}: oceń jego układ, pola i napisy bezpośrednio."})
             user_content.append({"type":"image_url","image_url":{
                 "url": "data:"+mime+";base64,"+base64.b64encode(payload).decode("ascii")}})
+            image_count+=1
     if len(user_content)==1 and len(text.strip())<40:
         raise AIProviderError("Brak wystarczającej treści do analizy.")
     data={
@@ -107,4 +123,5 @@ async def generate(text: str, images: list[tuple[str,bytes]] | None = None) -> t
         semantic=decode_json(content)
     except (KeyError,IndexError,TypeError) as exc:
         raise AIProviderError("Nie można odczytać odpowiedzi modelu.") from exc
-    return semantic,{"model":model,"usage":result.get("usage",{})}
+    return semantic,{"model":model,"usage":result.get("usage",{}),
+                     "images_sent":image_count}

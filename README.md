@@ -214,3 +214,28 @@ validation, download, real synthetic PNG upload and mocked AI response,
 blob image preview and responsive layout (390 px).
 
 See [v1.0 guided wizard documentation](docs/V10_GUIDED_WIZARD.md).
+
+
+## v1.1 — Multi-modal PDF understanding and OCR-grounded review
+
+For PDF uploads the **default** is now OCR/layout text **plus up to 3 rendered
+page images** sent to Qwen3-VL through OpenRouter, with explicit consent.
+The endpoint supports `?mode=diagnostic&vision=off|on|auto` to reproduce A/B
+tests on identical documents. The diagnostic includes actual page/image
+coverage, model images sent, and an OCR-grounded evidence report per field.
+
+The review wizard can show fields without an unambiguous OCR-line match and
+warn when the visual pass did not cover all PDF pages. OCR text matching is
+a conservative *review signal*, **not proof** that a field was visually read.
+
+Informational appendices (INFORMACJE/POUCZENIE/OBJAŚNIENIA), legal-fee notes,
+and paper signatures are not input fields. Numbered commitments can be
+restored to individual checkbox fields if the model collapses them.
+
+**Limits:** only the first 3 PDF pages are sent visually, OCR-heavy PDFs support
+at most 4 OCR pages in the current worker, and Office documents are still
+text/layout-only. The initial A/B comparison on reconstructed scanned PDFs
+showed mixed model-quality changes, not universal gains. See
+[vision benchmark and architecture](docs/V11_MULTIMODAL_QUALITY.md).
+
+OpenRouter API remains contrary to the competition's external-API ban.

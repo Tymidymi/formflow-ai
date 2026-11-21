@@ -4,7 +4,7 @@ services:
   api:
     environment:
       FORMFLOW_PDF_WORKER_URL: http://pdf-engine:8002
-      FORMFLOW_PDF_VISION: "${FORMFLOW_PDF_VISION:-false}"
+      FORMFLOW_PDF_VISION: "${FORMFLOW_PDF_VISION:-true}"
   pdf-engine:
     profiles: ["pdf"]
     build:

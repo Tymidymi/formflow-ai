@@ -181,3 +181,8 @@
  #coi-preview-section .ff-editor-headline{padding:14px}
  #coi-preview-section .ff-field-inspector{padding:17px}
 }
+
+#coi-preview-section .ff-ocr-evidence{margin:12px 22px;border:1px solid #dce8e1;border-radius:10px;background:#f7faf8;color:#50695a;font-size:12px}
+#coi-preview-section .ff-ocr-evidence summary{cursor:pointer;font-weight:720;padding:15px 17px;line-height:1.45;color:#3b6d4e}
+#coi-preview-section .ff-ocr-evidence p{padding:0 17px;margin:3px 0 12px;line-height:1.6}
+#coi-preview-section .ff-ocr-evidence ul{padding:0 20px 12px 35px;margin:0;line-height:1.8}

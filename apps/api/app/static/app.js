@@ -136,7 +136,7 @@ generateButton.addEventListener("click",async()=>{
       "\nKontrola jakości: "+(quality.ok?"OK":"wymaga weryfikacji")+
       (warnings?"\nUwagi: "+warnings:""),!report.valid||!quality.ok);
     showPreview(data.form,{file,validation:report,quality,
-      extraction:data.document?.extraction,source:"generated"});
+      extraction:data.document?.extraction,grounding:data.grounding,source:"generated"});
   }catch(error){
     show(result,"Nie udało się przygotować formularza",
       error.message||"Spróbuj ponownie. Wybrany dokument jest nadal dostępny.",true);

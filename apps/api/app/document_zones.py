@@ -16,6 +16,12 @@ LEGAL_HEADER = re.compile(
     r"INFORMACJ[AE]\s+O\s+PRZETWARZANIU\s+DANYCH\s+OSOBOWYCH|"
     r"KLAUZULA\s+O\s+OCHRONIE\s+DANYCH)\b[^\n]{0,90}$"
 )
+# Short, standalone advisory sections at the END of an application are
+# informational, even when they are not explicitly GDPR disclosures.
+ADVISORY_HEADER = re.compile(
+    r"(?im)^\s*(?:INFORMACJE(?:\s+DODATKOWE)?|POUCZENIE|"
+    r"OBJAŚNIENIA|OBJAŚNIENIE)\s*:?\s*$"
+)
 LEGAL_PARAGRAPHS = re.compile(
     r"(?i)\b(?:RODO|przetwarzani[ae]\s+danych\s+osobowych|"
     r"administratorem\s+(?:p[ań]stwa\s+)?danych|"
@@ -42,6 +48,15 @@ def split_legal_notice(text: str) -> Zones:
         legal = text[match.start():].strip()
         if len(body) >= 45 and OPERATIVE.search(body) and len(legal) >= 120:
             return Zones(body, legal, True, "explicit_legal_heading")
+    for match in ADVISORY_HEADER.finditer(text):
+        body=text[:match.start()].rstrip()
+        appendix=text[match.start():].strip()
+        # Avoid cutting "INFORMACJE" sections that are actual questions in
+        # the middle of a form: only a final advisory heading is recognized.
+        if (len(body)>=130 and match.start()>=len(text)*0.34 and
+                OPERATIVE.search(body) and len(appendix)>=110 and
+                not re.search(r"(?im)^\s*WNIOSEK\b",appendix)):
+            return Zones(body,appendix,True,"supplement_information_heading")
     return Zones(text, "", False)
 
 def _ink_rows(img: Image.Image) -> list[int]:

@@ -40,10 +40,13 @@ async def _request(url:str, extension:str, content:bytes, *, previews:bool=False
         raise ValueError("Worker returned invalid response")
     return payload
 
-async def extract_with_backend(content:bytes,extension:str)->tuple[str,list,dict]:
+async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="auto")->tuple[str,list,dict]:
+    if vision_mode not in {"auto","on","off"}:
+        raise ValueError("Nieprawidłowy tryb vision.")
     pdf_enabled=os.environ.get("FORMFLOW_PDF_WORKER_URL")==PDF_URL
     docling_enabled=os.environ.get("FORMFLOW_DOCLING_URL")==DOCLING_URL
-    pdf_vision=os.environ.get("FORMFLOW_PDF_VISION","false").lower() in ("true","1","yes")
+    pdf_vision=(vision_mode=="on" or (vision_mode=="auto" and
+                os.environ.get("FORMFLOW_PDF_VISION","false").lower() in ("true","1","yes")))
     if pdf_enabled and extension in PDF_INPUTS:
         try:
             payload=await _request(PDF_URL,extension,content,previews=pdf_vision)
@@ -52,26 +55,45 @@ async def extract_with_backend(content:bytes,extension:str)->tuple[str,list,dict
             if extension in (".jpg",".jpeg",".png"):
                 mime="image/png" if extension==".png" else "image/jpeg"
                 images.append((mime,content))
+            page_numbers=[]
+            rejected_images=[]
             if extension==".pdf" and pdf_vision:
-                for entry in payload.get("preview_images",[])[:2]:
+                for entry in payload.get("preview_images",[])[:3]:
+                    page=entry.get("page")
                     if entry.get("mime")!="image/jpeg":
+                        rejected_images.append(page)
                         continue
                     raw=base64.b64decode(entry.get("base64",""),validate=True)
                     if 0<len(raw)<1_500_000:
                         images.append(("image/jpeg",raw))
+                        page_numbers.append(page)
+                    else:
+                        rejected_images.append(page)
+            count=payload.get("page_count") or 0
             return source_text,images,{
                 "engine":payload.get("engine","pdf-layout-ocr"),
-                "pages":payload.get("page_count"),
+                "pages":count,
                 "ocr_pages":payload.get("ocr_pages"),
                 "page_sources":payload.get("page_sources",[]),
                 "truncated":payload.get("truncated",False),
+                "vision_enabled":bool(pdf_vision) if extension==".pdf" else True,
                 "vision_pages":len(images) if extension==".pdf" else 1,
+                "vision_page_numbers":page_numbers if extension==".pdf" else [1],
+                "vision_rejected_pages":rejected_images,
+                "vision_incomplete":bool(extension==".pdf" and pdf_vision and
+                                          (len(page_numbers)<count or rejected_images)),
             }
         except RejectedFile:raise
         except (httpx.HTTPError,ValueError,TypeError,KeyError,base64.binascii.Error):
             # Transparent fallback to the previous local parser.
             text,images=await asyncio.to_thread(extract_document,content,extension)
-            return text,images,{"engine":"pdf-local-fallback","warning":"PDF/OCR worker unavailable"}
+            return text,images,{"engine":"pdf-local-fallback",
+                "warning":"PDF/OCR worker unavailable",
+                "vision_enabled":pdf_vision,
+                "vision_incomplete":bool(extension==".pdf" and pdf_vision),
+                "vision_pages":len(images),
+                "vision_page_numbers":list(range(1,len(images)+1)),
+                "truncated":False}
     if extension in OFFICE and docling_enabled:
         try:
             payload=await _request(DOCLING_URL,extension,content)

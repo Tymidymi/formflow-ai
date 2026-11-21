@@ -124,7 +124,7 @@ function DocumentView({file, extraction}) {
     {loadedText && <pre className="ff-extracted">{loadedText}</pre>}
   </div>;
 }
-function PreviewApp({form, file, extraction, validation, quality, source, wizardMode=false}) {
+function PreviewApp({form, file, extraction, validation, quality, grounding, source, wizardMode=false}) {
   const [pageIndex, setPageIndex] = useState(0);
   const [view, setView] = useState("form");
   const [answers, setAnswers] = useState({});
@@ -339,6 +339,17 @@ function PreviewApp({form, file, extraction, validation, quality, source, wizard
       Walidator COI wskazuje problemy. Formularz ma charakter roboczy.</div>}
     {quality && !quality.ok && !hasEdits && <div className="ff-warning" role="alert">
       Wynik modelu wymaga ręcznej weryfikacji — część pytań mogła zostać pominięta.</div>}
+    {extraction?.vision_incomplete && <div className="ff-warning" role="alert">
+      Uwaga: obrazowo sprawdzono tylko {extraction.vision_pages||0} z {extraction.pages||"?"}
+      {" "}stron PDF. Przejrzyj także pozostałe strony oryginału.</div>}
+    {grounding?.requires_review>0 && !editing && <details className="ff-ocr-evidence">
+      <summary>
+        Sprawdź dokładniej {grounding.requires_review} {grounding.requires_review===1?"pytanie":"pytań"} — OCR nie znalazł jednoznacznego potwierdzenia
+      </summary>
+      <p>To nie musi oznaczać błędu: pole może być widoczne na obrazie, choć OCR go nie odczytał. Porównaj pytania z oryginalnym dokumentem.</p>
+      <ul>{grounding.items.filter(x=>x.evidence!=="ocr_match").slice(0,25).map((item,index)=>
+        <li key={index}>{item.label}</li>)}</ul>
+    </details>}
     {warnings.length > 0 && <div className="ff-warning">
       <button className="ff-warning-trigger" type="button" onClick={()=>setShowWarnings(!showWarnings)}>
         Ograniczenia podglądu ({warnings.length}) {showWarnings?"−":"+"}
@@ -418,8 +429,8 @@ if(mount && section){
       if(!form || !Array.isArray(form.tabs))throw Error("Niepoprawna struktura formularza.");
       section.hidden=false;
       root.render(<PreviewApp key={Date.now()} form={form} file={options.file}
-        extraction={options.extraction} quality={options.quality} validation={options.validation}
-        source={options.source} wizardMode={options.wizardMode===true}/>);
+        extraction={options.extraction} quality={options.quality} grounding={options.grounding}
+        validation={options.validation} source={options.source} wizardMode={options.wizardMode===true}/>);
       if(options.scrollIntoView!==false)
         section.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
     },

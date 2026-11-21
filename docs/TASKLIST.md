@@ -1,6 +1,6 @@
 # FormFlow AI — aktualna lista zadań
 
-**Data przeglądu:** 2026-11-21; wersja v1.0.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
+**Data przeglądu:** 2026-11-21; wersja v1.1.0. Decyzja obowiązująca: [zgłoszenie z API](DECISION_API_SUBMISSION.md).
 **Aplikacja:** https://vibe.tail075c6f.ts.net:9466/ — tylko Tailnet.  
 **Legenda:** [x] ukończone, [ ] do zrobienia; **P0** = obowiązkowe/krytyczne, **P1** = dodatkowe punkty.  
 **Pełny pierwotny plan:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Oznaczenia ukończenia poniżej są weryfikowane względem kodu i działającego API, a nie aspiracyjnego planu.
@@ -16,11 +16,11 @@ Pełny zapis: [DECISION_API_SUBMISSION.md](DECISION_API_SUBMISSION.md).
 
 ## Stan obecny
 
-- ✅ FastAPI 0.8.1 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
+- ✅ FastAPI 1.1.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
 - ✅ **Używane w development i planowane do zgłoszenia:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
-- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **50/50**.
+- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **70/70**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
 - ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
 - ✅ Lokalny PDF layout/OCR działa (pypdf/Tesseract). ❌ Pozostają pełny Docling PDF, stary `.doc`, zaawansowane funkcje JSON Forms i część słowników COI. Lokalny LLM jest poza zakresem hackathonu.
@@ -210,3 +210,22 @@ Dokumentacja: [V09_FIELD_EDITOR.md](V09_FIELD_EDITOR.md).
 - [ ] Testy użyteczności z urzędnikami oraz dostępności (klawiatura, powiększenie 200%, czytniki ekranu), trwałe wersjonowanie, test importu w oficjalnym COI.
 
 Szczegóły: [V10_GUIDED_WIZARD.md](V10_GUIDED_WIZARD.md).
+
+
+## Etap v1.1.0 — Multimodal PDF i source grounding
+
+- [x] PDF worker generuje obrazy maksymalnie **3 pierwszych stron** i raportuje numery stron.
+- [x] Włączona domyślnie analiza **PDF: OCR/layout + Vision Qwen**; dla JPG/PNG Vision działa jak wcześniej.
+- [x] Przełącznik diagnostyczny `vision=off|on|auto` umożliwia A/B na identycznych plikach.
+- [x] Raport `grounding`: tekstowe potwierdzenia pól z OCR, najlepsze cytaty i numery stron, lista do ręcznej weryfikacji. Brak dopasowania nie usuwa automatycznie wizualnie wykrytego pola.
+- [x] Jawna lista obejrzanych stron i ostrzeżenie, gdy obrazowo nie przeanalizowano wszystkich stron PDF; zachowane świadome zgody na OpenRouter.
+- [x] Rozdzielenie `INFORMACJE / POUCZENIE / OBJAŚNIENIA` od pytań: nieedytowalny `TEXT_BLOCK` zamiast pól z opłatami.
+- [x] Usuwanie podpisów papierowych i odzyskiwanie poszczególnych numerowanych oświadczeń z OCR, również po zawinięciu wierszy.
+- [x] Benchmark OCR-only vs OCR+Vision na dwóch **syntetycznie wyrenderowanych skanach** na podstawie oryginalnego OCR COI #3/#4. Wizja nie była jednoznacznie lepsza — oba tryby miały wady, stąd dodatkowe reguły.
+- [x] Testy backend, worker PDF/OCR, frontend — wyniki w [V11_MULTIMODAL_QUALITY.md](V11_MULTIMODAL_QUALITY.md).
+- [ ] **P0:** benchmark jakości na **oryginalnych binarnych** formularzach #2–#9; human-labeled recall/precision/types oraz raporty pomyłek.
+- [ ] **P0:** Vision wszystkich stron dłuższych PDF przez chunking; obecnie 3 strony obrazowo i OCR skanów do 4 stron.
+- [ ] **P1:** render Office (DOCX/XLSX/ODS) do obrazu; obecnie Docling tekst i tabele.
+- [ ] **P1:** source grounding w postaci współrzędnych pól i podświetlenia w oryginale; obecny raport jest tekstowy.
+
+Status regulaminowy OpenRouter: **bez zmian — zgłoszenie planowane z API, mimo zakazu zewnętrznych API**.

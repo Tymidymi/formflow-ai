@@ -138,3 +138,16 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Test UI generowania użył sztucznego payloadu modelu, nie dodatkowej inferencji Qwen.
 - Prywatny deployment Tailscale Serve, kod na GitHubie; ryzyko regulaminowe OpenRouter API bez zmian.
 - Raport: [V10_GUIDED_WIZARD.md](V10_GUIDED_WIZARD.md).
+
+
+## Etap v1.1.0 — Multimodal PDF i quality engine
+
+- Uruchomiono PDF Vision jako domyślne źródło dla Qwen razem z OCR; do trzech obrazów stron, z jawnym ostrzeżeniem przy częściowym pokryciu.
+- Wbudowany przełącznik A/B PDF Vision; wykonano rzeczywiste zapytania OpenRouter na odtworzonych skanach COI #3 i #4.
+- Vision daje różne rezultaty: #3 lepiej rozdziela typy checkbox, #4 lepiej widzi daty, lecz czasem łączy wielopunktowe oświadczenia. Nie zakładamy bezwzględnej poprawy samym obrazem.
+- Dodano konserwatywne source grounding, rozpoznawanie informacji o opłatach jako read-only, papierowe podpisy wykluczone i odzysk numerowanych oświadczeń.
+- Testy i metodyka: [V11_MULTIMODAL_QUALITY.md](V11_MULTIMODAL_QUALITY.md).
+- Wciąż brakuje oryginalnego benchmarku binariów i wizualnego podglądu Office; zewnętrzny OpenRouter jest używany świadomie pomimo ryzyka konkursowego.
+
+- Uzupełnienie wyników v1.1: COI #3 — informacje o opłatach jako read-only, brak edytowalnego podpisu; COI #4 — odzysk 4 numerowanych potwierdzeń na realnej ścieżce Qwen/COI po korekcie parsera.
+- Ostateczna liczba testów backend v1.1: **70/70**.

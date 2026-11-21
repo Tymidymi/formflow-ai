@@ -1,4 +1,4 @@
-"""FormFlow AI v1.0.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v1.1.0 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -14,6 +14,7 @@ from .extraction_router import extract_with_backend
 from .coi_builder import convert as to_coi
 from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
+from .field_grounding import analyze_grounding
 from .semantic_quality import normalize_semantic
 from .conditional_rules import apply_conditions
 from .document_zones import split_legal_notice, primary_image_crop
@@ -21,7 +22,7 @@ from .form_repair import repair_form
 from .demo_fixture import create_demo
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="1.0.0",
+app=FastAPI(title="FormFlow AI",version="1.1.0",
     description="COI prototype using OpenRouter API; not compliant with COI no-external-API requirement.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
@@ -53,7 +54,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"1.0.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"1.1.0"}
 
 @app.get("/readyz")
 def ready():
@@ -108,7 +109,8 @@ async def validate_json(request:Request):
 
 @app.post("/api/v1/forms/convert")
 async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=Header(default=None),
-                       mode: Literal["coi","diagnostic"]=Query(default="coi")):
+                       mode: Literal["coi","diagnostic"]=Query(default="coi"),
+                       vision: Literal["auto","on","off"]=Query(default="auto")):
     if not enabled():
         await file.close()
         return JSONResponse(status_code=503,content={"detail":"AI wyłączone. Uruchom compose.dev.yaml.",
@@ -124,7 +126,8 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
     if len(content)>max_upload_bytes():raise RejectedFile("Przekroczony limit.",413)
     mime=detect_mime(content,ext)
     try:
-        text,images,extraction_meta=await extract_with_backend(content,ext)
+        text,images,extraction_meta=await extract_with_backend(content,ext,vision_mode=vision)
+        extraction_meta["vision_requested"]=vision
         zones=split_legal_notice(text)
         model_images=images
         if zones.was_split and ext in (".jpg",".jpeg",".png") and images:
@@ -135,6 +138,7 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         extraction_meta["main_text_characters"]=len(zones.body)
         extraction_meta["legal_text_characters"]=len(zones.legal)
         semantic,info=await generate(zones.body,model_images)
+        extraction_meta["model_images_sent"]=info.get("images_sent",len(model_images))
         semantic,repair_changes=repair_form(semantic,zones)
         semantic,normalization=normalize_semantic(zones.body,semantic)
         normalization=repair_changes+normalization
@@ -142,6 +146,9 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         normalization.extend(conditions)
         result,validation=to_coi(semantic)
         quality=assess_quality(zones.body,semantic)
+        grounding=analyze_grounding(zones.body,semantic,images_count=len(model_images))
+        quality["ocr_evidence_coverage"]=grounding["support_ratio"]
+        quality["ocr_evidence_unverified"]=grounding["requires_review"]
         quality["legal_notice_readonly"]=bool(zones.legal)
         quality["manual_review_recommended"]=any(
             c["type"] in ("reference_field_recovered",
@@ -155,6 +162,18 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         if extraction_meta.get("truncated"):
             quality["ok"]=False
             quality.setdefault("possible_missing",[]).append("Źródło przekroczyło limit tekstu")
+        if extraction_meta.get("vision_incomplete"):
+            quality["manual_review_recommended"]=True
+            quality.setdefault("possible_missing",[]).append(
+                "Wizualnie przeanalizowano tylko część stron PDF. Sprawdź pozostałe strony.")
+        if len(model_images)>extraction_meta.get("model_images_sent",len(model_images)):
+            quality["manual_review_recommended"]=True
+            quality.setdefault("possible_missing",[]).append(
+                "Co najmniej jeden obraz został pominięty ze względu na limit rozmiaru modelu.")
+        if extraction_meta.get("vision_rejected_pages"):
+            quality["manual_review_recommended"]=True
+            quality.setdefault("possible_missing",[]).append(
+                "Nie wszystkie obrazy stron zmieściły się w limicie API.")
     except AIProviderError as exc:
         return JSONResponse(status_code=502,content={"detail":str(exc),"code":"AI_PROVIDER_ERROR"})
     except ValueError as exc:
@@ -171,6 +190,7 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
             "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime,"extraction":extraction_meta},
             "form":result,"validation":validation,"quality":quality,
             "normalization":normalization,
+            "grounding":grounding,
             "warning":("Ollama działa lokalnie, ale kompletnej zgodności konkursowej nie potwierdzono."
                        if info.get("provider")=="ollama-offline"
                        else "Tryb developerski wysyła zawartość formularza do OpenRouter. Nie jest wersją konkursową.")}

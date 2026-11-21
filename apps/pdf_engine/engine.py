@@ -19,7 +19,7 @@ MAX_PAGES=25
 MAX_OCR_PAGES=4
 MAX_TEXT_CHARS=18000
 MAX_IMAGE_PIXELS=5_000_000
-MAX_PREVIEW_PAGES=2
+MAX_PREVIEW_PAGES=3
 
 class PdfExtractionError(Exception):
     def __init__(self, message: str, code: int=422):
@@ -39,14 +39,17 @@ def prepare_image(img:Image.Image)->Image.Image:
                        Image.Resampling.LANCZOS)
     return ImageOps.autocontrast(img.convert("L"))
 
-def jpeg_preview(img:Image.Image)->dict:
+def jpeg_preview(img:Image.Image, page_number:int|None=None)->dict:
     if img.width*img.height>MAX_IMAGE_PIXELS:
         img=prepare_image(img)
     out=io.BytesIO()
     img.convert("RGB").save(out,format="JPEG",quality=68,optimize=True)
     if out.tell()>1_500_000:
         raise PdfExtractionError("Przekroczony limit podglądu strony.",413)
-    return {"mime":"image/jpeg","base64":base64.b64encode(out.getvalue()).decode("ascii")}
+    response={"mime":"image/jpeg","base64":base64.b64encode(out.getvalue()).decode("ascii")}
+    if page_number is not None:
+        response["page"]=page_number
+    return response
 
 def tesseract_text(img:Image.Image)->str:
     converted=prepare_image(img)
@@ -105,10 +108,10 @@ def pdf_extract(data:bytes, include_previews:bool=False)->dict:
             method="tesseract-pol+eng"
             ocr+=1
             if include_previews and len(previews)<MAX_PREVIEW_PAGES:
-                previews.append(jpeg_preview(image))
+                previews.append(jpeg_preview(image,page_number=i+1))
         elif include_previews and len(previews)<MAX_PREVIEW_PAGES:
             image=_render_pdf(data,i)
-            previews.append(jpeg_preview(image))
+            previews.append(jpeg_preview(image,page_number=i+1))
         pages.append({"page":i+1,"method":method,"characters":len(raw),
                       "checkboxes":raw.count("☐"),"source_text_chars":layout_chars})
         blocks.append(f"[Strona {i+1}/{count}]\n"+raw)
@@ -119,6 +122,8 @@ def pdf_extract(data:bytes, include_previews:bool=False)->dict:
         "engine":"pdf-layout-ocr","format":".pdf","text":all_text[:MAX_TEXT_CHARS],
         "truncated":len(all_text)>MAX_TEXT_CHARS,"page_count":count,
         "ocr_pages":ocr,"page_sources":pages,"preview_images":previews,
+        "preview_page_numbers":[item["page"] for item in previews],
+        "vision_incomplete":bool(include_previews and count>len(previews)),
     }
 
 def detect_stitched_image_parts(img:Image.Image)->list[Image.Image]:
