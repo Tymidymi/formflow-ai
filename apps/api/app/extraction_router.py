@@ -109,6 +109,8 @@ async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="au
                     "legacy_doc_review_required":legacy,
                     "office_sheet_count":payload.get("sheet_count"),
                     "office_populated_cells":payload.get("populated_cells"),
+                    "document_title":payload.get("document_title"),
+                    "source_sections":payload.get("source_sections"),
                     **({"warning":payload.get("warning",
                         "Stary DOC wymaga kontroli układu.")} if legacy else {}),
                 }
