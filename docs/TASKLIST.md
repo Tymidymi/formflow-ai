@@ -27,6 +27,16 @@
 - [ ] Powtórzyć test na binarnym pliku użytkownika; syntetyczny złożony PDF został już przetestowany E2E, ale nie dowodzi jakości na każdym skanie.
 - [ ] Sprawdzić wydajność i ewentualne limity czasu OpenRouter przy 100+ polach.
 
+## Źródłowa struktura XLSX — 21.11.2026
+
+- [x] Natywne granice sekcji i nagłówków zamiast organizacji całego arkusza przez LLM.
+- [x] Geometria drukowanych pustych ramek z wykluczeniem scalonych instrukcji.
+- [x] Oddzielne konteksty powtarzających się etykiet (np. dwie różne osoby); źródłowe pola deterministyczne przy wysokiej pewności.
+- [x] Warunki SHOW i grupowanie checkboxów na podstawie wydrukowanego wyboru, a nie rodzaju wniosku.
+- [x] Testy regresyjne niezależnych formularzy, 126 testów backend, 20 frontendu.
+- [ ] Test binarny oryginału na VPS; ocena poprawności pochodzenia pól z XLSX oraz niezależny test nieznanego formularza.
+- [ ] Ograniczenia hostingu VPS: mało wolnego RAM i sporadyczne zabicie procesu API podczas uruchamiania.
+
 ## Bieżące wykonanie i najbliższe zadania — 21.11.2026
 
 **Zrobione i sprawdzone na VPS:**
