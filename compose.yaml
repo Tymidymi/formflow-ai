@@ -1,0 +1,30 @@
+name: formflow-ai
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: formflow-ai-api:stage1
+    restart: unless-stopped
+    init: true
+    user: "10001:10001"
+    ports:
+      - "127.0.0.1:${FORMFLOW_HOST_PORT:-18171}:8000"
+    environment:
+      MAX_UPLOAD_MB: "${MAX_UPLOAD_MB:-15}"
+      PYTHONDONTWRITEBYTECODE: "1"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 80
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>FormFlow AI — Cyfryzacja formularzy</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="FormFlow AI"><span class="mark">F<span>·</span></span><span>formflow <small>AI</small></span></a>
+      <span class="sidebar-label">WORKSPACE</span>
+      <nav><a class="nav-active" href="/"><span>▣</span> Konwersja formularza</a><a href="/api/docs" target="_blank" rel="noopener"><span>{ }</span> Dokumentacja API</a></nav>
+      <div class="sidebar-bottom"><div class="mini-pulse"></div> Infrastruktura aktywna <p>HackNation 2026 · COI</p></div>
+    </aside>
+    <main class="content">
+      <header class="topbar"><span>Cyfryzacja formularzy <b>/</b> Nowy formularz</span><span class="env-chip">ETAP 01 · FOUNDATION</span></header>
+      <section class="intro"><div class="eyebrow"><span class="eyebrow-dot"></span> FORMULARZE PRZYSZŁOŚCI</div><h1>Od dokumentu do<br><em>cyfrowego formularza.</em></h1><p>Wgraj formularz urzędowy. FormFlow AI sprawdzi plik i przygotuje go do dalszej analizy. Automatyczne generowanie JSON COI zostanie podłączone w następnym etapie.</p></section>
+      <section class="work-area"><div class="section-header"><div><h2>Import dokumentu</h2><p>Obsługiwane formaty: PDF, DOC, DOCX, XLSX, ODS, JPG, PNG.</p></div><div class="status">● Etap testowy</div></div>
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Wybierz dokument do inspekcji"><input id="file-input" type="file" accept=".pdf,.doc,.docx,.ods,.xlsx,.jpg,.jpeg,.png" hidden/><div class="file-icon">⇧</div><h3>Przeciągnij dokument tutaj</h3><p>lub <span>wybierz plik z komputera</span></p><small>Maksymalny rozmiar: <b id="size-limit">15 MB</b> · plik pozostaje na serwerze tylko podczas żądania</small></div>
+        <div class="result" id="result" hidden aria-live="polite"></div>
+        <div class="stage-note"><span class="note-icon">ⓘ</span><div><b>Co działa w tym etapie?</b><p>API, upload, kontrola rozszerzenia, nazwy, zawartości i wielkości pliku. Analiza Docling, model Qwen oraz wynikowy JSON COI są zaplanowane jako kolejny etap.</p></div></div>
+      </section>
+      <footer>FormFlow AI <span>·</span> Open source infrastructure <span>·</span> Built for HackNation 2026</footer>
+    </main>
+  </div>
+</body>
+</html>
