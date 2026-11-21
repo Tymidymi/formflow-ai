@@ -39,6 +39,12 @@ PYTHONPATH=apps/api pytest -q apps/api/tests
 
 Nie zapisujemy wgrywanych dokumentów na dysku aplikacyjnym ani do repozytorium. Framework może korzystać z tymczasowego dysku podczas odczytu multipart; kontener ma wydzielony tmpfs czyszczony wraz z kontenerem. W tym etapie żaden dokument nie jest wysyłany do zewnętrznych usług.
 
+## Aktualny status wdrożenia
+
+- [Raport statusowy](docs/STATUS.md)
+- [Plan realizacji — aktualizowany](docs/IMPLEMENTATION_PLAN.md)
+- [Raport z pierwszego etapu](docs/STAGE_1_REPORT.md)
+
 ## Status / dalszy plan
 
 Zobacz [architekturę](docs/ARCHITECTURE.md). Materiały konkursowe z Discorda są konieczne przed implementacją adaptera eksportującego JSON COI.

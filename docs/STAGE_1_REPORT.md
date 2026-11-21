@@ -9,6 +9,13 @@
 - [x] Docker Compose (bez uprawnień root, read-only, tmpfs, limit pamięci, port tylko na `127.0.0.1:18171`).
 - [x] Testy jednostkowe (11/11) w środowisku programistycznym.
 
+## Aktualizacja: 21 listopada 2026
+
+- **Tailscale Serve uruchomiony:** prywatny HTTPS `https://vibe.tail075c6f.ts.net:9466/`, bez Funnel.
+- **Docker/API:** kontener `formflow-ai-api-1` jest `healthy`; `/healthz` zwraca HTTP 200.
+- **GitHub:** OAuth kodem urządzenia przeszedł, ale zapis tokenu nie powiódł się przez uprawnienia katalogu `~/.config`; nowa konfiguracja będzie zapisywana w `~/.local/share/gh-cli`.
+- Rozdział poniżej o Tailscale opisuje **historyczny bloker, już usunięty**.
+
 ## Blokery infrastruktury
 
 **Tailscale Serve:** obecny użytkownik `tymot` nie ma roli operatora Tailscale; `tailscale serve` zwraca `Access denied`, a `sudo -n` wymaga hasła. Jednorazowa komenda na VPS (wpisywana przez właściciela):

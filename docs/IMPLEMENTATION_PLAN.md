@@ -6,6 +6,25 @@
 > **Frontend:** React + TypeScript + JSON Forms  
 > **Uruchomienie:** Docker Compose, inferencja lokalna, bez wywołań zewnętrznych API podczas pracy aplikacji
 
+## Status wdrożenia — 21 listopada 2026
+
+> **Etap 1 jest wdrożony na VPS.** Kontener działa z prywatnym Tailscale Serve. **Docling, Qwen/Ollama, JSON COI i JSON Forms nie są jeszcze zaimplementowane.**
+
+| Obszar | Status |
+|---|---|
+| Docker + FastAPI | ✅ `formflow-ai-api-1` healthy, `127.0.0.1:18171` |
+| Prywatny HTTPS | ✅ `https://vibe.tail075c6f.ts.net:9466/` (tailnet only) |
+| Git lokalny | ✅ `main`, commit `8f339f1` |
+| GitHub | ⏳ Autoryzacja CLI do dokończenia; jeszcze bez opublikowanego repo |
+| Upload | ✅ `/api/v1/forms/inspect` — wstępna walidacja plików |
+| Konwersja | ⬜ `/api/v1/forms/convert` — świadomie HTTP 501 |
+| Frontend | 🟡 Statyczny HTML/CSS/JS; jeszcze nie React/JSON Forms |
+| Testy | ✅ 11 testów etapu 1 i smoke testy HTTP |
+
+Szczegóły: [STATUS.md](STATUS.md). Następny chunk: GitHub, materiały COI, parser Docling, testy ekstrakcji.
+
+---
+
 ## 1. Cel i kryteria sukcesu
 
 **Cel:** urzędnik wgrywa istniejący blankiet formularza (PDF, DOC, DOCX, ODS, XLSX, JPG, JPEG, PNG), a system analizuje dokument i **zwraca JSON w dokładnym formacie wymaganym przez COI**, zgodny z zasadami budowy eUsług. Dodatkowo pokazuje podgląd formularza cyfrowego i umożliwia sprawdzenie pól.
