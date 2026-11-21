@@ -7,11 +7,11 @@
 
 ## Stan obecny
 
-- ✅ FastAPI 0.6.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
+- ✅ FastAPI 0.7.0 na VPS; Docker Compose, nie-root, ograniczony RAM, port tylko `127.0.0.1:18171`; Tailscale Serve na porcie 9466.
 - ✅ UI do uploadu, inspekcja pliku i świadoma zgoda na zewnętrzne AI.
 - ✅ Lokalny, lekki parser tekstu PDF/DOCX/ODS/XLSX; JPG/PNG i skan PDF przez obraz wysłany do modelu.
 - ✅ **Development only:** OpenRouter + Qwen3-VL-30B-A3B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. Pierwotny test poprzedzał włączenie oficjalnego schematu COI.
-- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **40/40**.
+- ✅ Prototyp `semantic JSON -> tabs/questions/flow`, UUID5, walidacja strukturalna i oficjalny JSON Schema COI; testy: **46/46**.
 - ✅ Oryginalny `JSON Schema` COI podłączony bez zmian bajtów; uwaga: schemat jest liberalny i nie zastępuje testu importera.
 - ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
 - ❌ PDF layout/OCR offline działa (pypdf/Tesseract), ale brak pełnego Docling PDF i obsługi starego `.doc` w konwersji, JSON Forms, słowników COI, walidacji reguł i rozwiązania lokalnego LLM dla konkursu.
@@ -69,7 +69,7 @@
 
 ### Etap G — Jakość, bezpieczeństwo i submission · P0
 - [x] Podstawowe ograniczenia uploadu, weryfikacja nazw i formatów, Tailscale-only.
-- [x] Testy automatyczne nowego kodu: 40/40; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
+- [x] Testy automatyczne nowego kodu: 46/46; syntetyczny smoke test OpenRouter z wcześniejszego etapu pomyślny.
 - [ ] Pełne testy MIME, ZIP-bomb, makr, limitu stron, cleanup, timeoutów, bezpieczeństwa wysyłki.
 - [ ] Konfiguracja JWT (wymagania konkursowe); [x] `readyz.competition_compliant=false` również przy wyłączonym AI.
 - [ ] Test Docker z czystego klona, test offline, brak wyjściowych zależności SaaS.
@@ -106,7 +106,7 @@
 - [x] Oddzielny PDF/OCR worker: pypdf layout + pypdfium2 + Tesseract pol+eng, prywatna sieć i 384 MiB RAM.
 - [x] Lokalny podgląd ekstrakcji z PDF/PNG/JPG bez OpenRouter.
 - [x] Testy workera: tekst PDF, OCR PDF skan, OCR PNG, uszkodzony PDF i limit 25 stron — 5/5.
-- [x] Testy API: 40/40 (mock bez zewnętrznych zapytań).
+- [x] Testy API: 46/46 (mock bez zewnętrznych zapytań).
 - [x] Syntetyczny PDF skanowany przeszedł OCR → Qwen → JSON COI (HTTP 200, schema_valid=true).
 - [x] Reguły odzyskujące jawnie obecne pola, korekty typów i filtrowanie podpisu papierowego; sprawdzone na poprzednich wynikach COI #3/#4.
 - [x] Lokalna ekstrakcja binarnych oryginalnych PDF-ów/PNG COI #3/#4.
@@ -115,3 +115,17 @@
 - [ ] Legacy DOC, słowniki, warunki, JSON Forms, lokalny Qwen i sprawdzenie licencji transytywnych.
 
 Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).
+
+## Etap v0.7.0 — Quality Engine i lokalny Qwen (przygotowanie)
+
+- [x] Ręczna lista referencyjnych pól dla COI #3/#4 i benchmark etykiet oraz typów.
+- [x] Replay na zapisanych wynikach Qwen: #3 10/11 → 11/11; #4 15/18 → 18/18 etykiet.
+- [x] JSONata SHOW dla danych innej osoby odpowiedzialnej oraz warunkowego oświadczenia w #4.
+- [x] Obsługa dictionaryName — słownik Kraje dla SELECT; [ ] pełne słowniki TERYT.
+- [x] Adapter lokalnego Ollama/Qwen i testy mock; [ ] inferencja na GPU i rzeczywisty test offline.
+- [x] Testy FastAPI 46/46; PDF/OCR worker 5/5.
+- [ ] Full E2E na oryginalnych binarnych PDF #3/#4 i statystyczny benchmark recall/precision.
+- [ ] Test wykonywania stanów JSONata w docelowym rendererze COI.
+- [ ] Wersja bez zależności od zewnętrznych API i audyt licencji.
+
+Szczegóły: V07_QUALITY_REPORT.md i LOCAL_QWEN.md.

@@ -1,4 +1,4 @@
-"""FormFlow AI v0.6.0 — official COI Schema validation and deterministic exporter."""
+"""FormFlow AI v0.7.0 — official COI Schema validation and deterministic exporter."""
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -15,9 +15,10 @@ from .coi_builder import convert as to_coi
 from .coi_validation import validate_coi_form
 from .quality_gate import assess as assess_quality
 from .semantic_quality import normalize_semantic
+from .conditional_rules import apply_conditions
 
 ROOT=Path(__file__).resolve().parent
-app=FastAPI(title="FormFlow AI",version="0.6.0",
+app=FastAPI(title="FormFlow AI",version="0.7.0",
     description="COI prototype. OpenRouter is development ONLY, not competition-compliant.",
     docs_url="/api/docs",redoc_url=None,openapi_url="/api/openapi.json")
 app.mount("/static",StaticFiles(directory=ROOT/"static"),name="static")
@@ -49,7 +50,7 @@ def home():
 
 @app.get("/healthz")
 def health():
-    return {"status":"ok","service":"formflow-ai-api","version":"0.6.0"}
+    return {"status":"ok","service":"formflow-ai-api","version":"0.7.0"}
 
 @app.get("/readyz")
 def ready():
@@ -60,14 +61,15 @@ def ready():
 def capabilities():
     return {"inspection":True,"conversion":enabled(),"preview":True,
             "coi_structural_validation":True,"coi_schema_validation":True,
-            "model_provider":"openrouter-development" if enabled() else "disabled",
+            "model_provider":("ollama-offline" if __import__("os").environ.get("FORMFLOW_AI_PROVIDER")=="ollama"
+                              else "openrouter-development" if enabled() else "disabled"),
             "docling_office_enabled":__import__("os").environ.get("FORMFLOW_DOCLING_URL")=="http://docling-office:8001",
             "pdf_ocr_enabled":__import__("os").environ.get("FORMFLOW_PDF_WORKER_URL")=="http://pdf-engine:8002",
             "pdf_vision_enabled":__import__("os").environ.get("FORMFLOW_PDF_VISION")=="true",
             "supported_extensions":[".pdf",".doc",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "conversion_extensions":[".pdf",".docx",".ods",".xlsx",".jpg",".jpeg",".png"],
             "max_upload_bytes":max_upload_bytes(),
-            "note":"OpenRouter development only. PDF layout + Polish Tesseract OCR worker and Docling Office available; Docling PDF models, legacy DOC and offline LLM pending."}
+            "note":"OpenRouter DEV or optional local Ollama (not yet E2E tested). PDF layout/OCR and Docling Office available; legacy DOC and full Docling PDF pending."}
 
 @app.post("/api/v1/forms/inspect")
 async def inspect(file:UploadFile=File(...)):
@@ -103,7 +105,7 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         await file.close()
         return JSONResponse(status_code=503,content={"detail":"AI wyłączone. Uruchom compose.dev.yaml.",
                                                       "code":"AI_DISABLED"})
-    if x_external_ai_consent!="true":
+    if __import__("os").environ.get("FORMFLOW_AI_PROVIDER")=="openrouter" and x_external_ai_consent!="true":
         await file.close()
         return JSONResponse(status_code=403,content={"detail":"Wymagana świadoma zgoda na wysłanie dokumentu do zewnętrznego API.",
                                                       "code":"EXTERNAL_API_CONSENT_REQUIRED"})
@@ -117,6 +119,8 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
         text,images,extraction_meta=await extract_with_backend(content,ext)
         semantic,info=await generate(text,images)
         semantic,normalization=normalize_semantic(text,semantic)
+        semantic,conditions=apply_conditions(text,semantic)
+        normalization.extend(conditions)
         result,validation=to_coi(semantic)
         quality=assess_quality(text,semantic)
         if extraction_meta.get("truncated"):
@@ -133,8 +137,10 @@ async def convert_form(file:UploadFile=File(...),x_external_ai_consent:str|None=
                 "code":"COI_REVIEW_REQUIRED","validation":validation,"quality":quality})
         return result
     return {"status":"generated" if validation["valid"] and quality["ok"] else "needs_review",
-            "provider":"openrouter-development","model":info["model"],"usage":info.get("usage",{}),
+            "provider":info.get("provider","openrouter-development"),"model":info["model"],"usage":info.get("usage",{}),
             "document":{"filename":file.filename,"size_bytes":len(content),"detected_mime":mime,"extraction":extraction_meta},
             "form":result,"validation":validation,"quality":quality,
             "normalization":normalization,
-            "warning":"Tryb developerski wysyła zawartość formularza do OpenRouter. Nie jest wersją konkursową."}
+            "warning":("Ollama działa lokalnie, ale kompletnej zgodności konkursowej nie potwierdzono."
+                       if info.get("provider")=="ollama-offline"
+                       else "Tryb developerski wysyła zawartość formularza do OpenRouter. Nie jest wersją konkursową.")}

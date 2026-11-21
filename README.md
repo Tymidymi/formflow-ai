@@ -107,3 +107,12 @@ The local extraction preview `POST /api/v1/forms/extract-preview` does not use
 OpenRouter. The UI has a button to inspect the OCR text before consenting to AI.
 
 See [PDF engine](docs/PDF_ENGINE.md) for limits, tests and open gaps.
+
+## v0.7 — Quality Engine / COI conditional states
+
+Source-grounded conditional JSONata SHOW states for the rural hall application.
+Known COI dictionaryName support, reference field/type benchmark and an
+optional internal Ollama Qwen adapter (mock tested only).
+
+See docs/V07_QUALITY_REPORT.md and docs/LOCAL_QWEN.md.
+OpenRouter remains development-only. Offline competition readiness is NOT verified.

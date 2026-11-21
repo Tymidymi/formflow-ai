@@ -10,7 +10,7 @@ import re
 import unicodedata
 
 def fold(value:str)->str:
-    return unicodedata.normalize("NFKD",value).encode("ascii","ignore").decode("ascii").lower()
+    return unicodedata.normalize("NFKD",value.translate(str.maketrans("Łł", "Ll"))).encode("ascii","ignore").decode("ascii").lower()
 
 SIGNATURE=re.compile(r"^(?:czytelny\s+)?podpis(?:\s+wnioskodawcy)?$",re.I)
 

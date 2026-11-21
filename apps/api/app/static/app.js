@@ -11,6 +11,7 @@ const previewButton=document.querySelector('#extract-preview');
 const extractionResult=document.querySelector('#extraction-result');
 let currentFile=null;
 let generated=null;
+let externalConsentRequired=true;
 
 function show(container,title,details,failed=false){
   container.hidden=false;
@@ -23,7 +24,7 @@ function show(container,title,details,failed=false){
   container.append(heading,body);
 }
 function updateButton(){
-  generateButton.disabled=!currentFile||!checkbox.checked;
+  generateButton.disabled=!currentFile||(externalConsentRequired&&!checkbox.checked);
   previewButton.disabled=!currentFile;
 }
 async function inspect(file){
@@ -71,13 +72,13 @@ previewButton.addEventListener('click',async()=>{
 
 
 generateButton.addEventListener('click',async()=>{
-  if(!currentFile||!checkbox.checked)return;
+  if(!currentFile||(externalConsentRequired&&!checkbox.checked))return;
   generateButton.disabled=true;
   show(convertResult,'Generowanie przez Qwen…','Dokument jest analizowany przez zewnętrzny model. Nie zamykaj karty.');
   const payload=new FormData();payload.append('file',currentFile,currentFile.name);
   try{
     const response=await fetch('/api/v1/forms/convert?mode=diagnostic',{
-      method:'POST',headers:{'X-External-AI-Consent':'true'},body:payload});
+      method:'POST',headers:{'X-External-AI-Consent':externalConsentRequired?'true':'false'},body:payload});
     const data=await response.json();
     if(!response.ok)throw Error(data.detail||'Błąd generowania.');
     generated=data.form;
@@ -108,5 +109,14 @@ fetch('/api/v1/capabilities').then(r=>r.json()).then(data=>{
   limit.textContent=Math.round(data.max_upload_bytes/1024/1024)+' MB';
   providerStatus.textContent=(data.conversion?'● OpenRouter DEV':'● AI wyłączone')+
     (data.pdf_ocr_enabled?' · PDF/OCR':'');
-  generateButton.disabled=!data.conversion;
+  externalConsentRequired=data.model_provider!=='ollama-offline';
+  const privacy=document.querySelector('.stage-note');
+  if(privacy&&!externalConsentRequired){
+    privacy.querySelector('b').textContent='Lokalny model Ollama (tryb testowy)';
+    privacy.querySelector('p').textContent='W tym trybie dokument nie trafia do OpenRouter. Pełne testy offline i zgodności konkursowej pozostają do wykonania.';
+    checkbox.closest('label').hidden=true;
+    generateButton.textContent='Generuj JSON COI lokalnie';
+  }
+  updateButton();
+  generateButton.disabled=!data.conversion || generateButton.disabled;
 }).catch(()=>{providerStatus.textContent='● Brak połączenia';});

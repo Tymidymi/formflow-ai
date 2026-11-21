@@ -1,0 +1,31 @@
+# OPTIONAL OFFLINE MODEL RUNNER (not deployed on RAM-constrained VPS).
+# Requires GPU/RAM plus model weights downloaded before offline testing.
+# Ollama only sees the internal Docker network; no exposed host port.
+services:
+  api:
+    environment:
+      FORMFLOW_AI_PROVIDER: ollama
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3-vl:8b-instruct}
+    networks:
+      - default
+      - extractor_private
+  ollama:
+    profiles: ["offline-llm"]
+    image: ollama/ollama:0.12.7
+    restart: "no"
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m,mode=1777
+    volumes:
+      - ollama_models:/root/.ollama
+    networks:
+      - extractor_private
+    # Uncomment on an authorized NVIDIA GPU host:
+    # gpus: all
+    # Do not launch on this VPS (available RAM ~0.6 GiB).
+volumes:
+  ollama_models:

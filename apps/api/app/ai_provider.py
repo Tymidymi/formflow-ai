@@ -24,8 +24,9 @@ class AIProviderError(Exception):
     pass
 
 def enabled() -> bool:
-    return os.environ.get("FORMFLOW_AI_PROVIDER", "").lower() == "openrouter" and bool(
-        os.environ.get("OPENROUTER_API_KEY", "").strip())
+    mode=os.environ.get("FORMFLOW_AI_PROVIDER","").lower()
+    return (mode=="ollama" or
+            (mode=="openrouter" and bool(os.environ.get("OPENROUTER_API_KEY","").strip())))
 
 def decode_json(s: str) -> dict:
     s=s.strip()
@@ -41,7 +42,10 @@ def decode_json(s: str) -> dict:
 
 async def generate(text: str, images: list[tuple[str,bytes]] | None = None) -> tuple[dict,dict]:
     if not enabled():
-        raise AIProviderError("Zewnętrzny model jest wyłączony. Użyj trybu developerskiego.")
+        raise AIProviderError("Model jest wyłączony. Skonfiguruj OpenRouter DEV albo lokalny Ollama.")
+    if os.environ.get("FORMFLOW_AI_PROVIDER","").lower()=="ollama":
+        from .ollama_provider import generate_offline
+        return await generate_offline(text,images)
     base=os.environ.get("OPENROUTER_BASE_URL","https://openrouter.ai/api/v1").rstrip("/")
     parts=urlsplit(base)
     if parts.scheme!="https" or parts.netloc!="openrouter.ai" or parts.path!="/api/v1":

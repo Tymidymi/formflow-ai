@@ -5,6 +5,7 @@ import re
 import unicodedata
 from uuid import NAMESPACE_URL, uuid5
 from .coi_validation import validate_coi_form
+from .coi_conditions import attach_states
 
 KINDS = {
     "TEXT_FIELD", "TEXTAREA", "NUMBER", "DATEPICKER",
@@ -81,7 +82,13 @@ def convert(semantic: dict) -> tuple[dict,dict]:
                         if val and val not in seen:
                             seen.add(val)
                             opts.append({"id":val,"name":val,"techName":slug(val)})
-                if kind in {"RADIO","SELECT"} and not opts:
+                dictionary = data.get("dictionary_name")
+                if dictionary not in ("Kraje", "TERYT_DOWODOWY", "TERYT_4G_DOWODOWY"):
+                    dictionary = None
+                if kind == "SELECT" and not opts and not dictionary:
+                    if slug(label) in ("kraj", "kraj_zamieszkania", "kraj_urodzenia"):
+                        dictionary = "Kraje"
+                if kind in {"RADIO","SELECT"} and not opts and not dictionary:
                     kind="TEXT_FIELD"
                 if kind=="CHECKBOX" and not opts:
                     # An explicit independent yes/no checkbox needs no invented
@@ -92,6 +99,10 @@ def convert(semantic: dict) -> tuple[dict,dict]:
                 validation=field_validation(label,data.get("required") is True)
                 item=field(label,kind,name,f"{title}/{pi}/{si}/{fi}/{name}",
                            options=opts,validation=validation)
+                if kind in {"RADIO","CHECKBOX","SELECT"} and dictionary:
+                    item["dictionaryName"] = dictionary
+                if isinstance(data.get("show_when"), dict):
+                    item["__show_when"] = data["show_when"]
                 children.append(wrap(item,len(children),len(children)))
                 total+=1
                 if total>=80:break
@@ -117,5 +128,6 @@ def convert(semantic: dict) -> tuple[dict,dict]:
                  "questions":[{"x":0,"y":0,"rows":2,"cols":3,"field":finish}]})
     links=[{"id":identifier(title,"link",a["id"],b["id"]),
             "source":a["id"],"target":b["id"]} for a,b in zip(tabs,tabs[1:])]
+    attach_states(tabs)
     coi={"title":title,"tabs":tabs,"flow":{"links":links}}
     return coi,validate_coi_form(coi)

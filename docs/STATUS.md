@@ -71,3 +71,11 @@ zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formu
 - Normalizacja semantyczna: usunięcie podpisu papierowego, odzysk daty, pola podania, rozdzielenie miejscowości i daty, wynajem/użyczenie, poprawa liczby uczestników.
 - Oryginalne pliki COI #3/#4 sprawdzone lokalnie pod kątem PDF tekstowego i OCR, ale pełny binarny end-to-end na VPS nadal jest niezrobiony.
 - OpenRouter nadal DEV; brak konkursowej inferencji offline. Szczegóły: [PDF_ENGINE.md](PDF_ENGINE.md).
+
+## Etap v0.7.0 — 21 listopada 2026
+
+- Replay wyników semantycznych Qwen: COI #3 10/11→11/11, COI #4 15/18→18/18 (test wąski, bez binarnego PDF end-to-end).
+- Dynamiczne stany JSONata SHOW i słownik Kraje.
+- Opcjonalny adapter Ollama/Qwen, testy protokołu mock; nie wykonano inferencji na VPS.
+- 46/46 testów FastAPI.
+- Wciąż brak pełnego testu offline i testu warunków w realnym rendererze.
