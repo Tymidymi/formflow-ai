@@ -13,7 +13,7 @@
 - ✅ **Development only:** OpenRouter + Qwen3-VL-8B-Instruct. Potwierdzony HTTP 200 na **syntetycznym** DOCX: 5 stron, 15 elementów (w tym sekcje), 0 błędów wstępnej walidacji. To NIE oznacza zgodności z oficjalnym schematem COI.
 - ✅ Prototyp `semantic JSON -> tabs/questions/flow`, wstępny walidator strukturalny i testy: **13/13**.
 - ⚠️ Pełne `JSON Schema` COI jest dostępne w przekazanych materiałach, ale **nie jest jeszcze wpięte** do działającego walidatora.
-- ⚠️ GitHub `Tymidymi/formflow-ai` nadal nie istnieje; lokalne `git` nie ma `remote`. GitHub CLI nie zapisał wcześniejszych autoryzacji ze względu na cudze uprawnienia katalogu `~/.config`; stosujemy osobny `GH_CONFIG_DIR`.
+- ✅ Prywatne repo GitHub [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai) utworzone; `main` opublikowany i zgodny z lokalnym Git.
 - ❌ Brak Docling, obsługi `.doc`/`.ods` w konwersji, JSON Forms, słowników COI, walidacji reguł i rozwiązania lokalnego LLM dla konkursu.
 
 ## Kolejność prac i checklista
@@ -21,7 +21,7 @@
 ### Etap A — Repozytorium + materiały konkursowe · P0
 - [x] Repozytorium lokalne, Dockerfile, Compose, `.gitignore`, README, dokumentacja wstępna.
 - [x] Materiały konkursowe COI przekazane w rozmowie: referencyjne JSON #1 i #5, schemat, słowniki, formularze #2–4 i #6–9.
-- [ ] Utworzyć **prywatne** `Tymidymi/formflow-ai` i wykonać `git push -u origin main` (nie publikować .env i klucza).
+- [x] Utworzyć **prywatne** `Tymidymi/formflow-ai` i wykonać `git push -u origin main` (plik .env jest ignorowany).
 - [ ] Zintegrować bezpieczny zestaw fixture COI i oficjalny schemat z repo; potwierdzić prawa do publikowania otrzymanych materiałów, w razie potrzeby trzymać prywatnie.
 - [ ] Dodać CI (testy + walidacja JSON + podstawowy skan zależności).
 - [ ] Uzupełnić `THIRD_PARTY_LICENSES.md` i przypiąć wszystkie wersje zależności.
@@ -80,7 +80,7 @@
 
 ## Najbliższa sekwencja bez zbędnych prac
 
-1. **GitHub:** utworzyć repo i wysłać aktualny commit; ustawić zdalny `origin`.
+1. **GitHub:** ✅ Repo utworzone, push zakończony; utrzymywać synchronizację `origin/main`.
 2. **P0:** pobrać oficjalny COI JSON Schema do projektu i naprawić exporter tak, by generował poprawny JSON, a nie tylko przechodził nasze uproszczone sprawdzenie.
 3. **P0:** test na jednym prawdziwym formularzu COI (np. #3), wykaz brakujących i nadmiarowych pól, poprawki promptu/adaptera.
 4. **P0:** Docling i obsługa DOC/ODS; dopiero potem P1 słowniki oraz JSON Forms.

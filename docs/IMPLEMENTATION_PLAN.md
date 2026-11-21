@@ -14,7 +14,7 @@
 |---|---|
 | Docker/FastAPI/Tailscale | ✅ VPS, wersja 0.3.0, prywatny HTTPS :9466 |
 | Git lokalny | ✅ `main`, ostatni commit przed aktualizacją `f22ab19` |
-| GitHub | ❌ Repo jeszcze nieutworzone / brak zdalnego `origin` |
+| GitHub | ✅ Prywatne [Tymidymi/formflow-ai](https://github.com/Tymidymi/formflow-ai), `origin/main` |
 | OpenRouter / Qwen3-VL-8B | ✅ **Wyłącznie DEV:** przetestowana syntetyczna konwersja (HTTP 200) |
 | Mapowanie JSON COI | 🟡 Prototyp, brak walidacji oficjalnym schematem i benchmarku na materiałach COI |
 | Docling / stare DOC / ODS | ❌ Niezaimplementowane |

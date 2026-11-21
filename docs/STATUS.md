@@ -19,7 +19,7 @@
 - [ ] Wersja konkursowa musi działać bez zewnętrznego API; compose.yaml nie zawiera OpenRouter, compose.dev.yaml służy wyłącznie do rozwoju
 - [ ] JSON Forms (renderer) nie jest jeszcze podłączony
 - [ ] Nie zmierzono jeszcze jakości na prawdziwych formularzach konkursowych
-- [ ] GitHub remote nie został jeszcze opublikowany (gh CLI niedostępne z zapisanym logowaniem)
+- [x] GitHub: prywatne repo https://github.com/Tymidymi/formflow-ai; origin/main opublikowany
 
 ## Komendy operacyjne
 
