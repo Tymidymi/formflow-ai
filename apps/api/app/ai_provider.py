@@ -108,6 +108,49 @@ async def generate(text: str, images: list[tuple[str,bytes]] | None = None,
                   429:"Limit zapytań OpenRouter"}
         raise AIProviderError(messages.get(status,"Błąd OpenRouter")+" (HTTP "+str(status)+").",
                               code="PROVIDER_HTTP_ERROR")
+    # A model may run out of completion budget on dense Excel/PDF pages.
+    # Retry once with a larger budget before falling back to smaller,
+    # source-grounded sections in structured_extraction.py. Never accept
+    # a partial JSON body as a successful conversion.
+    try:
+        first_envelope=response.json()
+        first_finish=first_envelope["choices"][0].get("finish_reason")
+    except (ValueError,KeyError,IndexError,TypeError):
+        first_finish=None
+    if first_finish=="length":
+        record("model_budget_retry",error_code="MODEL_OUTPUT_TRUNCATED",
+               model=model,max_tokens=max_tokens,images_sent=image_count)
+        max_tokens=12000
+        data["max_tokens"]=max_tokens
+        started_retry=time.monotonic()
+        try:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(150,connect=10),
+                follow_redirects=False,
+            ) as retry_client:
+                response=await retry_client.post(base+"/chat/completions",
+                    json=data,headers={
+                        "Authorization":"Bearer "+os.environ["OPENROUTER_API_KEY"].strip(),
+                        "Content-Type":"application/json",
+                        "X-Title":"FormFlow AI development",
+                    })
+        except httpx.TimeoutException as exc:
+            record("model_network_failure",error_code="MODEL_TIMEOUT",
+                   elapsed_ms=round((time.monotonic()-started_retry)*1000))
+            raise AIProviderError("Przekroczono czas oczekiwania na model.",
+                                  code="MODEL_TIMEOUT") from exc
+        except httpx.HTTPError as exc:
+            record("model_network_failure",error_code="MODEL_NETWORK_ERROR",
+                   elapsed_ms=round((time.monotonic()-started_retry)*1000))
+            raise AIProviderError("Błąd połączenia z OpenRouter.",
+                                  code="MODEL_NETWORK_ERROR") from exc
+        if response.status_code!=200:
+            record("model_http_failure",provider_http_status=response.status_code,
+                   error_code="PROVIDER_HTTP_ERROR")
+            raise AIProviderError("Błąd OpenRouter (HTTP "
+                                  +str(response.status_code)+").",
+                                  code="PROVIDER_HTTP_ERROR")
+        elapsed=round((time.monotonic()-started)*1000)
     try:
         result=response.json()
         choice=result["choices"][0]

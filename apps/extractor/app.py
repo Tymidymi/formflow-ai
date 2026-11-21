@@ -43,6 +43,12 @@ def extract(file: UploadFile = File(...)):
                 "layout_fidelity":"text_only",
                 "warning":"Stary DOC: możliwa utrata graficznych pól i tabel; wymagana kontrola wyniku.",
                 "truncated":len(text)>50000}
+    if extension == ".xlsx":
+        from xlsx_sparse import extract_xlsx,SpreadsheetSourceError
+        try:
+            return extract_xlsx(data)
+        except SpreadsheetSourceError as exc:
+            raise HTTPException(status_code=422,detail=str(exc)) from exc
     from docling.datamodel.base_models import DocumentStream
     try:
         result = converter().convert(DocumentStream(name=filename, stream=BytesIO(data)))
@@ -50,7 +56,8 @@ def extract(file: UploadFile = File(...)):
         if not markdown.strip():
             raise ValueError("Pusta ekstrakcja.")
         return {"engine": "docling-slim", "format": extension,
-                "text": markdown[:50000],
+                "text": markdown[:100000],
+                "truncated":len(markdown)>100000,
                 "page_count": len(result.document.pages),
                 "tables": len(result.document.tables)}
     except (ValueError, RuntimeError, AttributeError, ImportError, KeyError) as exc:

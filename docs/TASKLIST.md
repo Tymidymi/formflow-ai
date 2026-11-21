@@ -18,6 +18,15 @@
 
 Żadne reguły produkcyjne nie zawierają nazw pól urzędu Młynary ani nazw konkretnych formularzy.
 
+## Hotfix konwersji wielu pól PDF/XLSX — 21.11.2026
+
+- [x] Ogólna eliminacja `MODEL_OUTPUT_TRUNCATED` w typowych przypadkach: zwiększony budżet, podział dużego źródła, kontrola kompletności fragmentów.
+- [x] Wstępny podział dla gęstych stron PDF/Office przed wywołaniem modelu.
+- [x] Osobny strukturalny odczyt XLSX bez generowania ogromnego Markdown pustych komórek (zachowuje współrzędne).
+- [x] 118 testów backendowych; test E2E na syntetycznym XLSX HTTP 200, poprawny COI JSON.
+- [ ] Powtórzyć test na binarnym pliku użytkownika oraz złożonym PDF; porównać rzeczywiste pola.
+- [ ] Sprawdzić wydajność i ewentualne limity czasu OpenRouter przy 100+ polach.
+
 ## Bieżące wykonanie i najbliższe zadania — 21.11.2026
 
 **Zrobione i sprawdzone na VPS:**

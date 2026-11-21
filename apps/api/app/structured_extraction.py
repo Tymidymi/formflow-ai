@@ -18,6 +18,7 @@ from .layout_slots import extract_multislot_rows, grouped_fields
 from .visual_tables import visually_detect,expand,likely_table_duplicate,recover_groups_from_ocr
 from .visual_choices import detect_choices, merge_choices, consolidate_choice_fields, deduplicate_overlapping_choice_groups
 from .source_slot_audit import recover_uncovered_slots
+from .page_recovery import generate_page_with_recovery
 
 PAGE_RE = re.compile(r"(?m)^\[(?:Strona|Część)\s+(\d+)/(\d+)\]\s*$")
 BLANK_RE = re.compile(r"(?:\.{5,}|…{3,}|_{4,}|﹏{3,}|(?<!\w)☐|(?<!\w)□)")
@@ -33,6 +34,10 @@ invent fields, administrative subdivisions, dates, legal requirements, or wordin
 
 FIRST locate ALL fillable elements on the physical page:
 - Every dotted/underlined answer blank (even a short date line at the top margin), every checkbox/radio choice, every
+- For spreadsheets, the text is a SPARSE CELL MAP with [Arkusz] and [Wiersz]
+  coordinates. Do not interpret empty table delimiters as physical controls;
+  recognize original field labels and adjacent writable response cells.
+  Preserve the order and section hierarchy from all worksheet rows.
   date/name/address/contact entry, every numeric cell of tables.
 - IMPORTANT: a choice group may be one printed table row with separate
   checkbox/radio symbols in adjacent cells. Detect ALL options, including any
@@ -287,18 +292,33 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
                     +"\n".join(f"linia {e['line']}, pola {e['slots']}: {e['text']}"
                                for e in hints["slot_lines"])
                     +"\n\nTEKST OCR:\n"+page.text)
+        # Source complexity matters more than raw character count.
+        # A few thousand characters of dense worksheet rows may require
+        # more output tokens than a long descriptive paragraph.
+        physical_lines=len([line for line in page.text.splitlines() if line.strip()])
+        expected_controls=hints["blank_slots"]
+        force_parts=(4 if physical_lines>=95 or expected_controls>=70
+                     else 2 if physical_lines>=38 or expected_controls>=32
+                     else 0)
         async with sem:
-            proposal,usage=await generate(diagnostic,images_for_page,
-                                         prompt=PAGE_PROMPT)
+            proposal,usage=await generate_page_with_recovery(
+                diagnostic,page.image,prompt=PAGE_PROMPT,
+                page_number=page.number,source_text=page.text,
+                model_generate=generate,force_parts=force_parts)
             initial=_sanitize_page(proposal,page)
             unit_phantoms=_remove_unit_only_phantoms(initial,page)
             vision_tables=[]
             same_table=False
+            table_audit_error=False
             if page.image:
                 # OCR may lose dotted cells in scanned tables. Ask a
                 # DIFFERENT vision question: count rows and columns, not fields.
-                detected=await visually_detect(page.text,page.image)
-                detected=recover_groups_from_ocr(page.text,detected)
+                try:
+                    detected=await visually_detect(page.text,page.image)
+                    detected=recover_groups_from_ocr(page.text,detected)
+                except AIProviderError:
+                    detected=[]
+                    table_audit_error=True
                 vision_tables=expand(detected,page.number)
                 if vision_tables and table_fields:
                     # Two extractors can describe THE SAME physical table.
@@ -331,6 +351,7 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
                     if not table_fields or not same_table:
                         table_fields.extend(vision_tables)
             revision=None
+            review_audit_error=False
             # Review only unresolved source slots. Deterministic table cells
             # must count as recovered before deciding on a costly second pass.
             remaining_slots=max(0,hints["blank_slots"]-len(table_fields))
@@ -346,14 +367,19 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
                 # source-specific field recovery or hardcoded field names.
                 input_text=(diagnostic+"\n\nWCZEŚNIEJSZE ROZPOZNANIE:\n"
                             +__import__("json").dumps(initial,ensure_ascii=False))
-                second,second_info=await generate(input_text,images_for_page,
-                                                  prompt=REVIEW_PROMPT)
-                revision=_sanitize_page(second,page)
-                unit_phantoms+=_remove_unit_only_phantoms(revision,page)
-                # Prefer the revised inventory only if it detects more physical
-                # slots. The quality gate will still report any remaining gap.
-                if len(_fields(revision))>=len(_fields(initial)):
-                    initial=revision
+                try:
+                    second,second_info=await generate_page_with_recovery(
+                        input_text,page.image,prompt=REVIEW_PROMPT,
+                        page_number=page.number,source_text=page.text,
+                        model_generate=generate)
+                    revision=_sanitize_page(second,page)
+                    unit_phantoms+=_remove_unit_only_phantoms(revision,page)
+                    # Source-derived cells take priority; do not discard
+                    # an existing inventory when the independent review fails.
+                    if len(_fields(revision))>=len(_fields(initial)):
+                        initial=revision
+                except AIProviderError:
+                    review_audit_error=True
             if table_fields:
                 # Deduplicate Qwen's field guesses that match a printed row
                 # already resolved from punctuation/OCR or visual geometry.
@@ -426,6 +452,9 @@ async def extract(source:str, images:list[tuple[str,bytes]], *,
                     "short_blank_recovered":recovered_short,
                     "short_blank_unresolved":max(0,len(candidate_short)-recovered_short),
                     "slot_audit_error":slot_audit_error,
+                    "review_audit_error":review_audit_error,
+                    "table_audit_error":table_audit_error,
+                    "completion_recovery_fragments":usage.get("recovered_fragments",0),
                     "blank_slots":hints["blank_slots"],
                     "detected_fields":len(_fields(initial)),
                     "detected_slots":response_slot_count(initial),

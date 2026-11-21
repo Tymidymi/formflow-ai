@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends antiword \
     && rm -rf /var/lib/apt/lists/*
 COPY apps/extractor/app.py /app/app.py
 COPY apps/extractor/legacy_doc.py /app/legacy_doc.py
+COPY apps/extractor/xlsx_sparse.py /app/xlsx_sparse.py
 USER 10002:10002
 EXPOSE 8001
 CMD ["uvicorn","app:app","--host","0.0.0.0","--port","8001","--workers","1"]
