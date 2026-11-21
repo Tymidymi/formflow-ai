@@ -45,6 +45,8 @@ def assess(source:str,semantic:dict,*,pages:list[dict]|None=None,
     minor_gap=bool(expected>=5 and detected<0.93*expected)
     incomplete=bool(pages_expected is not None and page_count<pages_expected)
     choice_audit_failed=any(p.get("choice_audit_error") for p in seen_pages)
+    review_audit_failed=any(p.get("review_audit_error") for p in seen_pages)
+    table_audit_failed=any(p.get("table_audit_error") for p in seen_pages)
     slot_audit_failed=any(p.get("slot_audit_error") for p in seen_pages)
     unresolved_short=sum(p.get("short_blank_unresolved",0) for p in seen_pages)
     review_choices=sum(p.get("visual_review_groups",0) for p in seen_pages)
@@ -53,6 +55,9 @@ def assess(source:str,semantic:dict,*,pages:list[dict]|None=None,
         issues.append("Nie zakończono kontroli krótkich pustych miejsc na obrazie.")
     if unresolved_short:
         issues.append("Część krótkich pustych miejsc wymaga weryfikacji w oryginale.")
+    if review_audit_failed or table_audit_failed:
+        issues.append("Kontrola kompletności tabel lub niezależna analiza strony"
+                      " wymaga weryfikacji.")
     if choice_audit_failed:
         issues.append("Nie ukończono osobnej kontroli grup wyboru na obrazie.")
     if review_choices:
