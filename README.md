@@ -4,6 +4,8 @@ Konwersja formularzy PDF, skanów i dokumentów Office do interaktywnego formula
 
 Gałąź `refactor/source-page-pipeline` zawiera wersję 1.4 przygotowaną po audycie 32 plików. **Trwa walidacja przed zastąpieniem wersji działającej.** Stan testów i blokady: [walidacja](docs/REFACTOR_VALIDATION.md), [audyt 8 źródeł](docs/AUDIT_END_TO_END_2026-11-22.md), [eksperyment jednej analizy](docs/SINGLE_PASS_EXPERIMENT_2026-11-22.md).
 
+> **Do oddania/demo:** [instrukcja MVP, kryteria akceptacji i ryzyka](docs/MVP_RELEASE_CHECKLIST.md). Poprawny JSON COI nie potwierdza automatycznie kompletności pól źródłowych.
+
 ## Przepływ danych
 
 Office → normalizacja wydruku XLSX/ODS w kopii → LibreOffice PDF + Docling Slim (źródłowe komórki i tekst) → PDFium (kontrola widoczności) → Tesseract/obrazy stron → Qwen → CanonicalForm → COI JSON.
