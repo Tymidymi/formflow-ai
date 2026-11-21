@@ -13,7 +13,7 @@ def test_regions_do_not_merge_repeated_labels_on_distinct_rows():
     assert pipeline.region([0, 0, 1, float("nan")]) is None
 
 
-def test_independent_audit_blocks_false_success(monkeypatch):
+def test_deterministic_source_coverage_blocks_duplicate_labels(monkeypatch):
     candidate = {
         "title": "Dowolny dokument",
         "pages": [
@@ -44,19 +44,18 @@ def test_independent_audit_blocks_false_success(monkeypatch):
 
     async def model(text, images, **kw):
         calls.append(kw["prompt"])
-        return (
-            candidate
-            if len(calls) == 1
-            else {**candidate, "audit": {"issues": ["Brakuje daty."], "changes": []}}
-        ), {"usage": {"total_tokens": 7}}
+        return candidate, {"usage": {"total_tokens": 7}}
 
     monkeypatch.setattr(pipeline, "generate", model)
     form, meta, reports = asyncio.run(
         pipeline.extract("[Strona 1/1]\nAdres", [("image/jpeg", b"image")])
     )
     assert len(form["pages"][0]["sections"][0]["fields"]) == 2
-    assert len(calls) == 2 and meta["usage"]["total_tokens"] == 14
-    assert not pipeline.assess("", form, pages=reports)["ok"]
+    assert len(calls) == 1 and meta["usage"]["total_tokens"] == 7
+    assert meta["rechecked_pages"] == 0
+    quality = pipeline.assess("[Strona 1/1]\nAdres", form, pages=reports)
+    assert not quality["ok"]
+    assert any("występuje" in issue for issue in quality["possible_missing"])
     assert len(reports[0]["regions"]) == 2
 
 
@@ -83,7 +82,7 @@ def test_timeout_cancels_running_conversion(monkeypatch):
     assert response.status_code == 504 and stopped == [True]
 
 
-def test_post_verification_rules_correct_a_source_supported_semantic_mismatch(
+def test_deterministic_rules_correct_a_source_supported_semantic_mismatch(
     monkeypatch,
 ):
     raw = {
@@ -131,8 +130,6 @@ def test_post_verification_rules_correct_a_source_supported_semantic_mismatch(
     }
 
     async def fake_model(*args, **kwargs):
-        if kwargs["response_schema"] is pipeline.VERIFIED_SCHEMA:
-            return {**raw, "audit": {"issues": [], "changes": []}}, {}
         return raw, {}
 
     monkeypatch.setattr(pipeline, "generate", fake_model)
@@ -173,11 +170,7 @@ def test_inline_blank_wrongly_marked_info_remains_editable_but_needs_region_revi
     }
 
     async def fake_model(*args, **kwargs):
-        return (
-            ({**raw, "audit": {"issues": [], "changes": []}}, {})
-            if kwargs["response_schema"] is pipeline.VERIFIED_SCHEMA
-            else (raw, {})
-        )
+        return raw, {}
 
     monkeypatch.setattr(pipeline, "generate", fake_model)
     source = "[Strona 1/1]\nMiejsce i data: ......................"
@@ -222,8 +215,6 @@ def test_two_physical_pages_run_concurrently_but_keep_original_order(monkeypatch
                     }
                 ],
             }
-            if kwargs["response_schema"] is pipeline.VERIFIED_SCHEMA:
-                response["audit"] = {"issues": [], "changes": []}
             return response, {"usage": {"total_tokens": 1}}
         finally:
             active -= 1
@@ -242,8 +233,9 @@ def test_two_physical_pages_run_concurrently_but_keep_original_order(monkeypatch
     assert peak == 2
     assert [p["title"] for p in form["pages"]] == ["Strona 1", "Strona 2"]
     assert [p["source_page"] for p in reports] == [1, 2]
-    assert meta["usage"]["total_tokens"] == 4
-    assert calls.count("first") == 2 and calls.count("second") == 2
+    assert meta["usage"]["total_tokens"] == 2
+    assert meta["rechecked_pages"] == 0
+    assert calls.count("first") == 1 and calls.count("second") == 1
 
 
 def test_page_with_printed_answer_blanks_cannot_pass_with_zero_fields():

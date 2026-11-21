@@ -12,7 +12,7 @@
 | `render_fidelity.py` | PDFium: kontrola wektorowego tekstu poza widocznym obszarem strony |
 | `apps/pdf_engine` | Tekst, OCR i obrazy fizycznych stron |
 | `source_pages.py` | Zgodne identyfikatory stron i przypisanie tekstu do obrazu |
-| `page_inventory.py` | Wspólny kontrakt, projekt i zweryfikowany inwentarz, regiony, ocena |
+| `page_inventory.py` | Wspólny kontrakt, pojedyncza inwentaryzacja Qwena, regiony i deterministyczna kontrola |
 | `ai_provider.py`, `ollama_provider.py` | Transport do modelu i jawny schemat odpowiedzi |
 | `canonical_form.py` | Typowany model semantyczny, bez tworzenia nowych pytań |
 | `coi_builder.py`, `coi_conditions.py` | Deterministyczny eksport i zależności odpowiedzi |
@@ -23,14 +23,14 @@
 ## Stałe zasady
 
 1. Tekst i obraz opisują tę samą stronę. Nie dzielimy tekstu na części z powtórzonym obrazem całej strony.
-2. Dwa wywołania na stronę: inwentarz i pełna weryfikacja. Brak trzeciej ścieżki odzyskiwania lub nieograniczonego retry.
-3. Większa liczba pól nie jest kryterium przyjęcia rewizji.
+2. **Jedno** wywołanie Qwena na stronę. Nie ma drugiego modelowego weryfikatora, kaskady odzyskiwania ani nieograniczonego retry.
+3. Ilość pól nie zastępuje ich wierności źródłu. Zmiana usuwa destrukcyjny weryfikator, ale nie gwarantuje kompletności.
 4. Wspólne schematy JSON określają pola, opcje, warunki, informacje i regiony. Transport nie odgaduje schematu z luźnej odpowiedzi.
 5. Każdy edytowalny obszar ma stronę i identyfikator regionu. Współrzędne modelu muszą być skończone i znormalizowane. Mocno pokrywające się regiony trafiają do oceny.
 6. Stałe teksty i podpisy pozostają informacjami. Zwykłe pole tekstowe nie realizuje podpisania dokumentu.
-7. Weryfikator zapisuje zmiany i nierozwiązane rozbieżności. Brak wizualnej weryfikacji, ucięcie, brak strony i nierozwiązane problemy blokują pozytywną ocenę.
+7. Deterministyczne korekty oraz testy spójności z tekstem źródłowym zapisują zmiany i nierozwiązane rozbieżności. Brak wizualnej weryfikacji, ucięcie, brak strony i wykryte problemy blokują pozytywną ocenę. Ocena automatyczna może nadal przeoczyć błędy semantyczne.
 8. Całe zadanie ma 240 s, także podczas oczekiwania na wolne miejsce. Rozłączenie klienta propaguje anulowanie; Office ma dodatkowy limit procesu 75 s.
-9. API nie zapisuje prywatnej treści do logów. Wynik diagnostyczny zwraca użytkownikowi regiony, zmiany, problemy i zużycie tokenów.
+9. API nie zapisuje prywatnej treści do logów. Wynik diagnostyczny zwraca użytkownikowi regiony, deterministyczne zmiany, problemy i zużycie tokenów.
 
 ## Office
 

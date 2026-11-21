@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
-def test_api_reports_missing_generic_table_without_fabricating_rows(monkeypatch):
+def test_api_flags_uncertain_answer_region_without_fabricating_rows(monkeypatch):
     import app.main as api
     from app import page_inventory
 
@@ -26,28 +26,6 @@ def test_api_reports_missing_generic_table_without_fabricating_rows(monkeypatch)
 
     async def model(*args, **kw):
         count.append(True)
-        if len(count) == 2:
-            return {
-                "title": "Dowolny wniosek",
-                "pages": [
-                    {
-                        "sections": [
-                            {
-                                "title": "Dane",
-                                "fields": [
-                                    {
-                                        "label": "Nazwisko",
-                                        "type": "TEXT_FIELD",
-                                        "evidence": "Nazwisko",
-                                        "region": [0, 0.1, 1, 0.2],
-                                    }
-                                ],
-                            }
-                        ]
-                    }
-                ],
-                "audit": {"issues": ["Brakuje wierszy tabeli."], "changes": []},
-            }, {}
         return {
             "title": "Dowolny wniosek",
             "pages": [
@@ -60,7 +38,7 @@ def test_api_reports_missing_generic_table_without_fabricating_rows(monkeypatch)
                                     "label": "Nazwisko",
                                     "type": "TEXT_FIELD",
                                     "evidence": "Nazwisko",
-                                    "region": [0, 0.1, 1, 0.2],
+                                    "region": None,
                                 }
                             ],
                         }
@@ -68,6 +46,7 @@ def test_api_reports_missing_generic_table_without_fabricating_rows(monkeypatch)
                 }
             ],
         }, {}
+
 
     monkeypatch.setattr(api, "extract_with_backend", extraction)
     monkeypatch.setattr(page_inventory, "generate", model)
@@ -80,7 +59,7 @@ def test_api_reports_missing_generic_table_without_fabricating_rows(monkeypatch)
     data = response.json()
     assert data["status"] == "needs_review" and not data["quality"]["ok"]
     assert data["quality"]["input_fields"] == 1
-    assert len(count) == 2
+    assert len(count) == 1
 
 
 def test_exported_table_retains_source_row_and_column_grid():

@@ -2,7 +2,7 @@
 
 Konwersja formularzy PDF, skanów i dokumentów Office do interaktywnego formularza oraz JSON COI.
 
-Gałąź `refactor/source-page-pipeline` zawiera wersję 1.4 przygotowaną po audycie 32 plików. **Trwa walidacja przed zastąpieniem wersji działającej.** Stan testów i blokady: [walidacja](docs/REFACTOR_VALIDATION.md).
+Gałąź `refactor/source-page-pipeline` zawiera wersję 1.4 przygotowaną po audycie 32 plików. **Trwa walidacja przed zastąpieniem wersji działającej.** Stan testów i blokady: [walidacja](docs/REFACTOR_VALIDATION.md), [audyt 8 źródeł](docs/AUDIT_END_TO_END_2026-11-22.md), [eksperyment jednej analizy](docs/SINGLE_PASS_EXPERIMENT_2026-11-22.md).
 
 ## Przepływ danych
 
@@ -11,7 +11,7 @@ Office → normalizacja wydruku XLSX/ODS w kopii → LibreOffice PDF + Docling S
 - DOC, DOCX, XLSX i ODS korzystają z izolowanego renderera LibreOffice oraz Docling Slim 2.151.1, który odczytuje źródłowe komórki i tekst bez lokalnego AI; osobny proces z limitem czasu.
 - XLSX i ODS przed wydrukiem mają normalizowane ustawienia dopasowania do szerokości jednej strony, bez przepisywania komórek, formuł, rysunków ani obiektów. Oryginalny plik pozostaje bez zmian, a PDFium kontroluje, czy znaki nie wypadły poza obraz strony. Istotna utrata tekstu DOCX nadal powoduje 422, nie fałszywy sukces.
 - Długie obrazy są dzielone na strony przed OCR i analizą wizualną.
-- Każda strona ma dwa wywołania modelu: projekt i zweryfikowany inwentarz; strony analizowane są współbieżnie z limitem dwóch naraz, przy zachowaniu kolejności.
+- Każda strona ma **jedno wywołanie Qwena**. Typy pól, podpisy, opcje, warunki i zgodność ze źródłem są dalej kontrolowane deterministycznie, bez drugiego przebiegu LLM, który w audycie usuwał poprawne pola. Strony analizowane są współbieżnie z limitem dwóch naraz, przy zachowaniu kolejności.
 - Nie ma kaskady retry, zwiększania budżetu odpowiedzi ani odtwarzania pól z list przykładowych formularzy.
 - Typy, warunki i informacje stałe mają wspólny kontrakt; regiony odpowiedzi są powiązane ze stronami.
 - Limit całej konwersji: 240 sekund. Rozłączenie klienta anuluje zadanie. Jednocześnie przetwarzane są najwyżej dwie konwersje.

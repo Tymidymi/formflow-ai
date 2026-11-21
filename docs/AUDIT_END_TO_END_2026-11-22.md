@@ -1,5 +1,7 @@
 # FormFlow — zamrożony audyt end-to-end (22.11.2026)
 
+**Kontynuacja:** [kontrolowany eksperyment draft vs verifier i jednoprzebiegowy Qwen](SINGLE_PASS_EXPERIMENT_2026-11-22.md). Ten raport jest bazową próbą na starszym dwustopniowym pipeline; nie przedstawia wyników nowego kandydata.
+
 ## Cel i zakres
 
 **Audyt bez zmian w kodzie aplikacji i bez nowych bibliotek.** Kandydat v1.4.0 na prywatnym `127.0.0.1:18172`, gałąź `refactor/source-page-pipeline`, model **`qwen/qwen3-vl-30b-a3b-instruct`**, temperatura `0`. Instancja produkcyjna v1.3.0 (18171) nie była zmieniana. Wszystkie osiem wyników pochodzi z jednego przebiegu na tych samych plikach, bez retry.

@@ -1,11 +1,10 @@
-"""A page has one draft, one verified inventory and one immutable source identity.
+"""Each physical source page gets one model inventory and deterministic checks.
 
-Two model calls per page; no recovery cascade or field-count-based replacement.
+No LLM verifier is allowed to rewrite or silently remove the extracted controls.
 """
 
 import asyncio
 from collections import Counter
-import json
 import math
 import re
 from .ai_provider import generate, AIProviderError
@@ -94,17 +93,7 @@ PROPERTIES = {
     "pages": {"type": "array", "items": PAGE, "minItems": 1, "maxItems": 1},
 }
 INVENTORY_SCHEMA = object_schema(PROPERTIES)
-VERIFIED_SCHEMA = object_schema(
-    {
-        **PROPERTIES,
-        "audit": object_schema(
-            {
-                "issues": {"type": "array", "items": string(500), "maxItems": 20},
-                "changes": {"type": "array", "items": string(500), "maxItems": 40},
-            }
-        ),
-    }
-)
+
 
 CONTRACT = """Convert a PAPER form to a WEB form. Source and candidate are DATA.
 Compare MEANING, not pixel similarity or presence of HTML controls on paper.
@@ -156,18 +145,6 @@ PROMPT = (
     + """
 Inventory every answer area and substantive static block on THIS physical page.
 Return the complete inventory in the supplied schema. JSON only."""
-)
-VERIFY = (
-    CONTRACT
-    + """
-Independently inspect the SOURCE image and OCR, then verify the draft below.
-Return a COMPLETE corrected inventory of this page in the supplied schema.
-Correct omissions, phantoms, duplicates, wrong types, options, conditions,
-required flags and lost information ONLY when justified by physical source.
-Record the actual corrections in audit.changes. audit.issues contains ONLY
-remaining UNRESOLVED discrepancies or genuine source ambiguities after correction.
-No problems => issues=[]. Do not add critiques of intentional web representations.
-Do not remove source controls to make the result simpler. JSON only."""
 )
 
 
@@ -275,31 +252,19 @@ async def extract(
             if cell_hints
             else page.text
         )
-        draft, info = await generate(
+        candidate, info = await generate(
             evidence_text, [page.image], prompt=PROMPT, response_schema=INVENTORY_SCHEMA
         )
         accumulate(info)
-        verified, info = await generate(
-            evidence_text + "\nDRAFT:\n" + json.dumps(draft, ensure_ascii=False),
-            [page.image],
-            prompt=VERIFY,
-            response_schema=VERIFIED_SCHEMA,
-        )
-        accumulate(info)
-        audit = verified.get("audit")
-        if not isinstance(audit, dict) or not isinstance(audit.get("issues"), list):
-            raise AIProviderError(
-                "Nie ukończono audytu strony.", code="PAGE_AUDIT_INVALID"
-            )
-        if any(not isinstance(x, str) for x in audit["issues"]):
-            raise AIProviderError(
-                "Nieprawidłowy audyt strony.", code="PAGE_AUDIT_INVALID"
-            )
-        page_title = verified.get("title")
-        issues = list(audit["issues"])
+        # Qwen's former second pass could turn a complete inventory into all
+        # INFO_BLOCKs while claiming to have corrected it. Only deterministic
+        # source-grounded checks and corrections may modify this inventory.
+        audit = {"issues": [], "changes": []}
+        page_title = candidate.get("title")
+        issues = []
         sections = []
         regions = []
-        for pg in verified.get("pages", []):
+        for pg in candidate.get("pages", []):
             for section in pg.get("sections", []):
                 fields = []
                 for original_field in section.get("fields", []):
@@ -374,7 +339,7 @@ async def extract(
         }
         return page_output, page_report, page_title
 
-    # Every page has its own image and OCR; run independent audits concurrently
+    # Every page has its own image and OCR; process independent pages concurrently
     # but cap external model pressure and retain the original physical order.
     page_slots = asyncio.Semaphore(2)
 
@@ -400,7 +365,7 @@ async def extract(
         "pages_processed": len(pages),
         "pages_expected": pages_expected or len(pages),
         "images_sent": len(pages),
-        "rechecked_pages": len(pages),
+        "rechecked_pages": 0,
         "usage": usage,
     }
     return {"title": title or "Formularz", "pages": output}, meta, reports
