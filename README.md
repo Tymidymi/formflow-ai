@@ -59,12 +59,26 @@ put a key and model in the ignored .env file and run:
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 ```
 
-Current development features: PDF/DOCX/XLSX text, JPG/PNG and scanned PDF vision,
+Current development features: PDF/DOCX/ODS/XLSX text, JPG/PNG and scanned PDF vision,
 semantic extraction with Qwen3-VL, deterministic COI JSON mapping, preliminary structure validation.
 
-Limitations: full COI JSON Schema and Docling not integrated; old DOC/ODS unsupported for conversion;
+Limitations: the official COI JSON Schema is integrated, but it is permissive and does not guarantee importer compatibility. Docling is not integrated; old DOC unsupported for conversion;
 real competition dataset benchmarking pending.
 
 ## Project status / roadmap
 
 [Aktualna lista zadań](docs/TASKLIST.md) · [Pełny plan](docs/IMPLEMENTATION_PLAN.md) · [Status wdrożenia](docs/STATUS.md)
+
+
+## COI contract (v0.4)
+
+- Official supplied COI JSON Schema is bundled in `apps/api/app/contracts/coi_form_schema.json` for local validation. Its redistribution rights outside the private challenge repository have not yet been confirmed.
+- `POST /api/v1/forms/validate-json` checks the official schema plus supplementary business rules. It returns `schema_valid` separately from `valid`.
+- `POST /api/v1/forms/convert` returns **only COI JSON** when successful (requires configured provider). To receive the debug envelope, specify `?mode=diagnostic`.
+- `compose.dev.yaml` is **development only**; never publish it as an offline competition runner.
+- `POST /api/v1/forms/convert` requires header `X-External-AI-Consent: true` when using OpenRouter.
+- IDs are deterministic for identical semantic inputs, basic PESEL/NIP/REGON/email/ZIP_CODE validators are inferred from exact field names.
+
+### Completeness heuristic
+
+Sparse model outputs are flagged needs_review; the raw COI JSON endpoint rejects severely incomplete outputs with HTTP 422. This is a heuristic, not a real-document coverage benchmark.

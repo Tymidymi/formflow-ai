@@ -54,20 +54,22 @@ generateButton.addEventListener('click',async()=>{
   show(convertResult,'Generowanie przez Qwen…','Dokument jest analizowany przez zewnętrzny model. Nie zamykaj karty.');
   const payload=new FormData();payload.append('file',currentFile,currentFile.name);
   try{
-    const response=await fetch('/api/v1/forms/convert',{
+    const response=await fetch('/api/v1/forms/convert?mode=diagnostic',{
       method:'POST',headers:{'X-External-AI-Consent':'true'},body:payload});
     const data=await response.json();
     if(!response.ok)throw Error(data.detail||'Błąd generowania.');
     generated=data.form;
-    const report=data.validation;
+    const report=data.validation;const quality=data.quality||{};
     const errors=(report.errors||[]).slice(0,10).map(v=>v.code+': '+v.message).join('\n');
-    show(convertResult,report.valid?'✓ JSON COI wygenerowany':'JSON wymaga kontroli',
+    show(convertResult,data.status==='generated'?'✓ JSON COI wygenerowany':'JSON wymaga kontroli',
         'Model: '+data.model+'\nStrony: '+report.summary.tabs+
         '\nPola (z sekcjami): '+report.summary.fields_including_sections+
         '\nWeryfikacja strukturalna: '+(report.valid?'OK':'BŁĘDY')+
-        '\nUwaga: pełna walidacja oficjalnym schematem COI jeszcze nie jest aktywna.'+
-        (errors?'\n'+errors:''),!report.valid);
-    downloadButton.hidden=!report.valid;
+        '\nOficjalny JSON Schema COI: '+(report.schema_valid?'ZGODNY':'NIEZGODNY')+
+        '\nKontrola kompletności: '+(quality.ok?'OK':'WYMAGA WERYFIKACJI')+
+        '\nPrawdopodobnie pominięte pola: '+((quality.possible_missing||[]).join(', ')||'brak')+
+        (errors?'\n'+errors:''),!report.valid||!quality.ok);
+    downloadButton.hidden=!report.valid||!quality.ok;
   }catch(e){show(convertResult,'Konwersja nieudana',e.message||'Błąd połączenia.',true);}
   updateButton();
 });

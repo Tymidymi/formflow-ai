@@ -46,7 +46,7 @@ async def generate(text: str, images: list[tuple[str,bytes]] | None = None) -> t
     parts=urlsplit(base)
     if parts.scheme!="https" or parts.netloc!="openrouter.ai" or parts.path!="/api/v1":
         raise AIProviderError("Niedozwolony adres API OpenRouter.")
-    model=os.getenv("OPENROUTER_MODEL","qwen/qwen3-vl-8b-instruct")
+    model=os.getenv("OPENROUTER_MODEL","qwen/qwen3-vl-30b-a3b-instruct")
     user_content=[{"type":"text","text":"Dokument urzędowy:\n"+text[:18000]}]
     for mime,payload in (images or [])[:3]:
         if mime in ("image/png","image/jpeg") and len(payload)<=4*1024*1024:

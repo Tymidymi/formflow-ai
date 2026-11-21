@@ -62,4 +62,47 @@ def extract_document(content:bytes, extension:str)->tuple[str,list[tuple[str,byt
             return "\n".join(lines)[:18000],[]
         except Exception as exc:
             raise RejectedFile("Nie można odczytać pliku XLSX.",422) from exc
-    raise RejectedFile("Parser formatu DOC/ODS nie jest jeszcze wdrożony.",501)
+    if extension==".ods":
+        # Lightweight local OpenDocument reader until Docling is deployed.
+        from zipfile import ZipFile, BadZipFile
+        from xml.etree import ElementTree as ET
+        from .uploads import ZIP_MAX_ENTRIES, ZIP_MAX_EXPANDED
+        try:
+            with ZipFile(io.BytesIO(content)) as archive:
+                infos=archive.infolist()
+                if len(infos)>ZIP_MAX_ENTRIES or sum(i.file_size for i in infos)>ZIP_MAX_EXPANDED:
+                    raise RejectedFile("ODS przekracza limit bezpieczeństwa.",413)
+                content_info=archive.getinfo("content.xml")
+                if content_info.file_size>3*1024*1024:
+                    raise RejectedFile("Zbyt duży XML arkusza ODS.",413)
+                xml=archive.read("content.xml")
+            if b"<!DOCTYPE" in xml.upper() or b"<!ENTITY" in xml.upper():
+                raise RejectedFile("Niebezpieczny XML w ODS.",422)
+            root=ET.fromstring(xml)
+            table_ns="{urn:oasis:names:tc:opendocument:xmlns:table:1.0}"
+            text_ns="{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
+            lines=[]
+            for table in root.iter(table_ns+"table"):
+                lines.append("Arkusz: "+table.attrib.get(table_ns+"name",""))
+                count=0
+                for row in table.iter(table_ns+"table-row"):
+                    if count>=180:break
+                    count+=1;values=[]
+                    for cell in row:
+                        if cell.tag not in (table_ns+"table-cell",table_ns+"covered-table-cell"):continue
+                        value=" ".join((p.text or "") for p in cell.iter(text_ns+"p")).strip()
+                        if not value:value=" ".join(t.strip() for t in cell.itertext() if t.strip())
+                        repeat=min(int(cell.attrib.get(table_ns+"number-columns-repeated","1")),20)
+                        if value:
+                            values.extend([value[:300]]*repeat)
+                        if len(values)>=25:break
+                    if values:lines.append(" | ".join(values[:25]))
+                if len(lines)>500:break
+            text="\n".join(lines)[:18000]
+            if not text.strip():
+                raise RejectedFile("ODS nie zawiera czytelnej treści.",422)
+            return text,[]
+        except RejectedFile:raise
+        except (BadZipFile,KeyError,ValueError,ET.ParseError,OverflowError,OSError) as exc:
+            raise RejectedFile("Nie można odczytać pliku ODS.",422) from exc
+    raise RejectedFile("Parser starego DOC nie jest jeszcze wdrożony.",501)

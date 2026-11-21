@@ -2,7 +2,7 @@
 
 ## Wdrożone na VPS
 
-- [x] FastAPI 0.3.0 i Docker Compose z portem 127.0.0.1:18171
+- [x] FastAPI 0.4.0 i Docker Compose z portem 127.0.0.1:18171
 - [x] Prywatny Tailscale Serve: https://vibe.tail075c6f.ts.net:9466/
 - [x] Przesyłanie dokumentów, weryfikacja formatu, rozmiaru i nazwy
 - [x] Oddzielny dev-only adapter OpenRouter Qwen3-VL-8B-Instruct
@@ -14,8 +14,8 @@
 ## Ograniczenia
 
 - [ ] Docling nie jest jeszcze uruchomiony
-- [ ] Stare DOC oraz ODS nie mają jeszcze ekstraktora (API zwraca 501)
-- [ ] Walidacja pełnym oficjalnym JSON Schema COI **nie została wdrożona** — działa walidator strukturalny
+- [x] Parser ODS dodany; [ ] stary DOC nadal nieobsługiwany (501)
+- [x] Oryginalny JSON Schema COI podłączony; [ ] nadal brak testu importu w systemie docelowym
 - [ ] Wersja konkursowa musi działać bez zewnętrznego API; compose.yaml nie zawiera OpenRouter, compose.dev.yaml służy wyłącznie do rozwoju
 - [ ] JSON Forms (renderer) nie jest jeszcze podłączony
 - [ ] Nie zmierzono jeszcze jakości na prawdziwych formularzach konkursowych
@@ -36,3 +36,16 @@ docker compose -f compose.yaml up -d --build
 
 Przenieść pełny schemat COI z materiałów konkursowych, wdrożyć Docling/ODS/DOC,
 zbudować renderer i przeprowadzić pomiary jakości JSON na rzeczywistych formularzach.
+
+## Chunk v0.4.0
+
+- Wpięty oficjalny JSON Schema COI, checksum SHA-256, dwuwarstwowa walidacja.
+- `/convert` zwraca bezpośrednio JSON COI, `?mode=diagnostic` zachowuje UI.
+- Deterministyczne identyfikatory, walidatory pól i lekki parser ODS.
+- Nowe testy: 26/26 w obrazie dockerowym.
+- Szczegóły: [COI_SCHEMA_INTEGRATION.md](COI_SCHEMA_INTEGRATION.md).
+
+- Dodano quality gate: niepełny wynik AI jest oznaczany jako wymagający weryfikacji; surowy eksport zwraca 422.
+- Test na tekście odtworzonym z prawdziwego formularza COI #3: model 8B wykrył tylko podpis, model 30B-A3B wykrył 9 pól. Test nie używał oryginalnego pliku z zachowanym układem strony.
+
+- Szablon CI jest w docs/CI_WORKFLOW_TEMPLATE.yml; plik .github/workflows NIE jest aktywny, bo OAuth nie ma scope workflow.
