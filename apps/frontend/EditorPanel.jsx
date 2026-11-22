@@ -2,7 +2,7 @@ import React,{useEffect,useState} from "react";
 import {editableSections,editorSnapshot,EDITABLE_TYPES,FORMAT_VALIDATORS} from "./editor.mjs";
 
 const DISPLAY=Object.fromEntries(EDITABLE_TYPES);
-function FieldInspector({item,pageIndex,sectionId,onAction,onAfterRemove}){
+function FieldInspector({item,pageIndex,sectionId,sections,onAction,onAfterRemove,onTransfer}){
   const [draft,setDraft]=useState(()=>editorSnapshot(item));
   const [saved,setSaved]=useState(false);
   const change=(prop,value)=>{setDraft(previous=>({...previous,[prop]:value}));setSaved(false);};
@@ -51,6 +51,14 @@ function FieldInspector({item,pageIndex,sectionId,onAction,onAfterRemove}){
     <label htmlFor="ff-edit-tooltip">Podpowiedź dla użytkownika</label>
     <textarea id="ff-edit-tooltip" maxLength={450} rows={3} value={draft.tooltip}
       placeholder="Opcjonalny opis pola" onChange={e=>change("tooltip",e.target.value)}/>
+    <div className="ff-editor-control">
+      <label htmlFor="ff-edit-section">Sekcja, do której należy pole</label>
+      <select id="ff-edit-section" value={sectionId} disabled={sections.length<2}
+        onChange={e=>onTransfer(item.id,sectionId,e.target.value)}>
+        {sections.map(section=><option key={section.id} value={section.id}>{section.title}</option>)}
+      </select>
+      <span className="ff-editor-help">Przenieś pole do innej sekcji. Zawartość i identyfikator pola zostaną zachowane.</span>
+    </div>
     <div className="ff-editor-tech">Identyfikator techniczny (zachowany): <code>{item.techName}</code></div>
     <div className="ff-inspector-actions">
       <button type="submit" className="ff-primary">Zastosuj zmianę</button>
@@ -101,6 +109,11 @@ export function EditorPanel({form,pageIndex,onAction,onUndo,canUndo,onError}){
       const last=fresh?.fields[fresh.fields.length-1];
       if(last)setSelected({sectionId:section.id,fieldId:last.id});
     }
+  }
+  function transferField(fieldId,sectionId,targetSectionId){
+    if(sectionId===targetSectionId)return;
+    const next=onAction({type:"fieldMoveSection",pageIndex,sectionId,fieldId,targetSectionId});
+    if(next)setSelected({sectionId:targetSectionId,fieldId});
   }
   function removeSection(section){
     if(!window.confirm('Usunąć sekcję „'+section.title+'” i wszystkie jej pytania?'))return;
@@ -168,13 +181,13 @@ export function EditorPanel({form,pageIndex,onAction,onUndo,canUndo,onError}){
       </div>
       <aside className="ff-editor-side">
         {chosen ? <FieldInspector key={chosen.id} item={chosen} pageIndex={pageIndex}
-          sectionId={selected.sectionId} onAction={onAction}
-          onAfterRemove={()=>setSelected(null)}/>
+          sectionId={selected.sectionId} sections={sections} onAction={onAction}
+          onTransfer={transferField} onAfterRemove={()=>setSelected(null)}/>
         : <div className="ff-editor-no-selection">
           <div className="ff-editor-spark">✎</div>
           <strong>Wybierz pole do poprawy</strong>
           <p>Kliknij pytanie po lewej stronie. Możesz zmienić jego nazwę, typ, wymagane odpowiedzi, opcje wyboru i podpowiedź.</p>
-          <p>Możesz też dodawać, usuwać i przestawiać pola. Identyfikatory oraz istniejące zależności pozostają chronione.</p>
+          <p>Możesz też dodawać, usuwać, przestawiać i przenosić pola między sekcjami. Identyfikatory oraz istniejące zależności pozostają chronione.</p>
         </div>}
       </aside>
     </div>

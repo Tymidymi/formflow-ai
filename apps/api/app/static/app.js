@@ -182,6 +182,14 @@ previewButton.addEventListener("click",async()=>{
 });
 
 window.FormFlowWizard={
+  canReplaceForm(){return preserveManualEdits("Masz niezapisane zmiany w edytorze. Przed rozpoczęciem kolejnej pracy pobierz aktualny formularz. Kontynuować?");},
+  setBatchBusy(value){setBusy(Boolean(value));},
+  openBatchItem({file,form,validation,quality,extraction,grounding,inventory}={}){
+    if(busy||!form||!file||!preserveManualEdits("Masz ręcznie poprawiony formularz. Czy otworzyć kolejny dokument?"))return false;
+    currentFile=file;checkbox.checked=true;markFile(true);
+    showPreview(form,{file,validation,quality,extraction,grounding,inventory,source:"generated"});
+    return true;
+  },
   showFinal({form,validation}={}){
     if(!form||!validation?.valid||!validation?.schema_valid)
       throw Error("Formularz wymaga sprawdzenia przed pobraniem.");
@@ -194,10 +202,11 @@ window.FormFlowWizard={
   },
   currentStep:()=>currentStep,
 };
-$("#review-back").addEventListener("click",()=>stepTo(1));
+$("#review-back").addEventListener("click",()=>{window.FormFlowBatch?.capture?.();stepTo(1);});
 $("#return-to-review").addEventListener("click",()=>{if(generated)stepTo(2);});
 $("#finish-back").addEventListener("click",()=>stepTo(2));
 $("#finish-new").addEventListener("click",()=>{
+  window.FormFlowBatch?.capture?.();
   if(!preserveManualEdits("Aby nie utracić ręcznych poprawek, pobierz najpierw plik JSON. Czy na pewno utworzyć nowy formularz?"))return;
   ++inspectionId;
   currentFile=null;generated=null;checkbox.checked=false;input.value="";

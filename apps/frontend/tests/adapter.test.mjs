@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { coiToJsonForms, parseShowQuery, conditionIsVisible, calculateSummary, makePreviewAnswerPayload } from "../adapter.mjs";
+import { coiToJsonForms, parseShowQuery, conditionIsVisible, calculateSummary, makePreviewAnswerPayload, checksumValid, validateAnswerCells } from "../adapter.mjs";
 
 const uuid=n=>("00000000-0000-4000-8000-"+String(n).padStart(12,"0"));
 const fld=(type,name,title,options=[],states=[],validation=[])=>({
@@ -156,4 +156,21 @@ test("Closely matching heading and question do not render duplicate visible labe
   const model=coiToJsonForms(data);
   assert.equal(model.pages[0].uiSchema.elements.length,1);
   assert.equal(model.pages[0].uiSchema.elements[0].type,"Control");
+});
+
+test("Cell contents: PESEL, NIP and REGON validate checksums, not just regex length",()=>{
+  assert.equal(checksumValid("PESEL","44051401359"),true);
+  assert.equal(checksumValid("PESEL","44051401350"),false);
+  // NIP checksum weights [6,5,7,2,3,4,5,6,7], e.g. 8567346215
+  assert.equal(checksumValid("NIP","8567346215"),true);
+  assert.equal(checksumValid("NIP","8567346214"),false);
+  assert.equal(checksumValid("REGON","123456785"),true);
+  assert.equal(checksumValid("REGON","123456780"),false);
+  const fields=[
+    {key:"pesel",field:{title:"PESEL",validation:["PESEL"]}},
+    {key:"phone",field:{title:"Numer telefonu",validation:[]}}
+  ];
+  const issues=validateAnswerCells(fields,{pesel:"44051401350",phone:"abc"});
+  assert.equal(issues.length,2);
+  assert.equal(validateAnswerCells(fields,{pesel:"44051401359",phone:"+48 515 200 851"}).length,0);
 });

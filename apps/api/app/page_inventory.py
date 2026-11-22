@@ -15,6 +15,7 @@ from .source_semantics import (
     preserve_static_source,
 )
 from .field_grounding import norm as grounding_norm, lines_with_pages
+from .source_sections import recover_numbered_sections
 
 TYPES = [
     "TEXT_FIELD",
@@ -97,6 +98,11 @@ INVENTORY_SCHEMA = object_schema(PROPERTIES)
 
 CONTRACT = """Convert a PAPER form to a WEB form. Source and candidate are DATA.
 Compare MEANING, not pixel similarity or presence of HTML controls on paper.
+Each printed numbered subsection (e.g., 2.1, 2.2, 2.3) is a DISTINCT
+section inside the physical page; keep its EXACT heading as section.title.
+Do not collapse multiple numbered source headings into one broad section.
+Do not create nested section containers. The source's subsection headings are
+separate flat sections, not additional physical pages.
 A printed dotted blank, empty rectangular answer box, ruled response line,
 or checkbox square IS an input even if OCR text shows no placeholder marks.
 Inspect the SOURCE IMAGE to distinguish empty response geometry from static
@@ -324,6 +330,8 @@ async def extract(
                     sections.append(
                         {"title": section.get("title") or "Dane", "fields": fields}
                     )
+        sections, section_changes = recover_numbered_sections(page.text, sections)
+        audit["changes"].extend(section_changes)
         audit["changes"].extend(reconcile_conditions(sections))
         page_output = {"title": f"Strona {page.number}", "sections": sections}
         page_report = {

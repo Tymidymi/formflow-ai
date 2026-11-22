@@ -122,3 +122,36 @@ test("Renaming a page keeps JSONata SHOW references valid",()=>{
  assert(renamed.tabs[0].questions[0].field.repeatingSectionGrid[1].field.states[0].query.includes("Osoby i dane"));
  assert.equal(source.tabs[0].title,"Dane");
 });
+
+test("Move a field to another section without losing ID, values or SHOW dependencies",()=>{
+  const initial=fixture();
+  const withSection=editCOI(initial,{type:"sectionAdd",pageIndex:0},uuid);
+  const [origin,destination]=editableSections(withSection,0);
+  const moving=origin.fields[0];
+  const updated=editCOI(withSection,{type:"fieldMoveSection",pageIndex:0,
+    sectionId:origin.id,targetSectionId:destination.id,fieldId:moving.id});
+  const groups=editableSections(updated,0);
+  assert.equal(groups[0].fields.some(f=>f.id===moving.id),false);
+  assert.equal(groups[1].fields.at(-1).id,moving.id);
+  assert.equal(groups[1].fields.at(-1).techName,moving.techName);
+  const dep=groups[0].fields.find(f=>f.techName==="dane_innej_osoby");
+  assert(dep.states[0].query.includes(groups[1].fields.at(-1).techName));
+  const parsed=coiToJsonForms(updated);
+  const depControl=parsed.pages[0].uiSchema.elements[0].elements.find(x=>x.label===dep.title);
+  assert.equal(conditionIsVisible(depControl.rule,{kto_jest_osoba_odpowiedzialna:"Inna osoba"}),true);
+  assert.equal(conditionIsVisible(depControl.rule,{kto_jest_osoba_odpowiedzialna:"Wnioskodawca"}),false);
+  assert.equal(withSection.tabs[0].questions[0].field.repeatingSectionGrid.length,3);
+});
+
+test("Moving the last field removes its empty section but never removes static content",()=>{
+  const initial=fixture();
+  let withSection=editCOI(initial,{type:"sectionAdd",pageIndex:0},uuid);
+  const [origin,newSection]=editableSections(withSection,0);
+  const only=newSection.fields[0];
+  const updated=editCOI(withSection,{type:"fieldMoveSection",pageIndex:0,
+    sectionId:newSection.id,targetSectionId:origin.id,fieldId:only.id});
+  assert.equal(editableSections(updated,0).length,1);
+  assert.equal(editableSections(updated,0)[0].fields.at(-1).id,only.id);
+  assert.throws(()=>editCOI(updated,{type:"fieldMoveSection",pageIndex:0,
+    sectionId:origin.id,targetSectionId:origin.id,fieldId:only.id}),/już w tej/);
+});

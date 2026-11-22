@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#091735">
+  <title>FormFlow AI — Cyfryzacja formularzy | HackNation 2026</title>
+  <meta name="description" content="FormFlow AI: automatyczne rozpoznawanie pól formularzy urzędowych, weryfikacja i eksport JSON COI. Projekt HackNation 2026.">
+  <link rel="stylesheet" href="/static/project.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a class="brand" href="/projekt/"><span class="brand-mark">F<span>·</span></span> formflow <small>AI</small></a>
+      <nav aria-label="Nawigacja">
+        <a href="#rozwiazanie">Rozwiązanie</a>
+        <a href="#technologia">Technologia</a>
+        <a href="#materialy">Materiały</a>
+      </nav>
+      <a class="header-cta" href="/">Otwórz demo <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-glow"></div>
+      <div class="hero-wrap">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="status-dot"></span> HackNation 2026 · Wyzwanie COI</span>
+          <h1 id="hero-title">Z papierowego wniosku do <em>cyfrowego formularza.</em></h1>
+          <p class="hero-lede">FormFlow AI rozpoznaje pola dokumentu, tworzy interaktywną e-usługę i eksportuje jej strukturę do JSON COI. Z kontrolą człowieka na każdym etapie.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="/">Uruchom demonstrację <span aria-hidden="true">→</span></a>
+            <a class="button secondary" href="https://github.com/Tymidymi/formflow-ai" target="_blank" rel="noopener noreferrer">Repozytorium GitHub <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="formats" aria-label="Obsługiwane formaty">
+            <span>PDF</span><span>DOCX / DOC</span><span>XLSX / ODS</span><span>JPG / PNG</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Schemat konwersji papierowego wniosku na formularz cyfrowy">
+          <div class="preview-head"><span class="preview-dots"><i></i><i></i><i></i></span><span>FormFlow / demonstracja procesu</span><span class="preview-health">● Aktywne</span></div>
+          <div class="preview-body">
+            <div class="preview-source">
+              <div class="mini-kicker">01 / DOKUMENT</div>
+              <div class="paper">
+                <div class="paper-head"></div>
+                <div class="paper-title"></div><div class="paper-subtitle"></div>
+                <div class="paper-label"></div><div class="paper-box"></div>
+                <div class="paper-label short"></div><div class="paper-box"></div>
+                <div class="paper-label"></div><div class="paper-check"><i></i><span></span></div>
+              </div>
+              <span class="preview-caption">Oryginalny dokument</span>
+            </div>
+            <div class="process-arrow"><span>AI</span><b>→</b></div>
+            <div class="preview-dest">
+              <div class="mini-kicker">02 / FORMULARZ</div>
+              <div class="form-card">
+                <div class="form-heading"></div>
+                <label>Imię i nazwisko</label><div class="form-input"></div>
+                <label>NIP / identyfikator</label><div class="form-input"></div>
+                <label>Rodzaj sprawy</label>
+                <div class="form-option"><span class="circle"></span> Pierwszy wariant</div>
+                <div class="form-option"><span class="circle"></span> Drugi wariant</div>
+                <div class="form-submit">Zapisz formularz →</div>
+              </div>
+              <span class="preview-caption">Gotowy do przeglądu i korekty</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section steps" id="rozwiazanie">
+      <div class="section-intro">
+        <div class="eyebrow dark">PROCES</div>
+        <h2>Cyfryzacja w trzech krokach.</h2>
+        <p>Bez ręcznego przepisywania każdego pytania i bez utraty kontroli nad ostateczną strukturą formularza.</p>
+      </div>
+      <div class="cards three">
+        <article class="feature-card"><div class="card-number">01</div><h3>Prześlij dokument</h3><p>PDF, skan, Word lub arkusz. Silnik odczytuje strony, tekst, układ i obszary odpowiedzi.</p></article>
+        <article class="feature-card"><div class="card-number">02</div><h3>Sprawdź i popraw</h3><p>Porównaj oryginał z interaktywnym formularzem. Edytuj pytania, sekcje, opcje i reguły walidacji.</p></article>
+        <article class="feature-card"><div class="card-number">03</div><h3>Wyeksportuj JSON COI</h3><p>Walidacja struktury i eksport definicji formularza gotowej do dalszej integracji.</p></article>
+      </div>
+    </section>
+    <section class="section technology" id="technologia">
+      <div class="section-intro"><div class="eyebrow dark">ARCHITEKTURA</div><h2>Oparte na otwartych komponentach.</h2><p>Oddzielne warstwy ekstrakcji, interpretacji i walidacji — z jednoznacznym podziałem odpowiedzialności.</p></div>
+      <div class="tech-grid">
+        <div><strong>Dokumenty i OCR</strong><p>LibreOffice · Docling Slim · Tesseract · PDFium</p></div>
+        <div><strong>Interpretacja AI</strong><p>Open-weight Qwen3-VL · multimodalna analiza stron</p></div>
+        <div><strong>API i eksport</strong><p>Python · FastAPI · schemat JSON COI · Docker</p></div>
+        <div><strong>Weryfikacja</strong><p>React · JSON Forms · edytor sekcji i pól</p></div>
+      </div>
+      <div class="technical-link">Chcesz zobaczyć szczegóły? <a href="/documentation/">Dokumentacja techniczna →</a></div>
+    </section>
+    <section class="section materials" id="materialy">
+      <div class="section-intro"><div class="eyebrow dark">MATERIAŁY KONKURSOWE</div><h2>Dokumentacja i demonstracja.</h2><p>Materiały do oceny projektu HackNation 2026.</p></div>
+      <div class="cards materials-grid">
+        <a class="material-card ready" href="/"><span class="material-icon">↗</span><span class="material-tag">DOSTĘPNE</span><h3>Demo aplikacji</h3><p>Interaktywny kreator cyfrowego formularza.</p><span class="material-link">Otwórz demo →</span></a>
+        <a class="material-card ready" href="https://github.com/Tymidymi/formflow-ai" target="_blank" rel="noopener noreferrer"><span class="material-icon">&lt;/&gt;</span><span class="material-tag">REPOZYTORIUM</span><h3>Kod źródłowy</h3><p>Backend, frontend, testy i instrukcja Docker.</p><span class="material-link">Przejdź do GitHub →</span></a>
+        <div class="material-card upcoming"><span class="material-icon">▤</span><span class="material-tag">MIEJSCE NA LINK</span><h3>Prezentacja PDF</h3><p>Maksymalnie 10 slajdów — uzupełnimy po przygotowaniu materiału.</p><span class="material-link muted">Link do dodania</span></div>
+        <div class="material-card upcoming"><span class="material-icon">▷</span><span class="material-tag">MIEJSCE NA LINK</span><h3>Film demonstracyjny</h3><p>Prezentacja rozwiązania do 3 minut — miejsce na finalny link.</p><span class="material-link muted">Link do dodania</span></div>
+      </div>
+    </section>
+    <section class="closing"><div><span class="eyebrow">FORMA → E-USŁUGA</span><h2>Sprawdź FormFlow na formularzu.</h2><p>Demo jest prototypem: AI może wymagać ręcznej korekty, a wynik przechodzi kontrolę struktury COI.</p></div><a class="button white" href="/">Przejdź do aplikacji →</a></section>
+  </main>
+  <footer class="footer"><span>FormFlow AI · HackNation 2026 · Wyzwanie COI</span><div><a href="/documentation/">Dokumentacja</a><a href="https://github.com/Tymidymi/formflow-ai">GitHub</a></div></footer>
+</body>
+</html>

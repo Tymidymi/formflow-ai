@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import { createRoot } from "react-dom/client";
 import { JsonForms, withJsonFormsControlProps } from "@jsonforms/react";
 import { vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
-import { coiToJsonForms, calculateSummary, conditionIsVisible, makePreviewAnswerPayload } from "./adapter.mjs";
+import { coiToJsonForms, calculateSummary, conditionIsVisible, makePreviewAnswerPayload, validateAnswerCells } from "./adapter.mjs";
 import { editCOI } from "./editor.mjs";
 import { EditorPanel } from "./EditorPanel.jsx";
 import "./preview.css";
@@ -144,6 +144,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
   const hasEdits = useMemo(() => JSON.stringify(form)!==JSON.stringify(workingForm), [form,workingForm]);
   const model = useMemo(() => coiToJsonForms(workingForm), [workingForm]);
   const {jsonSchema, pages, fields, warnings} = model;
+  const contentErrors = useMemo(() => validateAnswerCells(fields,answers),[fields,answers]);
   const page = pages[pageIndex] || pages[0];
   const summary = calculateSummary(model, answers);
   function changeDefinition(action) {
@@ -264,14 +265,18 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
     if(window.FormFlowPreview) {
       window.FormFlowPreview.exportCurrent=exportEditedCOI;
       window.FormFlowPreview.hasEdits=()=>hasEdits;
+      window.FormFlowPreview.getApproved=()=>
+        !editing && reviewConfirmed && savedReview?.valid && savedReview?.schema_valid
+          ? {form:structuredClone(workingForm),validation:structuredClone(savedReview)} : null;
     }
     return () => {
       if(window.FormFlowPreview) {
         window.FormFlowPreview.exportCurrent=null;
         window.FormFlowPreview.hasEdits=()=>false;
+        window.FormFlowPreview.getApproved=null;
       }
     };
-  },[workingForm,editing,hasEdits,reviewConfirmed]);
+  },[workingForm,editing,hasEdits,reviewConfirmed,savedReview]);
   useEffect(() => {
     const guard=event => {
       if(hasEdits){
@@ -296,6 +301,10 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
   };
   const exportAnswers = () => {
     if (summary.answered === 0) return false;
+    if (contentErrors.length) {
+      setShowValidation(true);
+      return false;
+    }
     const visible = new Set(model.fields.filter(item => {
       const controls = [];
       function walk(elements) {
@@ -435,9 +444,12 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
             config={{restrict:true,showUnfocusedDescription:true}} />
           {page.blocks.map((message,index)=><div className={page.fieldCount===0?"ff-notice":"ff-note"} key={index}>{message}</div>)}
         </div>}
-        {!editing && showValidation && errors.length > 0 && <p role="alert" className="ff-validation-message">
-          Formularz wymaga poprawy: {errors.length} problemów. Uzupełnij wymagane pola lub popraw ich format.
-        </p>}
+        {!editing && showValidation && (errors.length>0 || contentErrors.length>0) && <div role="alert" className="ff-validation-message">
+          Formularz wymaga poprawy: {errors.length+contentErrors.length} problemów.
+          Uzupełnij wymagane pola lub popraw ich format.
+          {contentErrors.length>0 && <ul>{contentErrors.map(issue=>
+            <li key={issue.key}><strong>{issue.label}:</strong> {issue.message}</li>)}</ul>}
+        </div>}
         {!editing && <div className="ff-page-nav">
           <div className="ff-check-controls">
             <button type="button" className="ff-quiet" onClick={()=>setShowValidation(true)}>Sprawdź pola</button>

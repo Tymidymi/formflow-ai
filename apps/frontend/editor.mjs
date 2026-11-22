@@ -200,6 +200,41 @@ export function editCOI(source,action,idFactory=makeId){
    if(!rest.length)throw Error("To ostatnie pole sekcji. Dodaj inne lub usuń całą sekcję.");
    section.field.repeatingSectionGrid=rest;reflow(tab);return form;
  }
+ if(type==="fieldMoveSection"){
+   const target=sectionAt(tab,action.targetSectionId);
+   if(target.field.id===section.field.id)
+     throw Error("Pole jest już w tej sekcji.");
+   const origin=contents(section),destination=contents(target);
+   if(destination.length>=120)throw Error("Sekcja docelowa ma już maksymalną liczbę pól.");
+   const index=origin.findIndex(x=>x.field.id===action.fieldId);
+   if(index<0)throw Error("Nie znaleziono pola do przeniesienia.");
+   const moved=origin[index].field;
+   const oldName=section.field.techName,newName=target.field.techName;
+   const quoted=s=>String(s).replaceAll("\\","\\\\").replaceAll("'","\\'");
+   const oldRef="questions['"+quoted(oldName)+"' in field.techName]";
+   const newRef="questions['"+quoted(newName)+"' in field.techName]";
+   // SHOW references contain the SOURCE section's techName. When a source
+   // choice moves, update all dependent controls. Never silently break rules.
+   for(const field of allFields(form)){
+     for(const rule of field.states||[]){
+       if(rule?.type!=="SHOW"||typeof rule.query!=="string")continue;
+       const parsed=parseShowQuery(rule.query);
+       if(parsed?.source===moved.techName && parsed.section===oldName){
+         if(!rule.query.includes(oldRef))
+           throw Error("Nie można bezpiecznie przepisać warunku SHOW tego pola.");
+         rule.query=rule.query.replace(oldRef,newRef);
+       }else if(!parsed && rule.query.includes(moved.techName)){
+         throw Error("Pole ma nierozpoznane zależności SHOW. Przeniesienie byłoby niebezpieczne.");
+       }
+     }
+   }
+   destination.push(origin.splice(index,1)[0]);
+   if(!origin.length){
+     tab.questions=tab.questions.filter(x=>x.field.id!==section.field.id);
+   }
+   reflow(tab);
+   return form;
+ }
  if(type==="fieldMove"){
    const items=contents(section),from=items.findIndex(x=>x.field.id===action.fieldId);
    const to=from+(action.direction===-1?-1:1);

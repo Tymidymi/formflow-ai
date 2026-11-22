@@ -1,6 +1,6 @@
 # FormFlow AI
 
-**FormFlow** przekształca papierowe i biurowe blankiety urzędowe w konfigurowalne formularze elektroniczne, eksportowane jako JSON zgodny z kontraktem COI. Prototyp przygotowany na HackNation 2026 — wyzwanie **Cyfryzacja Formularzy**.
+**FormFlow** przekształca papierowe i biurowe blankiety urzędowe w konfigurowalne formularze elektroniczne, eksportowane jako JSON zgodny z kontraktem COI. Strona projektu: [FormFlow — HackNation 2026](https://vibe.tail075c6f.ts.net:9466/projekt/) (demo w prywatnej sieci Tailscale). Prototyp przygotowany na HackNation 2026 — wyzwanie **Cyfryzacja Formularzy**.
 
 Praca urzędnika odbywa się w trzech krokach: **Dodaj dokument → Sprawdź i popraw → Pobierz formularz**. Automatyczna analiza dostarcza projekt, a przed eksportem użytkownik porównuje go ze źródłem i może poprawić pytania, opcje oraz typy pól.
 
@@ -11,6 +11,10 @@ Praca urzędnika odbywa się w trzech krokach: **Dodaj dokument → Sprawdź i p
 - Model multimodalny open-weight Qwen3-VL interpretuje strukturę stron; deterministyczny moduł mapuje wynik na format COI.
 - Walidacja schematu JSON COI, reguły pól (m.in. PESEL, NIP, REGON, telefon i e-mail), opcje wyboru, warunki wyświetlania, sekcje oraz informacje do odczytu.
 - Podgląd wygenerowanego e-formularza, edytor i ręczne potwierdzenie zgodności ze źródłem.
+- Wybór do 5 dokumentów, przetwarzanie kolejno przez REST API, przegląd każdego wyniku i wspólny eksport zatwierdzonych JSON-ów do ZIP.
+- Rozpoznawanie numerowanych podsekcji źródła (np. 2.1, 2.2, 2.3) z ostrożnym przypisaniem pól; ręczne przenoszenie pól między sekcjami bez zmiany identyfikatorów i zależności.
+- Walidacja odpowiedzi w podglądzie: wymagane wartości, formaty, sumy kontrolne PESEL/NIP/REGON, telefon i kod pocztowy.
+- Landing projektu: `/projekt/`, link do demonstracji i repo oraz oznaczone miejsca na prezentację i film.
 - REST API z dokumentacją OpenAPI, kontenery Docker, testy backendu i frontendu.
 
 **Ważne:** poprawny schemat JSON nie oznacza kompletnej i bezbłędnej konwersji. Użytkownik musi zweryfikować rezultat. Automatyczna interpretacja tabel, podpisów, pól wyboru i warunków bywa niepełna.

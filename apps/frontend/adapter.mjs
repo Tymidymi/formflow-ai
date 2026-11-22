@@ -192,3 +192,54 @@ export function calculateSummary(adapter,answers){
   }
   return {fields:adapter.fields.length,answered:count,pages:adapter.pages.length};
 }
+
+/** Optional content checks for the *answer preview*. Never changes COI JSON. */
+export function checksumValid(code,value){
+  if(typeof value!=="string")return true;
+  const text=value.trim();
+  if(!text)return true;
+  let weights;
+  if(code==="PESEL"){
+    if(!/^\d{11}$/.test(text))return false;
+    weights=[1,3,7,9,1,3,7,9,1,3];
+    const sum=weights.reduce((acc,w,i)=>acc+w*Number(text[i]),0);
+    return (10-sum%10)%10===Number(text[10]);
+  }
+  if(code==="NIP"){
+    if(!/^\d{10}$/.test(text))return false;
+    weights=[6,5,7,2,3,4,5,6,7];
+    const digit=weights.reduce((acc,w,i)=>acc+w*Number(text[i]),0)%11;
+    return digit!==10&&digit===Number(text[9]);
+  }
+  if(code==="REGON"){
+    if(!/^(\d{9}|\d{14})$/.test(text))return false;
+    weights=text.length===9?[8,9,2,3,4,5,6,7]:[2,4,8,5,0,9,7,3,6,1,2,4,8];
+    let digit=weights.reduce((acc,w,i)=>acc+w*Number(text[i]),0)%11;
+    if(digit===10)digit=0;
+    return digit===Number(text.at(-1));
+  }
+  return true;
+}
+export function validateAnswerCells(fields,answers){
+  const problems=[];
+  for(const item of fields||[]){
+    const f=item?.field||{};
+    const text=answers?.[item.key];
+    if(typeof text!=="string"||!text.trim())continue;
+    const rules=f.validation||[];
+    for(const rule of ["PESEL","NIP","REGON"]){
+      if(rules.includes(rule)&&!checksumValid(rule,text)){
+        problems.push({key:item.key,label:f.title||item.key,
+          message:"Niepoprawna liczba kontrolna "+rule+" lub długość numeru."});
+        break;
+      }
+    }
+    if(!rules.some(rule=>["PESEL","NIP","REGON"].includes(rule))
+       && /^(?:numer\s+)?telefonu?\b|^telefon\b/i.test(f.title||"")
+       && !/^\+?[0-9][0-9\s()-]{6,18}$/.test(text.trim())){
+      problems.push({key:item.key,label:f.title||item.key,
+        message:"Numer telefonu ma nieprawidłowy format."});
+    }
+  }
+  return problems;
+}

@@ -24,7 +24,7 @@ PYTHONPATH=apps/api python -m pytest -q -p no:cacheprovider apps/api/tests
 npm --prefix apps/frontend ci
 npm --prefix apps/frontend test
 npm --prefix apps/frontend run build</code></pre>
-<p>Weryfikacja 22.11.2026 (kandydat v1.4, nowszy interfejs): <strong>122 testy Python przeszły</strong>, <strong>20 testów JS przeszło</strong>, <strong>frontend zbudowany</strong>. To weryfikuje kontrakty, przypadki brzegowe i zgodność kodu; nie jest dowodem dokładnego odwzorowania dowolnego dokumentu źródłowego.</p>
+<p>Weryfikacja 22.11.2026 (kandydat v1.4, nowszy interfejs): <strong>testy Python i JavaScript przeszły</strong>, <strong>frontend zbudowany</strong>. To weryfikuje kontrakty, przypadki brzegowe i zgodność kodu; nie jest dowodem dokładnego odwzorowania dowolnego dokumentu źródłowego.</p>
 <h2 id="test-integracyjny">Test integracyjny</h2>
 <ol>
 <li><code>GET /healthz</code>, <code>GET /readyz</code> i <code>GET /api/v1/capabilities</code>.</li>
@@ -58,6 +58,15 @@ npm --prefix apps/frontend run build</code></pre>
 <h2 id="ocena-jakosci-modeli">Ocena jakości modeli</h2>
 <p>Przeprowadzono mały benchmark kilku otwartych modeli VLM, także Qwen3-VL-30B/235B, Mistral Small i Nemotron. <strong>Żaden nie wygrał bezbłędnie na wszystkich rzeczywistych formularzach</strong>. Nie zmieniać produkcyjnego modelu bez nowej, niezależnie zweryfikowanej próby. Historyczne pliki przebiegów i dokumenty źródłowe pozostają poza repozytorium.</p>
 <p><strong>Dalsza praca:</strong> zwiększać reprezentatywny zestaw testowy z poprawnymi odpowiedziami (pola, opcje, warunki, strony), nie tworzyć wyjątku w kodzie dla konkretnego formularza.</p>
+<h2 id="testy-nowych-funkcji">Testy nowych funkcji</h2>
+<ul>
+<li><code>apps/api/tests/test_source_sections.py</code>: rozdzielenie podpunktów, powtórzone etykiety, brak dzielenia dla niepewnego źródła.</li>
+<li><code>apps/frontend/tests/editor.test.mjs</code>: przeniesienie pola pomiędzy sekcjami, utrzymanie zależności SHOW, identyfikatorów i siatki.</li>
+<li><code>apps/frontend/tests/adapter.test.mjs</code>: sumy kontrolne PESEL/NIP/REGON i format telefonu.</li>
+<li><code>apps/api/tests/test_batch_export.py</code>: ZIP 1–5 poprawnych formularzy, odrzucenie niepoprawnych oraz sanitizacja nazw plików.</li>
+<li><code>apps/api/tests/test_api.py</code>: landing <code>/projekt/</code>, linki, dokumentacja lokalna oraz najważniejsze endpointy.</li>
+</ul>
+<p>Przetwarzanie wsadowe nie jest gwarancją trafności AI: każdy wygenerowany JSON pozostaje szkicem i wymaga ręcznej kontroli przed eksportem.</p>
 <div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
 <p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
 </main>

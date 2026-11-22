@@ -14,6 +14,7 @@
 | `POST /api/v1/forms/extract-preview` | Lokalny OCR i podgląd tekstu, **bez modelu** |
 | `POST /api/v1/forms/convert` | Projekt JSON COI |
 | `POST /api/v1/forms/validate-json` | Strukturalna kontrola COI |
+| `POST /api/v1/forms/batch/export` | ZIP z 1–5 zweryfikowanych strukturalnie JSON-ów COI |
 | `GET /api/v1/demo/convert` | Syntetyczny przykład bez AI |
 
 ## Upload
@@ -74,3 +75,23 @@ Odpowiedź zawiera co najmniej `schema_valid`, `valid`, `errors` i `warnings`. W
 W odpowiedziach błędów może wystąpić `request_id` do korelacji z logiem technicznym. Konwersja ma limit 240 sekund, a dwie równoległe konwersje to maksymalna współbieżność.
 
 **Dokumentacja architektury:** [TECHNICAL.md](TECHNICAL.md).
+
+
+## Przetwarzanie wielu dokumentów
+
+W interfejsie **Wiele dokumentów naraz** można wybrać do 5 plików.
+Przeglądarka wywołuje `/api/v1/forms/convert?mode=diagnostic` **kolejno**, oddzielnym żądaniem na plik, z tą samą świadomą zgodą na zewnętrzne AI.
+Każdy szkic musi zostać otwarty, poprawiony i zatwierdzony. Serwer nie przechowuje kolejki, uploadów ani wyników po zakończeniu żądania.
+
+Po przeglądzie interfejs wywołuje:
+
+```http
+POST /api/v1/forms/batch/export
+Content-Type: application/json
+
+{"forms":[{"filename":"wniosek.pdf","form":{"title":"...","tabs":[],"flow":{}}}]}
+```
+
+W przykładzie powyżej obiekt `form` jest wyłącznie symbolem pełnego JSON COI. **Taki przykładowy pusty formularz zostanie odrzucony**: eksport wymaga `validation.valid = true`, `schema_valid = true` oraz co najmniej jednego pola wejściowego na każdy formularz. W odpowiedzi HTTP 200 wraca `application/zip`, bez trwałego zapisu na serwerze. Dopuszczalne jest 1–5 formularzy, maksymalnie 5 MiB JSON; nieprawidłowe dane kończą się 400, 413 lub 422.
+
+To endpoint pakowania, a nie wspólne żądanie konwersji AI: podział pozwala uniknąć przekraczania limitów pojedynczego requestu.

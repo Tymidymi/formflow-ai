@@ -11,7 +11,7 @@ npm --prefix apps/frontend test
 npm --prefix apps/frontend run build
 ```
 
-Weryfikacja 22.11.2026 (kandydat v1.4, nowszy interfejs): **122 testy Python przeszły**, **20 testów JS przeszło**, **frontend zbudowany**. To weryfikuje kontrakty, przypadki brzegowe i zgodność kodu; nie jest dowodem dokładnego odwzorowania dowolnego dokumentu źródłowego.
+Weryfikacja 22.11.2026 (kandydat v1.4, nowszy interfejs): **testy Python i JavaScript przeszły**, **frontend zbudowany**. To weryfikuje kontrakty, przypadki brzegowe i zgodność kodu; nie jest dowodem dokładnego odwzorowania dowolnego dokumentu źródłowego.
 
 ## Test integracyjny
 
@@ -49,3 +49,14 @@ Niezależna kontrola `service.docx`: `scripts/evaluate_independent.py`. Powtarza
 Przeprowadzono mały benchmark kilku otwartych modeli VLM, także Qwen3-VL-30B/235B, Mistral Small i Nemotron. **Żaden nie wygrał bezbłędnie na wszystkich rzeczywistych formularzach**. Nie zmieniać produkcyjnego modelu bez nowej, niezależnie zweryfikowanej próby. Historyczne pliki przebiegów i dokumenty źródłowe pozostają poza repozytorium.
 
 **Dalsza praca:** zwiększać reprezentatywny zestaw testowy z poprawnymi odpowiedziami (pola, opcje, warunki, strony), nie tworzyć wyjątku w kodzie dla konkretnego formularza.
+
+
+## Testy nowych funkcji
+
+- `apps/api/tests/test_source_sections.py`: rozdzielenie podpunktów, powtórzone etykiety, brak dzielenia dla niepewnego źródła.
+- `apps/frontend/tests/editor.test.mjs`: przeniesienie pola pomiędzy sekcjami, utrzymanie zależności SHOW, identyfikatorów i siatki.
+- `apps/frontend/tests/adapter.test.mjs`: sumy kontrolne PESEL/NIP/REGON i format telefonu.
+- `apps/api/tests/test_batch_export.py`: ZIP 1–5 poprawnych formularzy, odrzucenie niepoprawnych oraz sanitizacja nazw plików.
+- `apps/api/tests/test_api.py`: landing `/projekt/`, linki, dokumentacja lokalna oraz najważniejsze endpointy.
+
+Przetwarzanie wsadowe nie jest gwarancją trafności AI: każdy wygenerowany JSON pozostaje szkicem i wymaga ręcznej kontroli przed eksportem.

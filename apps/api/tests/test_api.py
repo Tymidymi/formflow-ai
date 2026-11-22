@@ -12,6 +12,18 @@ def test_health():
     assert client.get("/healthz").json()["version"] == "1.4.0"
 
 
+def test_project_landing_has_demo_repo_and_honest_placeholders():
+    response = client.get("/projekt/")
+    assert response.status_code == 200
+    html = response.text
+    assert 'href="/"' in html
+    assert "github.com/Tymidymi/formflow-ai" in html
+    assert "Prezentacja PDF" in html
+    assert "Film demonstracyjny" in html
+    assert 'href="/documentation/"' in html
+    assert client.get("/static/project.css").status_code == 200
+
+
 def test_technical_documentation_is_self_hosted():
     home = client.get("/")
     assert home.status_code == 200

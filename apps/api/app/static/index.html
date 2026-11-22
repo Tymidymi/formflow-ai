@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/static/style.css"/>
   <link rel="stylesheet" href="/static/preview.bundle.css"/>
   <script src="/static/app.js" defer></script>
+  <script src="/static/batch.js" defer></script>
   <script src="/static/preview.bundle.js" defer></script>
 </head>
 <body>
@@ -16,7 +17,7 @@
   <aside class="sidebar">
     <a class="brand" href="/"><span class="mark">F<span>·</span></span><span>formflow <small>AI</small></span></a>
     <div class="sidebar-hint">Cyfryzacja dokumentów. Prościej, szybciej, w trzech krokach.</div>
-    <nav aria-label="Menu główne"><a class="nav-active" href="/"><span>▣</span> Nowy formularz</a></nav>
+    <nav aria-label="Menu główne"><a class="nav-active" href="/"><span>▣</span> Nowy formularz</a><a href="/projekt/"><span>◈</span> O projekcie</a></nav>
     <div class="sidebar-bottom"><div class="mini-pulse"></div> Aplikacja działa
       <p>HackNation 2026 · Wyzwanie COI</p>
       <a href="/documentation/" target="_blank" rel="noopener">Dokumentacja techniczna</a>
@@ -74,6 +75,22 @@
         </div>
         <button id="return-to-review" type="button" class="wizard-return" hidden>Wróć do przygotowanego formularza →</button>
       </div>
+      <details class="batch-panel" id="batch-panel">
+        <summary><strong>Wiele dokumentów naraz</strong><span>Przetwarzanie wsadowe · do 5 plików</span></summary>
+        <div class="batch-content">
+          <p>Dodaj do pięciu formularzy. Analizujemy je kolejno, żeby nie przeciążać serwera. Wyniki pozostają w tej karcie przeglądarki, aż je pobierzesz.</p>
+          <label for="batch-file-input">Formularze do przetworzenia</label>
+          <input id="batch-file-input" type="file" accept=".pdf,.doc,.docx,.ods,.xlsx,.jpg,.jpeg,.png" multiple/>
+          <label class="batch-consent"><input id="batch-consent" type="checkbox"/>
+            <span>Rozumiem, że dokumenty będą przekazane do zewnętrznego AI. Nie przesyłam danych poufnych ani osobowych.</span>
+          </label>
+          <button id="batch-start" class="batch-start" type="button" disabled>Rozpocznij analizę wsadową →</button>
+          <div id="batch-summary" class="batch-summary" role="status" aria-live="polite"></div>
+          <ol id="batch-results" class="batch-results"></ol>
+          <button id="batch-export" type="button" class="button-secondary" disabled>Pobierz zatwierdzone formularze (ZIP)</button>
+          <small>Każdy plik trzeba otworzyć, sprawdzić i zatwierdzić przed wspólnym pobraniem. Pliki nie są zapisywane na serwerze.</small>
+        </div>
+      </details>
       <details class="technical-details" id="advanced-tools">
         <summary>Opcje dla administratora</summary>
         <div class="technical-inner">

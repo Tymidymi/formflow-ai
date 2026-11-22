@@ -1,13 +1,17 @@
 """FormFlow AI — source-grounded document extraction and COI exporter."""
 
 from pathlib import Path
+from io import BytesIO
+import json
+import re
+from zipfile import ZipFile, ZIP_DEFLATED
 import time
 import asyncio
 from typing import Literal
 from uuid import uuid4
 
 from fastapi import FastAPI, File, Header, Query, Request, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .settings import max_upload_bytes
@@ -34,6 +38,7 @@ app = FastAPI(
 )
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 app.mount("/documentation", StaticFiles(directory=ROOT / "static" / "documentation", html=True), name="documentation")
+app.mount("/projekt", StaticFiles(directory=ROOT / "static" / "project", html=True), name="project")
 
 
 @app.get("/api/docs", include_in_schema=False)
@@ -211,6 +216,52 @@ async def validate_json(request: Request):
     except ValueError:
         return JSONResponse(status_code=400, content={"detail": "Nieprawidłowy JSON."})
     return validate_coi_form(data)
+
+
+@app.post("/api/v1/forms/batch/export", include_in_schema=True)
+async def export_reviewed_batch(request: Request):
+    """Package already reviewed COI JSON definitions, without storing inputs.
+
+    Conversion itself is processed sequentially by the browser using the
+    existing /convert endpoint, to avoid multi-document timeouts and RAM spikes.
+    """
+    payload = await request.body()
+    if len(payload) > 5 * 1024 * 1024:
+        return JSONResponse(status_code=413, content={"detail": "Zbyt duża paczka JSON."})
+    try:
+        data = json.loads(payload)
+    except (ValueError, UnicodeDecodeError):
+        return JSONResponse(status_code=400, content={"detail": "Nieprawidłowy JSON."})
+    items = data.get("forms") if isinstance(data, dict) else None
+    if not isinstance(items, list) or not 1 <= len(items) <= 5:
+        return JSONResponse(status_code=422, content={"detail": "Paczka wymaga od 1 do 5 formularzy."})
+    archive = BytesIO()
+    names = set()
+    with ZipFile(archive, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
+        for index, item in enumerate(items, 1):
+            if not isinstance(item, dict) or not isinstance(item.get("form"), dict):
+                return JSONResponse(status_code=422, content={"detail": "Brak definicji COI."})
+            form = item["form"]
+            report = validate_coi_form(form)
+            if not report["valid"] or not report["schema_valid"] or report["summary"]["input_fields"] < 1:
+                return JSONResponse(status_code=422, content={
+                    "detail": f"Formularz {index} nie przeszedł walidacji COI."
+                })
+            candidate = str(item.get("filename") or f"formularz-{index}")
+            safe = re.sub(r"[^a-zA-Z0-9._-]+", "-", candidate.rsplit(".", 1)[0])[:80].strip(".-_")
+            base = safe or f"formularz-{index}"
+            name = f"{base}.json"
+            counter = 2
+            while name in names:
+                name = f"{base}-{counter}.json"
+                counter += 1
+            names.add(name)
+            zf.writestr(name, json.dumps(form, ensure_ascii=False, indent=2))
+    return Response(
+        content=archive.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="formflow-formularze.zip"'},
+    )
 
 
 async def _convert_form(
