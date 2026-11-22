@@ -4,6 +4,11 @@
 
 Praca urzędnika odbywa się w trzech krokach: **Dodaj dokument → Sprawdź i popraw → Pobierz formularz**. Automatyczna analiza dostarcza projekt, a przed eksportem użytkownik porównuje go ze źródłem i może poprawić pytania, opcje oraz typy pól.
 
+## Materiały konkursowe — HackNation 2026 (COI)
+
+- [**Prezentacja konkursowa — PDF, 9 slajdów**](submission/FormFlow_AI_HackNation_2026_COI_9_slajdow.pdf)
+- [Prezentacja edytowalna — PowerPoint](submission/FormFlow_AI_HackNation_2026_COI_9_slajdow.pptx)
+
 ## Funkcje
 
 - Import `PDF`, `DOC`, `DOCX`, `ODS`, `XLSX`, `JPG`, `JPEG` i `PNG`; weryfikacja formatu pliku, MIME, nazwy i konfigurowalnego limitu rozmiaru.
