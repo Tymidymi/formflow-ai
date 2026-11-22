@@ -1,0 +1,895 @@
+{
+  "title": "Dane podopiecznych trenera",
+  "tabs": [
+    {
+      "id": "bb8a80d4-a34f-5f8f-a97c-31c3895f278c",
+      "title": "Strona 1",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "c6e8a2e5-171a-557a-a70b-098407a35209",
+            "type": "SECTION",
+            "techName": "sekcja_0_0_3_dane_podopiecznych_trenera",
+            "title": "3. Dane podopiecznych trenera",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "b9532f65-27fa-5d01-9b24-8c227d78cffa",
+                  "type": "TEXT_BLOCK",
+                  "techName": "ponizej_nalezy_dodac_dane_poszczegolnych_podopiecznych_",
+                  "title": "Poniżej należy dodać dane poszczególnych podopiecznych opiekuna sportowego, dla którego składany jest wniosek o wyróżnienie sportowe. Do wniosku można dołączyć dyplomy lub inne dokumenty potwierdzające opisane osiągnięci",
+                  "description": "<html><head></head><body><p>Poniżej należy dodać dane poszczególnych podopiecznych opiekuna sportowego, dla którego składany jest wniosek o wyróżnienie sportowe. Do wniosku można dołączyć dyplomy lub inne dokumenty potwierdzające opisane osiągnięcia sportowe.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 2,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "230bc355-9f8b-5572-9893-702f4a9bfb0e",
+            "type": "SECTION",
+            "techName": "sekcja_0_1_1_dane_osobowe_podopiecznego_trenera",
+            "title": "1. Dane osobowe podopiecznego trenera",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "9d8b4bc7-e98e-5a64-9149-59ba728e476d",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_zawodniczki_zawodnika",
+                  "title": "Imię i nazwisko zawodniczki/zawodnika",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "b3c802ee-d3a1-5f64-9147-ed8d2bff3d4a",
+                  "type": "TEXTAREA",
+                  "techName": "osiagniecia_sportowe_podopiecznego",
+                  "title": "Osiągnięcia sportowe podopiecznego",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 5,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "c1c1a4f9-2324-514f-96b7-f40cd2a957ec",
+            "type": "SECTION",
+            "techName": "sekcja_0_2_2_dane_osobowe_podopiecznego_trenera",
+            "title": "2. Dane osobowe podopiecznego trenera",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "f2a0570c-cf8f-5c13-9fce-45c51bf3c32a",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_zawodniczki_zawodnika_2",
+                  "title": "Imię i nazwisko zawodniczki/zawodnika",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "cc6ae711-2216-5763-a19b-9a77bbd45092",
+                  "type": "TEXTAREA",
+                  "techName": "osiagniecia_sportowe_podopiecznego_2",
+                  "title": "Osiągnięcia sportowe podopiecznego",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 2,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 8,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "d337d1ab-f1ec-5e33-a57c-970228b0b5fd",
+            "type": "SECTION",
+            "techName": "sekcja_0_3_3_dane_osobowe_podopiecznego_trenera",
+            "title": "3. Dane osobowe podopiecznego trenera",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "90dcc16d-6c6e-5d12-98ef-a91bd739a249",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_zawodniczki_zawodnika_3",
+                  "title": "Imię i nazwisko zawodniczki/zawodnika",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "86a4919f-9707-5534-9b79-af509bf678a4",
+                  "type": "TEXTAREA",
+                  "techName": "osiagniecia_sportowe_podopiecznego_3",
+                  "title": "Osiągnięcia sportowe podopiecznego",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 3,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "b08138ed-c62d-541e-92af-1b374c9cff44",
+      "title": "Strona 2",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "91e28767-7953-5238-9dff-9e5c62e8abd9",
+            "type": "SECTION",
+            "techName": "sekcja_1_0_4_dane_osobowe_podopiecznego_trenera",
+            "title": "4. Dane osobowe podopiecznego trenera",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "cc2c4ff0-623f-561e-8c30-db5a5ad2000e",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_zawodniczki_zawodnika_4",
+                  "title": "Imię i nazwisko zawodniczki/zawodnika",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "27584e97-b59b-5594-aafe-b2bc1996f25b",
+                  "type": "TEXTAREA",
+                  "techName": "osiagniecia_sportowe_podopiecznego_4",
+                  "title": "Osiągnięcia sportowe podopiecznego",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "14a1f6db-bd34-53ce-b7ef-19f1b5b95dd6",
+                  "type": "TEXT_BLOCK",
+                  "techName": "wymagane_zaswiadczenia_wymienionych_podopiecznych_trene",
+                  "title": "Wymagane zaświadczenia wymienionych podopiecznych trenera",
+                  "description": "<html><head></head><body><p>Do wniosku należy załączyć zaświadczenia wydane przez Polski Związek Sportowy odpowiedni dla danej dyscypliny sportowej lub inne oficjalne dokumenty (np. komunikaty z zawodów), które potwierdzają osiągnięcia sportowe zawodniczek/zawodników.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2aeada7e-07be-53ad-b387-d7eb5d68e3a8",
+                  "type": "DATEPICKER",
+                  "techName": "data_sporzadzenia_wniosku",
+                  "title": "Data sporządzenia wniosku",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "3cdf9804-da1a-5c51-bcf9-1ae1b2888286",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_i_pieczatka_wnioskodawcy",
+                  "title": "Podpis i pieczątka wnioskodawcy",
+                  "description": "<html><head></head><body><p>Podpis i pieczątka wnioskodawcy</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "1a87f797-9d67-509e-8028-39c5638b5e69",
+      "title": "Strona 3",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "a4770d81-6200-53a6-8232-b8a692ca3b1c",
+            "type": "SECTION",
+            "techName": "sekcja_2_0_5_1_zgoda_kandydata_do_wyroznienia",
+            "title": "5.1. Zgoda kandydata do wyróżnienia",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5fbc0845-7247-59f1-86ac-a3abb1bad8f1",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_kandydata",
+                  "title": "Imię i nazwisko kandydata",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "477f7e3f-ef86-50ab-95ae-934146f6f0d9",
+                  "type": "CHECKBOX",
+                  "techName": "1_wyrazam_zgode_na_przetwarzanie_moich_danych_osobowych",
+                  "title": "1) Wyrażam zgodę na przetwarzanie moich danych osobowych zwartych we wniosku w celu przekazania go do dalszego procedowania.",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "f1051ea2-9e3e-5127-a69e-1a6971cadba0",
+                  "type": "CHECKBOX",
+                  "techName": "2_oswiadczam_ze_zapoznalem_sie_z_regulaminem_przyznawan",
+                  "title": "2) Oświadczam, że zapoznałem się z regulaminem przyznawania wyróżnień sportowych Rady Miasta Zgierza i akceptuję wszystkie jego postanowienia.",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "517ccdae-0796-548b-ab9d-2626ca5c842d",
+                  "type": "DATEPICKER",
+                  "techName": "data",
+                  "title": "Data",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "32413c8d-299c-5883-89da-1b02606ac19f",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_kandydata",
+                  "title": "Podpis kandydata",
+                  "description": "<html><head></head><body><p>Podpis kandydata</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "628842f3-27f5-5204-9974-df7e391aad96",
+      "title": "Strona 4",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "51b5eb43-51b5-52b6-9ecf-8ebf5903a1d5",
+            "type": "SECTION",
+            "techName": "sekcja_3_0_6_zgoda_podopiecznego_trenera",
+            "title": "6. Zgoda podopiecznego trenera",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "d7c7b93e-47e7-5704-b167-85469c668919",
+                  "type": "TEXT_BLOCK",
+                  "techName": "dokument_nalezy_wypelnic_odrebnie_dla_kazdego_podopiecz",
+                  "title": "Dokument należy wypełnić odrębnie dla każdego podopiecznego trenera, który został wskazany w pkt. 3 wniosku.",
+                  "description": "<html><head></head><body><p>Dokument należy wypełnić odrębnie dla każdego podopiecznego trenera, który został wskazany w pkt. 3 wniosku.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 2,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "47c2389f-b917-5dbc-98e5-8b000f2a9cdc",
+            "type": "SECTION",
+            "techName": "sekcja_3_1_6_1_zgoda_podopiecznego_pelnoletniego",
+            "title": "6.1. Zgoda podopiecznego pełnoletniego",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "fb5a1ab8-3492-5f23-a58e-f2490b25d163",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_podopiecznego",
+                  "title": "Imię i nazwisko podopiecznego",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5b7a9e1d-6459-55ad-87b8-61abfec53cc4",
+                  "type": "TEXT_BLOCK",
+                  "techName": "1_wyrazam_zgode_na_przetwarzanie_moich_danych_osob_2",
+                  "title": "1) Wyrażam zgodę na przetwarzanie moich danych osobowych zwartych we wniosku w celu przekazania go do dalszego procedowania.",
+                  "description": "<html><head></head><body><p>1) Wyrażam zgodę na przetwarzanie moich danych osobowych zwartych we wniosku w celu przekazania go do dalszego procedowania.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "4eb6330c-3b78-551f-9f11-2c93f62c3da9",
+                  "type": "TEXT_BLOCK",
+                  "techName": "2_oswiadczam_ze_zapoznalem_sie_z_regulaminem_przyz_2",
+                  "title": "2) Oświadczam, że zapoznałem się z regulaminem przyznawania wyróżnień sportowych Rady Miasta Zgierza i akceptuję wszystkie jego postanowienia.",
+                  "description": "<html><head></head><body><p>2) Oświadczam, że zapoznałem się z regulaminem przyznawania wyróżnień sportowych Rady Miasta Zgierza i akceptuję wszystkie jego postanowienia.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "458a24b6-768c-5fcc-8e33-c6f1df485d17",
+                  "type": "DATEPICKER",
+                  "techName": "data_2",
+                  "title": "Data",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "cd93ed8a-9e26-5db1-a871-096e75944997",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_kandydata_2",
+                  "title": "Podpis kandydata",
+                  "description": "<html><head></head><body><p>Podpis kandydata</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 8,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "f7b013f8-7542-56eb-be64-d61e25e5cd86",
+            "type": "SECTION",
+            "techName": "sekcja_3_2_6_2_zgoda_w_imieniu_podopiecznego_nieletniego",
+            "title": "6.2. Zgoda w imieniu podopiecznego nieletniego",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "59eff55f-38e2-5d53-8658-e36fd68e14c2",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_podopiecznego_2",
+                  "title": "Imię i nazwisko podopiecznego",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "bfa29a4e-6e97-5b78-99a5-5732a51d1b53",
+                  "type": "TEXT_BLOCK",
+                  "techName": "1_ja_nizej_podpisany_rodzic_opiekun_prawny_wyrazam_zgod",
+                  "title": "1) Ja niżej podpisany …………………………………………….………………………. (rodzic/opiekun prawny) wyrażam zgodę na przetwarzanie danych osobowych mojego dziecka/podopiecznego zawartych we wniosku w celu przekazania go do dalszego procedowania.",
+                  "description": "<html><head></head><body><p>1) Ja niżej podpisany …………………………………………….………………………. (rodzic/opiekun prawny) wyrażam zgodę na przetwarzanie danych osobowych mojego dziecka/podopiecznego zawartych we wniosku w celu przekazania go do dalszego procedowania             .</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "52c89576-4d80-5821-96da-893b6e393cf0",
+                  "type": "TEXT_BLOCK",
+                  "techName": "2_oswiadczam_ze_zapoznalem_sie_z_regulaminem_przyz_3",
+                  "title": "2) Oświadczam, że zapoznałem się z regulaminem przyznawania wyróżnień sportowych Rady Miasta Zgierza i akceptuję wszystkie jego postanowienia.",
+                  "description": "<html><head></head><body><p>2) Oświadczam, że zapoznałem się z regulaminem przyznawania wyróżnień sportowych Rady Miasta Zgierza i akceptuję wszystkie jego postanowienia.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "8008cc5f-1e2a-54dd-adae-10f6e9e7968f",
+                  "type": "DATEPICKER",
+                  "techName": "data_3",
+                  "title": "Data",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5db74356-65ea-54da-a94d-4a61879ee747",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_rodzica_opiekuna_prawnego",
+                  "title": "Podpis rodzica/opiekuna prawnego",
+                  "description": "<html><head></head><body><p>Podpis rodzica/opiekuna prawnego</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 2,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 14,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "3e27195f-6593-5a0c-a77f-0e5446bdc645",
+            "type": "SECTION",
+            "techName": "sekcja_3_3_wypelniony_formularz_zgody_przechowuje_wlasciwy_adminis",
+            "title": "Wypełniony formularz zgody przechowuje właściwy administrator danych osobowych.",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5f4c2237-5621-5fb4-aed0-2dce25a26935",
+                  "type": "TEXT_BLOCK",
+                  "techName": "wypelniony_formularz_zgody_przechowuje_wlasciwy_adminis",
+                  "title": "Wypełniony formularz zgody przechowuje właściwy administrator danych osobowych.",
+                  "description": "<html><head></head><body><p>Wypełniony formularz zgody przechowuje właściwy administrator danych osobowych.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 3,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "0b510802-0827-5311-b8b5-42b56165d0df",
+      "title": "Strona końcowa",
+      "type": "FINISH",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "b2d6e662-b04d-5eeb-81b7-eaaa36f0c9fe",
+            "type": "SECTION",
+            "techName": "podglad_wniosku",
+            "title": "Podgląd i wysłanie wniosku",
+            "description": "",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "6f348fc1-2a2d-57e4-9777-ab2b80f6693d",
+                  "type": "TEXT_BLOCK",
+                  "techName": "tekst_koncowy",
+                  "title": "",
+                  "description": "<html><head></head><body><p>Sprawdź dane przed wysłaniem wniosku.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "links": [
+      {
+        "id": "f3ec2fdd-aa36-5ad8-ac72-a72db8f6d32f",
+        "source": "bb8a80d4-a34f-5f8f-a97c-31c3895f278c",
+        "target": "b08138ed-c62d-541e-92af-1b374c9cff44"
+      },
+      {
+        "id": "681e54e6-053a-5c3b-b7fd-af7b894e0063",
+        "source": "b08138ed-c62d-541e-92af-1b374c9cff44",
+        "target": "1a87f797-9d67-509e-8028-39c5638b5e69"
+      },
+      {
+        "id": "ef44bc3c-89fa-5f0a-9ba1-2939dc6a161f",
+        "source": "1a87f797-9d67-509e-8028-39c5638b5e69",
+        "target": "628842f3-27f5-5204-9974-df7e391aad96"
+      },
+      {
+        "id": "ae5a0c96-9d8e-56df-88dd-e315ff2d479a",
+        "source": "628842f3-27f5-5204-9974-df7e391aad96",
+        "target": "0b510802-0827-5311-b8b5-42b56165d0df"
+      }
+    ]
+  }
+}

@@ -1,0 +1,678 @@
+{
+  "title": "Załącznik nr 2 do Regulaminu korzystania ze świetlic wiejskich stanowiących własność Gminy Płoskinia",
+  "tabs": [
+    {
+      "id": "2c636e68-812c-5560-8592-9fe1e673d293",
+      "title": "Strona 1",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 5,
+          "cols": 3,
+          "field": {
+            "id": "9701fa61-6616-5947-82f7-b3a0b3be10bd",
+            "type": "SECTION",
+            "techName": "sekcja_0_0_2_1",
+            "title": "2.1",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "b4f822b3-d2e6-511f-a2c4-3c97d8eb2fb8",
+                  "type": "TEXT_FIELD",
+                  "techName": "miejscowosc_i_data",
+                  "title": "miejscowość i data",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "cf3de3b7-8c18-598c-a8b3-6b1589791d56",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_wnioskodawcy",
+                  "title": "imię i nazwisko wnioskodawcy",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2614e65d-28b7-5351-84d7-cfe485190dc4",
+                  "type": "TEXT_FIELD",
+                  "techName": "adres_zamieszkania",
+                  "title": "adres zamieszkania",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "4e98a3e4-da99-5512-9b11-d2d358191efa",
+                  "type": "TEXT_FIELD",
+                  "techName": "nr_telefonu",
+                  "title": "nr telefonu",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 5,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "1ea71e6b-2ac0-5019-bd78-6691918b6660",
+            "type": "SECTION",
+            "techName": "sekcja_0_1_2_2",
+            "title": "2.2",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5f8df307-208c-503d-a913-e4dcb9247187",
+                  "type": "TEXT_BLOCK",
+                  "techName": "wojt_gminy_ploskinia",
+                  "title": "WÓJT GMINY PŁOSKINIA",
+                  "description": "<html><head></head><body><p>WÓJT GMINY PŁOSKINIA Płoskinia 8 14-526 Płoskinia</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "7ea3b799-bb40-5ac2-90cb-5dad54e24270",
+                  "type": "TEXT_BLOCK",
+                  "techName": "wniosek_o_wynajecie_uzyczenie_swietlicy_wiejskiej",
+                  "title": "WNIOSEK o wynajęcie/użyczenie* świetlicy wiejskiej",
+                  "description": "<html><head></head><body><p>WNIOSEK o wynajęcie/użyczenie* świetlicy wiejskiej</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 8,
+          "rows": 4,
+          "cols": 3,
+          "field": {
+            "id": "5f71d091-4cad-5cc8-b8cc-cca99627553d",
+            "type": "SECTION",
+            "techName": "sekcja_0_2_2_3",
+            "title": "2.3",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "63744d70-90d8-57bb-b1f6-dcbf2b47aa9b",
+                  "type": "TEXT_FIELD",
+                  "techName": "prosze_o_wynajem_uzyczenie_swietlicy_wiejskiej_w",
+                  "title": "Proszę o wynajem/użyczenie* świetlicy wiejskiej w",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "1e05205a-d592-5379-9f10-e2b27eafc15f",
+                  "type": "DATEPICKER",
+                  "techName": "wraz_z_wyposazeniem_w_terminie_od",
+                  "title": "wraz z wyposażeniem w terminie od",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "d0d6a149-9f61-5853-8c2e-06b7f9e618dc",
+                  "type": "DATEPICKER",
+                  "techName": "do",
+                  "title": "do",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 2,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 12,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "104fa5bc-a0b3-530a-ad73-387796b26f5c",
+            "type": "SECTION",
+            "techName": "sekcja_0_3_2_4",
+            "title": "2.4",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "6c241d41-fd96-5bc1-bafc-26cef56793b8",
+                  "type": "TEXT_FIELD",
+                  "techName": "1_cel_wynajecia_swietlicy",
+                  "title": "1. Cel wynajęcia świetlicy:",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "31199ad5-f91d-5c7b-96ee-6a786b5f9e11",
+                  "type": "TEXT_BLOCK",
+                  "techName": "rodzaj_uroczystosci_np_wesele_urodziny_zabawa_itp",
+                  "title": "( rodzaj uroczystości, np. wesele, urodziny, zabawa itp.)",
+                  "description": "<html><head></head><body><p>( rodzaj uroczystości, np. wesele, urodziny, zabawa itp.)</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 3,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 15,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "dc63b95f-24a2-58af-80d2-bb185b47b290",
+            "type": "SECTION",
+            "techName": "sekcja_0_4_2_5",
+            "title": "2.5",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "863650af-0dca-5a90-b921-17aa6444808c",
+                  "type": "TEXT_FIELD",
+                  "techName": "2_przewidywana_ilosc_uczestnikow",
+                  "title": "2. Przewidywana ilość uczestników :",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 4,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 17,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "9c098bd5-2e3e-559f-9e35-d22afd739520",
+            "type": "SECTION",
+            "techName": "sekcja_0_5_2_6",
+            "title": "2.6",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "c3464fef-c59e-5081-babc-e9a1725e7016",
+                  "type": "TEXT_FIELD",
+                  "techName": "3_osoba_odpowiedzialna_pelnoletnia_za_utrzymanie_porzad",
+                  "title": "3. Osoba odpowiedzialna (pełnoletnia) za utrzymanie porządku i bezpieczeństwa:",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "fa638afb-a67c-5aa6-aadc-bb0ebdb6faad",
+                  "type": "TEXT_BLOCK",
+                  "techName": "imie_i_nazwisko_wnioskodawca_w_przypadku_innej_osoby_ni",
+                  "title": "( imię i nazwisko – wnioskodawca, w przypadku innej osoby niż wnioskodawca - zgoda osoby odpowiedzialnej)",
+                  "description": "<html><head></head><body><p>( imię i nazwisko – wnioskodawca, w przypadku innej osoby niż wnioskodawca - zgoda osoby odpowiedzialnej)</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 5,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 20,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "03d5cb7e-6362-5cf5-9124-02b17c5e3cba",
+            "type": "SECTION",
+            "techName": "sekcja_0_6_2_7",
+            "title": "2.7",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "407af304-ee44-52d2-afd4-8c1086fabb07",
+                  "type": "TEXT_BLOCK",
+                  "techName": "4_jednoczesnie_oswiadczam_ze_w_przypadku_innej_osoby_ni",
+                  "title": "4. Jednocześnie oświadczam, że (w przypadku innej osoby niż wnioskodawca, zbiorcze oświadczenie tej osoby załączyć do wniosku):",
+                  "description": "<html><head></head><body><p>4. Jednocześnie oświadczam, że (w przypadku innej osoby niż wnioskodawca, zbiorcze oświadczenie tej osoby załączyć do wniosku):</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "72def16c-2564-519f-9970-22573760ad7a",
+                  "type": "TEXT_BLOCK",
+                  "techName": "1_zapoznalem_am_sie_z_warunkami_wynajmu_swietlicy_wiejs",
+                  "title": "1) zapoznałem/am się z warunkami wynajmu świetlicy wiejskiej,",
+                  "description": "<html><head></head><body><p>1) zapoznałem/am się z warunkami wynajmu świetlicy wiejskiej,</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "b4631315-49bb-5021-a759-f73e92bed01b",
+                  "type": "TEXT_BLOCK",
+                  "techName": "2_w_czasie_najmu_odpowiadam_za_lad_i_porzadek_w_swietli",
+                  "title": "2) w czasie najmu odpowiadam za ład i porządek w świetlicy oraz na ternie przyległym do świetlicy,",
+                  "description": "<html><head></head><body><p>2) w czasie najmu odpowiadam za ład i porządek w świetlicy oraz na ternie przyległym do świetlicy,</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2d35e079-a34c-5f4a-adb3-7110965b1014",
+                  "type": "TEXT_BLOCK",
+                  "techName": "3_zobowiazuje_sie_do_przestrzegania_przepisow_sanitarny",
+                  "title": "3) zobowiązuję się do przestrzegania przepisów sanitarnych, BHP i p.poż. w czasie trwania przedsięwzięcia,",
+                  "description": "<html><head></head><body><p>3) zobowiązuję się do przestrzegania przepisów sanitarnych, BHP i p.poż. w czasie trwania przedsięwzięcia,</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2b908042-11cc-5c77-934e-57ec9b6fb227",
+                  "type": "TEXT_BLOCK",
+                  "techName": "4_na_okres_wynajmu_ponosze_pelna_odpowiedzialnosc_za_po",
+                  "title": "4) na okres wynajmu ponoszę pełną odpowiedzialność za powierzone mienie.",
+                  "description": "<html><head></head><body><p>4) na okres wynajmu ponoszę pełną odpowiedzialność za powierzone mienie.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 6,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 26,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "7cfe7b6a-ddb2-5efa-a83d-7cc06a6c0855",
+            "type": "SECTION",
+            "techName": "sekcja_0_7_2_8",
+            "title": "2.8",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "de766258-82a9-5026-9aa2-3f1f1b95c2da",
+                  "type": "TEXT_BLOCK",
+                  "techName": "czytelny_podpis_wnioskodawcy",
+                  "title": "(czytelny podpis wnioskodawcy)",
+                  "description": "<html><head></head><body><p>(czytelny podpis wnioskodawcy)</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 7,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 28,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "124de37d-1ff1-5594-abed-7cbe5139b05a",
+            "type": "SECTION",
+            "techName": "sekcja_0_8_2_9",
+            "title": "2.9",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2e70443f-4918-5c57-bdbe-c6720eaa98d9",
+                  "type": "TEXT_BLOCK",
+                  "techName": "niepotrzebne_skreslic",
+                  "title": "* niepotrzebne skreślić",
+                  "description": "<html><head></head><body><p>* niepotrzebne skreślić</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 8,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "e7896fea-1a43-565e-af5c-4484fd24b7f4",
+      "title": "Strona końcowa",
+      "type": "FINISH",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "583f1520-9c61-5f64-8a5c-4753be05817d",
+            "type": "SECTION",
+            "techName": "podglad_wniosku",
+            "title": "Podgląd i wysłanie wniosku",
+            "description": "",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "d0be5033-a68f-5aa6-a397-465da007af8d",
+                  "type": "TEXT_BLOCK",
+                  "techName": "tekst_koncowy",
+                  "title": "",
+                  "description": "<html><head></head><body><p>Sprawdź dane przed wysłaniem wniosku.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "links": [
+      {
+        "id": "4b8adf7d-3efd-51c5-ae3b-b2ffac1fa08d",
+        "source": "2c636e68-812c-5560-8592-9fe1e673d293",
+        "target": "e7896fea-1a43-565e-af5c-4484fd24b7f4"
+      }
+    ]
+  }
+}

@@ -8,6 +8,7 @@ HackNation 2026 · zadanie **Cyfryzacja Formularzy**
 | [Edytowalna prezentacja](FormFlow_AI_HackNation_2026_COI_9_slajdow.pptx) | PPTX | Wersja do ewentualnych poprawek |
 | [Film prezentacyjny](FormFlow_AI_HackNation_2026_FullHD_v2.mp4) | MP4 | 2:55, Full HD, polski lektor i animacje |
 | [Napisy do filmu](FormFlow_AI_2026_napisy.srt) | SRT | Język polski |
+| [Wyniki cyfryzacji formularzy COI](generated-forms/) | JSON COI | 8 zestawów konkursowych, raport jakości i źródła przetwarzania; wymagana kontrola człowieka |
 
 Pełna dokumentacja techniczna: [`../docs/TECHNICAL.md`](../docs/TECHNICAL.md).
 API: [`../docs/API.md`](../docs/API.md).

@@ -1,0 +1,972 @@
+{
+  "title": "Wniosek o zwrot opłaty skarbowej",
+  "tabs": [
+    {
+      "id": "0cae9012-799d-5ccc-b834-26692603be2e",
+      "title": "Strona 1",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 4,
+          "cols": 3,
+          "field": {
+            "id": "6425b276-f064-5248-8f8f-a468c19821cc",
+            "type": "SECTION",
+            "techName": "sekcja_0_0_1_instrukcja_wypelnienia_dokumentu",
+            "title": "1. Instrukcja wypełnienia dokumentu",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "96680b83-eb82-5c0a-9fc6-fca1db7f409f",
+                  "type": "TEXT_BLOCK",
+                  "techName": "wypelnij_wielkimi_literami",
+                  "title": "Wypełnij wielkimi literami",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "1375b634-3a6c-5198-866e-264185527177",
+                  "type": "TEXT_BLOCK",
+                  "techName": "oznaczenie_pol_wyboru",
+                  "title": "Oznaczenie pól wyboru",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "7daac24b-9676-5849-90cf-16509f809305",
+                  "type": "TEXT_BLOCK",
+                  "techName": "kolor_wypelniania",
+                  "title": "Kolor wypełniania",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 4,
+          "rows": 4,
+          "cols": 3,
+          "field": {
+            "id": "f1efa04c-bfce-5277-ac30-58d48179dc41",
+            "type": "SECTION",
+            "techName": "sekcja_0_1_2_1_dane_identyfikacyjne",
+            "title": "2.1. Dane identyfikacyjne",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "ee65c47f-0dc7-52da-a3a7-8f02b2be207b",
+                  "type": "TEXT_BLOCK",
+                  "techName": "nazwa_imie_i_nazwisko",
+                  "title": "Nazwa / Imię i nazwisko",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5bef2333-8bfa-5264-918b-d038e15b6bdc",
+                  "type": "TEXT_BLOCK",
+                  "techName": "nazwa_imie_i_nazwisko_2",
+                  "title": "Nazwa / Imię i nazwisko",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "421e0188-c488-525d-b205-8342696faf48",
+                  "type": "TEXT_BLOCK",
+                  "techName": "nip",
+                  "title": "NIP",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 8,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "a9b4b5ca-a1aa-5023-83ce-141dda5420bf",
+            "type": "SECTION",
+            "techName": "sekcja_0_2_2_2_adres_siedziby_lub_miejsca_zamieszkania_wnioskodawc",
+            "title": "2.2. Adres siedziby lub miejsca zamieszkania wnioskodawcy",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "64a09e36-341e-5c3c-8381-b4d1cef405bd",
+                  "type": "TEXT_BLOCK",
+                  "techName": "miejscowosc",
+                  "title": "Miejscowość",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "19a1199e-d7b4-52bc-95ec-354858523485",
+                  "type": "TEXT_BLOCK",
+                  "techName": "ulica",
+                  "title": "Ulica",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "0ccb99ef-0c0a-5b66-b110-f9b5a691d080",
+                  "type": "TEXT_BLOCK",
+                  "techName": "nr_domu",
+                  "title": "Nr domu",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "4911f539-0591-5653-8eb8-1eca18556993",
+                  "type": "TEXT_BLOCK",
+                  "techName": "nr_lokalu",
+                  "title": "Nr lokalu",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "c60d3b70-b718-5f2b-86db-e89d60fd4a5d",
+                  "type": "TEXT_BLOCK",
+                  "techName": "kod_pocztowy",
+                  "title": "Kod pocztowy",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 2,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 14,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "d3e86291-31f0-5e40-88bd-43366b3cd85c",
+            "type": "SECTION",
+            "techName": "sekcja_0_3_2_3_dane_kontaktowe_wnioskodawcy_dane_kontaktowe_nie_sa",
+            "title": "2.3. Dane kontaktowe wnioskodawcy (dane kontaktowe nie są obowiązkowe, ale ułatwią kontakt w sprawie wniosku)",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "bfed89f2-7d23-5dd7-992d-6c309097adc7",
+                  "type": "TEXT_BLOCK",
+                  "techName": "numer_telefonu",
+                  "title": "Numer telefonu",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "6ba4f82a-ead2-545f-a3ac-9a1238a55a1d",
+                  "type": "TEXT_BLOCK",
+                  "techName": "adres_poczty_elektronicznej",
+                  "title": "Adres poczty elektronicznej",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 3,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 17,
+          "rows": 7,
+          "cols": 3,
+          "field": {
+            "id": "63c557bc-0b41-53ac-a43f-913ecd49d74d",
+            "type": "SECTION",
+            "techName": "sekcja_0_4_2_4_dane_pelnomocnika",
+            "title": "2.4. Dane pełnomocnika",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "3c3d6202-cf1a-57c8-971d-b5bb64f9100a",
+                  "type": "TEXT_BLOCK",
+                  "techName": "imie_i_nazwisko",
+                  "title": "Imię i nazwisko",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "96c337a9-bd43-5084-9553-c203913a75f1",
+                  "type": "TEXT_BLOCK",
+                  "techName": "miejscowosc_2",
+                  "title": "Miejscowość",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "d9f2ca41-b08b-5538-bf2d-c7668969cf27",
+                  "type": "TEXT_BLOCK",
+                  "techName": "ulica_2",
+                  "title": "Ulica",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "0ff4bab7-9e1b-58fd-a7ca-aae3107272f0",
+                  "type": "TEXT_BLOCK",
+                  "techName": "nr_domu_2",
+                  "title": "Nr domu",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "01184f9d-e3f1-5c1e-8ae8-dfb6650fa8b7",
+                  "type": "TEXT_BLOCK",
+                  "techName": "nr_lokalu_2",
+                  "title": "Nr lokalu",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 5,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "948cd4a3-133c-5075-8477-fdf75d0e45f3",
+                  "type": "TEXT_BLOCK",
+                  "techName": "kod_pocztowy_2",
+                  "title": "Kod pocztowy",
+                  "description": "<html><head></head><body><p></p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 5,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 4,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "04a8a87c-9aa6-591b-a8be-19cab157819b",
+      "title": "Strona 2",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 4,
+          "cols": 3,
+          "field": {
+            "id": "c593391c-0411-525c-ba44-6b6e1419e67a",
+            "type": "SECTION",
+            "techName": "sekcja_1_0_3_informacje_o_oplacie_skarbowej",
+            "title": "3. Informacje o opłacie skarbowej",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "c091a649-e2ef-50fc-a335-5097ec9181b4",
+                  "type": "DATEPICKER",
+                  "techName": "data_uiszczenia_oplaty",
+                  "title": "Data uiszczenia opłaty",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "e4b9ba43-4d1c-5c30-ae8a-68caf13a3fc1",
+                  "type": "NUMBER",
+                  "techName": "wysokosc_oplaty",
+                  "title": "Wysokość opłaty",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "544bb8ee-9f2c-5749-bf07-e5a3d50c219c",
+                  "type": "TEXT_FIELD",
+                  "techName": "nazwa_organu_w_ktorym_zaplacono_oplate",
+                  "title": "Nazwa organu, w którym zapłacono opłatę",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 4,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "6ddd1a7d-e336-5c8e-b491-819040ef970a",
+            "type": "SECTION",
+            "techName": "sekcja_1_1_4_uzasadnienie_wniosku",
+            "title": "4. Uzasadnienie wniosku",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "e49f87a1-42fd-5734-80ae-ab4cc460eb56",
+                  "type": "TEXTAREA",
+                  "techName": "uzasadnienie_wniosku_opisz_w_polu_ponizej_dlaczego_opla",
+                  "title": "Uzasadnienie wniosku (opisz w polu poniżej dlaczego opłata skarbowa, której dotyczy wniosek została błędnie uiszczona)",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 6,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "15aff15f-a5fb-5730-8181-0285d888e7bb",
+            "type": "SECTION",
+            "techName": "sekcja_1_2_5_informacje_dotyczace_sposobu_zwrotu_oplaty_skarbowej",
+            "title": "5. Informacje dotyczące sposobu zwrotu opłaty skarbowej",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5e1680a0-3ea2-5707-b27d-07db583c6ac3",
+                  "type": "CHECKBOX",
+                  "techName": "gotowka_w_kasie_organu",
+                  "title": "Gotówką w kasie organu",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "093a8748-1366-57ed-a84e-9903a5a7743d",
+                  "type": "CHECKBOX",
+                  "techName": "przelewem_na_rachunek_w_banku",
+                  "title": "Przelewem na rachunek w banku",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "349d7c9f-10ee-5b96-bcb8-b49a1aabb047",
+                  "type": "TEXT_BLOCK",
+                  "techName": "jesli_wybierzesz_te_forme_wpisz_ponizej_nr_rachunku_i_d",
+                  "title": "Jeśli wybierzesz tę formę, wpisz poniżej nr rachunku i dane jego właściciela",
+                  "description": "<html><head></head><body><p>Jeśli wybierzesz tę formę, wpisz poniżej nr rachunku i dane jego właściciela</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "20ba6f79-a9b3-5fd1-a58b-a5284fc8c192",
+                  "type": "TEXT_FIELD",
+                  "techName": "nr_rachunku",
+                  "title": "Nr rachunku",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "7ab0d90f-a090-5295-b817-a26e50274bdc",
+                  "type": "TEXT_FIELD",
+                  "techName": "dane_wlasciciela",
+                  "title": "Dane właściciela",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 2,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 12,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "59b63f53-e1a7-51fe-9851-b7f6f34598df",
+            "type": "SECTION",
+            "techName": "sekcja_1_3_6_podstawa_prawna",
+            "title": "6. Podstawa prawna",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "352284a9-d2d9-5016-89ff-fcbaab89d4e9",
+                  "type": "TEXT_BLOCK",
+                  "techName": "art_9_ustawy_z_dnia_16_listopada_2006_r_o_oplacie_skarb",
+                  "title": "Art. 9 ustawy z dnia 16 listopada 2006 r. o opłacie skarbowej",
+                  "description": "<html><head></head><body><p>Art. 9 ustawy z dnia 16 listopada 2006 r. o opłacie skarbowej</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 3,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 14,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "54e7eb1e-04bb-51d4-8521-0ed4d8162915",
+            "type": "SECTION",
+            "techName": "sekcja_1_4_7_zalaczniki",
+            "title": "7. Załączniki",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2a1308ce-0684-520b-869b-5ccd14bc5fca",
+                  "type": "CHECKBOX",
+                  "techName": "dokument_stwierdzajacy_udzielenie_pelnomocnictwa",
+                  "title": "Dokument stwierdzający udzielenie pełnomocnictwa",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "9978a385-22db-5c0b-8e11-ff156761d86b",
+                  "type": "CHECKBOX",
+                  "techName": "dowod_uiszczenia_oplaty_skarbowej_za_pelnomocnictwo",
+                  "title": "Dowód uiszczenia opłaty skarbowej za pełnomocnictwo",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 4,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 17,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "f754eb6e-29a3-5738-951b-fb7901363164",
+            "type": "SECTION",
+            "techName": "sekcja_1_5_8_data_i_podpis_wnioskodawcy",
+            "title": "8. Data i podpis wnioskodawcy",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5660d103-e6be-59d9-a85b-24523e91735d",
+                  "type": "DATEPICKER",
+                  "techName": "data",
+                  "title": "Data",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "fa1dae3e-a3ca-5589-a1a7-a6f22c92dbab",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis",
+                  "title": "Podpis",
+                  "description": "<html><head></head><body><p>Podpis</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 5,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "426cf785-928f-5288-bf2a-891ecc86a92e",
+      "title": "Strona końcowa",
+      "type": "FINISH",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "e56e14df-8eb4-5c64-8abe-053752550d03",
+            "type": "SECTION",
+            "techName": "podglad_wniosku",
+            "title": "Podgląd i wysłanie wniosku",
+            "description": "",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "e560fab4-32c8-5354-8beb-25101fd9ff8e",
+                  "type": "TEXT_BLOCK",
+                  "techName": "tekst_koncowy",
+                  "title": "",
+                  "description": "<html><head></head><body><p>Sprawdź dane przed wysłaniem wniosku.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "links": [
+      {
+        "id": "53a5a779-6e13-552d-a22b-97410fd6c3e0",
+        "source": "0cae9012-799d-5ccc-b834-26692603be2e",
+        "target": "04a8a87c-9aa6-591b-a8be-19cab157819b"
+      },
+      {
+        "id": "bd3f38be-9397-5f6f-95eb-e141ca7c8ee4",
+        "source": "04a8a87c-9aa6-591b-a8be-19cab157819b",
+        "target": "426cf785-928f-5288-bf2a-891ecc86a92e"
+      }
+    ]
+  }
+}

@@ -1,0 +1,382 @@
+{
+  "title": "Wniosek o wydanie zaświadczenia",
+  "tabs": [
+    {
+      "id": "35f26562-9e20-55a2-a57f-2f7ffdd294d2",
+      "title": "Strona 1",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 5,
+          "cols": 3,
+          "field": {
+            "id": "2e5c3569-82a1-5577-8a95-258297594152",
+            "type": "SECTION",
+            "techName": "sekcja_0_0_2_1",
+            "title": "2.1",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2c6c402a-7f02-54b4-88a5-6aa5d8071fec",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko",
+                  "title": "imię i nazwisko",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "378748fa-101a-5eeb-bcc7-03bf9058aa15",
+                  "type": "TEXT_FIELD",
+                  "techName": "adres",
+                  "title": "adres",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2791b2fd-0a70-5e84-a3f4-168203c95b6c",
+                  "type": "TEXT_FIELD",
+                  "techName": "pesel",
+                  "title": "PESEL",
+                  "description": "",
+                  "options": [],
+                  "validation": [
+                    "PESEL"
+                  ],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "d8870c54-f289-5010-9580-2019a4febb48",
+                  "type": "TEXT_FIELD",
+                  "techName": "nr_telefonu",
+                  "title": "nr telefonu",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 5,
+          "rows": 3,
+          "cols": 3,
+          "field": {
+            "id": "3d1b6062-6119-52e8-b85c-445fbb7fced3",
+            "type": "SECTION",
+            "techName": "sekcja_0_1_2_2",
+            "title": "2.2",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "71a6914f-64f2-5646-aafd-856266fbfecd",
+                  "type": "CHECKBOX",
+                  "techName": "prosze_o_wydanie_zaswiadczenia_o",
+                  "title": "Proszę o wydanie zaświadczenia o:*",
+                  "description": "",
+                  "options": [
+                    {
+                      "id": "ilości posiadanych użytków rolnych w hektarach fizycznych i przeliczeniowych",
+                      "name": "ilości posiadanych użytków rolnych w hektarach fizycznych i przeliczeniowych",
+                      "techName": "ilosci_posiadanych_uzytkow_rolnych_w_hektarach_fizyczny"
+                    },
+                    {
+                      "id": "ilości dzierżawionych użytków rolnych w hektarach fizycznych i przeliczeniowych",
+                      "name": "ilości dzierżawionych użytków rolnych w hektarach fizycznych i przeliczeniowych",
+                      "techName": "ilosci_dzierzawionych_uzytkow_rolnych_w_hektarach_fizyc"
+                    },
+                    {
+                      "id": "okresie posiadania gospodarstwa rolnego",
+                      "name": "okresie posiadania gospodarstwa rolnego",
+                      "techName": "okresie_posiadania_gospodarstwa_rolnego"
+                    },
+                    {
+                      "id": "nieposiadaniu użytków rolnych / gospodarstwa rolnego na terenie Gminy Młynary",
+                      "name": "nieposiadaniu użytków rolnych / gospodarstwa rolnego na terenie Gminy Młynary",
+                      "techName": "nieposiadaniu_uzytkow_rolnych_gospodarstwa_rolnego_na_t"
+                    },
+                    {
+                      "id": "inne",
+                      "name": "inne",
+                      "techName": "inne"
+                    }
+                  ],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "1322bd13-e44f-526b-b502-bfd47d350b49",
+                  "type": "TEXT_FIELD",
+                  "techName": "inne",
+                  "title": "inne",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 8,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "a3edb17a-7ff6-561b-9afd-7f8317f0d4cc",
+            "type": "SECTION",
+            "techName": "sekcja_0_2_2_3",
+            "title": "2.3",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "61fd5cf0-0fcc-5702-836c-71468a30a1f7",
+                  "type": "TEXT_FIELD",
+                  "techName": "zaswiadczenie_potrzebne_jest_celem_przedlozenia_w",
+                  "title": "Zaświadczenie potrzebne jest celem przedłożenia w",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 2,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 10,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "3751bd6d-2c21-5bd2-bc97-e30b33107dcf",
+            "type": "SECTION",
+            "techName": "sekcja_0_3_2_4",
+            "title": "2.4",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "b514b3a7-bd78-5da8-bd9e-c3b3c3623d0f",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis",
+                  "title": "podpis",
+                  "description": "<html><head></head><body><p>/podpis/</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 3,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 12,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "9819b205-38bb-5048-9ee7-10b0c9bb2484",
+            "type": "SECTION",
+            "techName": "sekcja_0_4_2_5",
+            "title": "2.5",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "f40c79a7-4a58-501d-a4be-a83cdf29eb3d",
+                  "type": "TEXT_BLOCK",
+                  "techName": "informacje",
+                  "title": "INFORMACJE:",
+                  "description": "<html><head></head><body><p>1.      Opłata za wydanie zaświadczenia wynosi 17 zł (od każdego egzemplarza). Obowiązek uiszczenia opłaty skarbowej powstaje z chwilą złożenia wniosku o wydanie zaświadczenia. 2.      Opłatę skarbową należy wnieść w kasie lub bezgotówkowo na rachunek tut. Urzędu – przed złożeniem wniosku. Konto bankowe Urzędu: Bank PKO BP S.A. 12 1234 1234 1234 1234 1234 1234. 3.      Zwolnienie z opłaty skarbowej określa art. 2, natomiast wyłączenie art. 7 ustawy z dnia 16 listopada 2006 r.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 4,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "722a6f1c-c35a-5db3-bb1a-90b1862f2958",
+      "title": "Strona końcowa",
+      "type": "FINISH",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "3933bd58-2b4e-5d2f-a84b-9bf848b0d95b",
+            "type": "SECTION",
+            "techName": "podglad_wniosku",
+            "title": "Podgląd i wysłanie wniosku",
+            "description": "",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "9b92fee2-a78a-5b8f-8446-3666e854bca2",
+                  "type": "TEXT_BLOCK",
+                  "techName": "tekst_koncowy",
+                  "title": "",
+                  "description": "<html><head></head><body><p>Sprawdź dane przed wysłaniem wniosku.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "links": [
+      {
+        "id": "bc9a0838-9144-5d40-adab-23d763d5c361",
+        "source": "35f26562-9e20-55a2-a57f-2f7ffdd294d2",
+        "target": "722a6f1c-c35a-5db3-bb1a-90b1862f2958"
+      }
+    ]
+  }
+}

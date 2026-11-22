@@ -1,0 +1,548 @@
+{
+  "title": "Wniosek o stwierdzenie nadpłaty podatku",
+  "tabs": [
+    {
+      "id": "78500bd7-36ac-5482-bfff-c696ca5005bd",
+      "title": "Strona 1",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 8,
+          "cols": 3,
+          "field": {
+            "id": "bda48a13-0046-572f-800c-6a99e67f8c66",
+            "type": "SECTION",
+            "techName": "sekcja_0_0_2_1",
+            "title": "2.1",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "26382873-2402-5a05-ad79-f17878f5b14d",
+                  "type": "TEXT_FIELD",
+                  "techName": "wnioskodawca",
+                  "title": "Wnioskodawca:",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "b8bc309b-806a-5750-944c-71715ccb8987",
+                  "type": "TEXT_FIELD",
+                  "techName": "nazwisko_i_imie_nazwa_firmy",
+                  "title": "Nazwisko i imię/Nazwa firmy",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "49def3db-b1ce-5c59-8764-79a8c6f89ca3",
+                  "type": "TEXT_FIELD",
+                  "techName": "adres_zamieszkania_siedziba_firmy",
+                  "title": "adres zamieszkania/siedziba firmy",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "f0b78e4e-1572-540c-8f10-8c2d7caec9cd",
+                  "type": "TEXT_FIELD",
+                  "techName": "pesel",
+                  "title": "PESEL *",
+                  "description": "",
+                  "options": [],
+                  "validation": [
+                    "PESEL"
+                  ],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "cf1c5795-b866-5a1a-a39d-b96254fdc51e",
+                  "type": "TEXT_FIELD",
+                  "techName": "nip",
+                  "title": "NIP *",
+                  "description": "",
+                  "options": [],
+                  "validation": [
+                    "NIP"
+                  ],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 5,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "8f0fdf00-7404-5f8b-b1c5-8a9a90006d86",
+                  "type": "DATEPICKER",
+                  "techName": "ulan_majorat_dnia",
+                  "title": "Ulan-Majorat, dnia",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 5,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 6,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "ed48bbb8-0aa1-5a74-97c5-2d210601bb80",
+                  "type": "TEXT_BLOCK",
+                  "techName": "urzad_gminy_ulan_majorat_ulan_majorat_57_21_307_ulan_ma",
+                  "title": "Urząd Gminy Ulan-Majorat Ulan-Majorat 57 21-307 Ulan-Majorat",
+                  "description": "<html><head></head><body><p>Urząd Gminy Ulan-Majorat Ulan-Majorat 57 21-307 Ulan-Majorat</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 6,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 8,
+          "rows": 9,
+          "cols": 3,
+          "field": {
+            "id": "cccbde43-657d-54d4-af2d-96cb53ac4474",
+            "type": "SECTION",
+            "techName": "sekcja_0_1_2_2",
+            "title": "2.2",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "36b1767c-f571-568b-a84f-3086a274f200",
+                  "type": "TEXT_FIELD",
+                  "techName": "na_podstawie_art_75_ustawy_z_dnia_29_sierpnia_1997_r_or",
+                  "title": "Na podstawie art. 75 ustawy z dnia 29 sierpnia 1997 r. - Ordynacja podatkowa (Dz. U. z 2025 r. poz. 111 ze zm.) wnoszę o stwierdzenie nadpłaty z tytułu",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "30a0c79a-2066-56bc-b12a-51843e510d9e",
+                  "type": "TEXT_FIELD",
+                  "techName": "rodzaj_podatku",
+                  "title": "rodzaj podatku",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "828b0b10-a5fc-5fcd-bdd0-4cb54f3fbffa",
+                  "type": "NUMBER",
+                  "techName": "w_kwocie",
+                  "title": "w kwocie",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "07a7585e-480a-53e5-a5c6-137a92f9756f",
+                  "type": "TEXTAREA",
+                  "techName": "uzasadnienie",
+                  "title": "Uzasadnienie:",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "df36d2b8-3833-5163-877f-84f004ff531a",
+                  "type": "TEXT_FIELD",
+                  "techName": "kwote_nadplaty_prosze",
+                  "title": "Kwotę nadpłaty proszę:",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 5,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "1730833f-35b5-5bf9-b817-de3a80e7dc2a",
+                  "type": "TEXT_FIELD",
+                  "techName": "1_zaliczyc_na_poczet_przyszlego_zobowiazania_podatkoweg",
+                  "title": "1) zaliczyć na poczet przyszłego zobowiązania podatkowego z tytułu",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 5,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 6,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "3abcb181-4a2c-5fef-8547-91cb7ee89fbb",
+                  "type": "TEXT_FIELD",
+                  "techName": "2_zwrocic_przelewem_na_wskazany_rachunek",
+                  "title": "2) zwrócić przelewem na wskazany rachunek",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 6,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 7,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "9b74e009-2157-5097-8e63-7be356df46f2",
+                  "type": "TEXT_BLOCK",
+                  "techName": "numer_pesel_wpisuja_podatnicy_bedacy_osobami_fizycznymi",
+                  "title": "Numer PESEL wpisują podatnicy będący osobami fizycznymi objętymi rejestrem PESEL nieprowadzący działalności gospodarczej. Identyfikator podatkowy NIP wpisują pozostali podatnicy.",
+                  "description": "<html><head></head><body><p>*Numer PESEL wpisują podatnicy będący osobami fizycznymi objętymi rejestrem PESEL nieprowadzący działalności gospodarczej. Identyfikator podatkowy NIP wpisują pozostali podatnicy.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 7,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "d9f0b960-2ea4-51d4-8b69-c63c092935b7",
+      "title": "Strona 2",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 6,
+          "cols": 3,
+          "field": {
+            "id": "10ae7f99-f9a6-5e67-8e5f-e386ba98804f",
+            "type": "SECTION",
+            "techName": "sekcja_1_0_w_zalaczaniu",
+            "title": "w załączaniu:",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5601fd3b-b45a-5bb8-a658-ee0a8b7a6044",
+                  "type": "TEXT_BLOCK",
+                  "techName": "1_korekta_deklaracji",
+                  "title": "1) korekta deklaracji",
+                  "description": "<html><head></head><body><p>1) korekta deklaracji</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "32435cae-0080-5f02-b399-2a259225f3fa",
+                  "type": "TEXT_FIELD",
+                  "techName": "2",
+                  "title": "2)",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "62bdd8c1-2a7f-521d-86b3-54fc00ce21ee",
+                  "type": "TEXT_FIELD",
+                  "techName": "3",
+                  "title": "3)",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "652eac3e-9307-5ad2-86a0-c6b9abafa740",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_wnioskodawcy_lub_osoby_upowaznionej",
+                  "title": "podpis wnioskodawcy lub osoby upoważnionej",
+                  "description": "<html><head></head><body><p>podpis wnioskodawcy lub osoby upoważnionej</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "90db86b4-24d2-5054-bfc2-73cc371131e8",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_wnioskodawcy_lub_osoby_upowaznionej_2",
+                  "title": "podpis wnioskodawcy lub osoby upoważnionej",
+                  "description": "<html><head></head><body><p>podpis wnioskodawcy lub osoby upoważnionej</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "6bd2705c-bd7c-56f1-b9e5-e26a492c4015",
+      "title": "Strona końcowa",
+      "type": "FINISH",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "af9407c4-8194-56ac-baff-a000bddaf4ab",
+            "type": "SECTION",
+            "techName": "podglad_wniosku",
+            "title": "Podgląd i wysłanie wniosku",
+            "description": "",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "7bc5dfeb-4bd6-5208-b2d6-66136cce0930",
+                  "type": "TEXT_BLOCK",
+                  "techName": "tekst_koncowy",
+                  "title": "",
+                  "description": "<html><head></head><body><p>Sprawdź dane przed wysłaniem wniosku.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "links": [
+      {
+        "id": "cff477fa-2156-51d6-a728-4d231fb5bb8d",
+        "source": "78500bd7-36ac-5482-bfff-c696ca5005bd",
+        "target": "d9f0b960-2ea4-51d4-8b69-c63c092935b7"
+      },
+      {
+        "id": "942b62ea-057d-560f-b1d6-659a81cee13c",
+        "source": "d9f0b960-2ea4-51d4-8b69-c63c092935b7",
+        "target": "6bd2705c-bd7c-56f1-b9e5-e26a492c4015"
+      }
+    ]
+  }
+}
