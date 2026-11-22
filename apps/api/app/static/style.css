@@ -620,3 +620,9 @@ footer { padding: 25px 15px 29px; color: #5a6b87; text-align: center; font-size:
 .batch-results li{flex-wrap:wrap}
 .batch-results li button{width:100%}
 }
+
+
+/* Jury access: voluntary logout, no script required. */
+.logout-form{margin:12px 0 0}
+.logout-form button{border:1px solid #6d7d9f;border-radius:7px;background:transparent;color:#cfdbf6;font:inherit;font-size:12px;padding:8px 13px;cursor:pointer}
+.logout-form button:hover,.logout-form button:focus-visible{border-color:#bbc9ef;color:#fff}

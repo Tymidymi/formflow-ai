@@ -143,3 +143,29 @@ Instrukcja wdrożenia (w tym Compose i weryfikacja portów): [DEPLOYMENT.md](DEP
 - **Kontrola odpowiedzi:** JSON Forms/JSON Schema sprawdza formaty i wymagane pola; dodatkowy moduł podglądu sprawdza sumy kontrolne PESEL, NIP, REGON i prosty format numeru telefonu. Są to walidacje wpisanych odpowiedzi, a nie twierdzenie o bezbłędnym rozpoznaniu OCR.
 - **Batch:** przeglądarka kolejno wykonuje `POST /api/v1/forms/convert?mode=diagnostic` dla maksymalnie 5 plików, przechowuje szkice wyłącznie w bieżącej karcie. Wspólny ZIP jest generowany na żądanie przez `POST /api/v1/forms/batch/export` dopiero dla plików zatwierdzonych przez użytkownika. Serwer ponownie waliduje każdy COI JSON; nie zapisuje ZIP ani formularzy trwale.
 - **Strona informacyjna:** `/projekt/` zawiera demo, link do kodu, opis rozwiązania i miejsca do uzupełnienia materiałami konkursowymi; pierwotny kreator pozostaje pod `/`.
+
+
+## 10. Kontrola dostępu jury
+
+Wariant konkursowy chroni całą usługę przed nieautoryzowanym dostępem
+na poziomie middleware FastAPI (`apps/api/app/jury_auth.py`), przed
+routingiem stron HTML, zasobów statycznych i REST API. Hasło jest
+przechowywane w `.env` jako PBKDF2-SHA256 ze świeżą losową solą
+(`310 000` iteracji). Serwer tworzy krótką sesję w pamięci
+procesu, a przeglądarka przechowuje jedynie losowy token w bezpiecznym
+cookie HTTP-only. Termin ważności wynosi 8 h. Wylogowanie usuwa
+sesję. Globalny ogranicznik prób logowania (10 prób na 5 min) zmniejsza
+ryzyko odgadywania hasła. Żądania modyfikujące z obcego `Origin` są
+odrzucane. Logowanie i dokumentacja nie korzystają z zewnętrznych skryptów.
+
+**Wyjątki publiczne:** `/login`, `POST /auth/login`, wyłącznie arkusz
+`/static/login.css` oraz bezpieczny liveness `/healthz`.
+Pozostałe ścieżki, także `/api/openapi.json`, `/static/` oraz
+`/documentation/`, wymagają aktywnej sesji.
+
+Dane dostępowe są generowane przez `scripts/rotate_jury_password.py`
+i przechowywane poza repozytorium; `.env` jest ignorowany przez Git.
+Brak konfiguracji powoduje HTTP 503 (fail closed). Wymagany HTTPS.
+Jest to pojedyncze konto przeznaczone do demonstracji jury, a nie
+pełna platforma zarządzania tożsamością. Ogranicznik i sesje działają
+w pamięci jednego procesu — restart API unieważnia logowanie.

@@ -40,6 +40,35 @@ Szczegóły: [dokumentacja techniczna](docs/TECHNICAL.md), [API](docs/API.md), [
 
 Dokumentacja w aplikacji: `/documentation/` (samodzielna strona HTML, bez CDN). Zmiany w Markdown eksportuje `python scripts/build_docs.py`; CI sprawdza zgodność przez `python scripts/build_docs.py --check`.
 
+## Dostęp dla jury — login i hasło
+
+Cała aplikacja, landing `/projekt/`, dokumentacja `/documentation/`, OpenAPI,
+pliki statyczne i endpointy REST są chronione jednym kontem jury.
+Bez autoryzacji można otworzyć tylko `/login`, arkusz stylów logowania
+i minimalny endpoint Docker `/healthz` (bez danych formularzy).
+Autoryzacja jest **domyślnie włączona** i w przypadku braku hasła nie dopuszcza
+do dokumentacji, demo ani API (fail-closed, HTTP 503).
+
+```bash
+cp .env.example .env     # jeśli jeszcze nie istnieje
+python3 scripts/rotate_jury_password.py --credentials-file /private/path/jury.txt
+# Skrypt generuje losowe hasło i zapisuje tylko PBKDF2 hash do .env.
+# Hasło dla jury pobierz z utworzonego pliku prywatnego.
+docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml \
+  --profile docling --profile pdf up -d --build
+```
+
+Logowanie: `/login`. Hasło jest weryfikowane po stronie serwera, nie trafia
+do frontendu ani Git. Cookie sesji jest `Secure`, `HttpOnly`, `SameSite=Lax`
+i wygasa po 8 godzinach; wylogowanie unieważnia sesję. Po 10 nieudanych
+próbach w ciągu 5 minut włącza się ograniczenie kolejnych logowań.
+Wdrożenie dla jury **wymaga HTTPS**; nie wystawiaj portu 18171 bezpośrednio do Internetu.
+
+To minimalna ochrona demonstracji, nie pełny system wieloużytkownikowy.
+Publiczny dostęp przez HTTPS należy włączyć osobno dopiero po testach i bez
+wystawiania workerów Office/PDF. Szczegóły: [DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ## Szybki start (Docker, tryb developerski)
 
 Wymagane: Docker + Compose v2, RAM na kontenery i dostęp do modelu skonfigurowany w pliku `.env`.

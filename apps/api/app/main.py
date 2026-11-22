@@ -26,6 +26,7 @@ from .field_grounding import analyze_grounding
 from .conversion_audit import REQUEST_ID, record
 from .page_inventory import extract as extract_structured
 from .demo_fixture import create_demo
+from .jury_auth import access_gate
 
 ROOT = Path(__file__).resolve().parent
 app = FastAPI(
@@ -72,7 +73,11 @@ async def security(request: Request, call_next):
                 },
             )
         else:
-            response = await call_next(request)
+            # Applied before every route, including mounted StaticFiles and
+            # the OpenAPI schema. No alternate public route bypasses the gate.
+            response = await access_gate(request)
+            if response is None:
+                response = await call_next(request)
         status = response.status_code
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Content-Type-Options"] = "nosniff"

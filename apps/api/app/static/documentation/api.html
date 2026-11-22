@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
 <a href="api.html" class="active" aria-current="page">REST API</a>
@@ -18,6 +18,9 @@
 <a href="licenses.html">Licencje</a></nav></aside>
 <main class="content"><div class="eyebrow">HackNation 2026 · FormFlow v1.4</div><h1 id="formflow-rest-api">FormFlow — REST API</h1>
 <p><strong>Baza lokalna:</strong> <code>http://127.0.0.1:18171</code>. Szczegółowe modele odpowiedzi: <code>/api/openapi.json</code>; dokumentacja HTML: <code>/api/docs</code>.</p>
+<h2 id="autoryzacja">Autoryzacja</h2>
+<p>W wersji demonstracyjnej wszystkie endpointy REST (oprócz publicznego <code>GET /healthz</code>) wymagają aktywnej sesji jury. Wejdź przez HTTPS na <code>GET /login</code>, zaloguj się formularzem <code>POST /auth/login</code> i korzystaj z tej samej sesji; dla automatycznego klienta REST cookie można uzyskać z formularza logowania. Bez sesji API zwraca HTTP 401 <code>{&quot;code&quot;:&quot;AUTH_REQUIRED&quot;}</code>, a widoki HTML przekierowują na login. Sesja może wygasnąć po 8 h. <code>POST /auth/logout</code> unieważnia cookie.</p>
+<p><strong>Nie przekazuj loginu ani hasła w URL ani w nagłówkach logowanych przez serwery proxy.</strong> Endpointy nie przyjmują jawnego hasła w nagłówku Basic. Specyfikacja <code>/api/openapi.json</code> także wymaga logowania.</p>
 <h2 id="endpointy">Endpointy</h2>
 <div class="table-wrap"><table>
 <tr><th>Metoda i ścieżka</th><th>Opis</th></tr>

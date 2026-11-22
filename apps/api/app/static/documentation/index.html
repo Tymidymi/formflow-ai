@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html" class="active" aria-current="page">Architektura</a>
 <a href="api.html">REST API</a>
@@ -141,6 +141,10 @@
 <li><strong>Batch:</strong> przeglądarka kolejno wykonuje <code>POST /api/v1/forms/convert?mode=diagnostic</code> dla maksymalnie 5 plików, przechowuje szkice wyłącznie w bieżącej karcie. Wspólny ZIP jest generowany na żądanie przez <code>POST /api/v1/forms/batch/export</code> dopiero dla plików zatwierdzonych przez użytkownika. Serwer ponownie waliduje każdy COI JSON; nie zapisuje ZIP ani formularzy trwale.</li>
 <li><strong>Strona informacyjna:</strong> <code>/projekt/</code> zawiera demo, link do kodu, opis rozwiązania i miejsca do uzupełnienia materiałami konkursowymi; pierwotny kreator pozostaje pod <code>/</code>.</li>
 </ul>
+<h2 id="10-kontrola-dostepu-jury">10. Kontrola dostępu jury</h2>
+<p>Wariant konkursowy chroni całą usługę przed nieautoryzowanym dostępem na poziomie middleware FastAPI (<code>apps/api/app/jury_auth.py</code>), przed routingiem stron HTML, zasobów statycznych i REST API. Hasło jest przechowywane w <code>.env</code> jako PBKDF2-SHA256 ze świeżą losową solą (<code>310 000</code> iteracji). Serwer tworzy krótką sesję w pamięci procesu, a przeglądarka przechowuje jedynie losowy token w bezpiecznym cookie HTTP-only. Termin ważności wynosi 8 h. Wylogowanie usuwa sesję. Globalny ogranicznik prób logowania (10 prób na 5 min) zmniejsza ryzyko odgadywania hasła. Żądania modyfikujące z obcego <code>Origin</code> są odrzucane. Logowanie i dokumentacja nie korzystają z zewnętrznych skryptów.</p>
+<p><strong>Wyjątki publiczne:</strong> <code>/login</code>, <code>POST /auth/login</code>, wyłącznie arkusz <code>/static/login.css</code> oraz bezpieczny liveness <code>/healthz</code>. Pozostałe ścieżki, także <code>/api/openapi.json</code>, <code>/static/</code> oraz <code>/documentation/</code>, wymagają aktywnej sesji.</p>
+<p>Dane dostępowe są generowane przez <code>scripts/rotate_jury_password.py</code> i przechowywane poza repozytorium; <code>.env</code> jest ignorowany przez Git. Brak konfiguracji powoduje HTTP 503 (fail closed). Wymagany HTTPS. Jest to pojedyncze konto przeznaczone do demonstracji jury, a nie pełna platforma zarządzania tożsamością. Ogranicznik i sesje działają w pamięci jednego procesu — restart API unieważnia logowanie.</p>
 <div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
 <p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
 </main>

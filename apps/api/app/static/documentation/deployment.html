@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
 <a href="api.html">REST API</a>
@@ -24,6 +24,26 @@
 <pre><code class="lang-bash">cp .env.example .env
 # W trybie developerskim ustaw OPENROUTER_API_KEY
 # Opcjonalnie zmień OPENROUTER_MODEL i FORMFLOW_HOST_PORT</code></pre>
+<h2 id="dostep-dla-jury-i-publikacja-przez-https">Dostęp dla jury i publikacja przez HTTPS</h2>
+<p><strong>Włączona jest ochrona całej usługi, nie tylko samego landing page.</strong> Obowiązuje <code>/</code>, <code>/projekt/</code>, <code>/documentation/</code>, <code>/static/</code>, <code>/api/openapi.json</code> oraz wszystkie endpointy REST. Wyjątki: <code>/login</code>, <code>POST /auth/login</code>, styl logowania oraz <code>GET /healthz</code> (bez danych użytkownika; konieczny dla sondy Docker). Po wylogowaniu cookie zostaje unieważnione. Nie można otworzyć dokumentacji ani wykonać konwersji bez zalogowania.</p>
+<p>Jeśli <code>.env</code> istnieje, uruchom:</p>
+<pre><code class="lang-bash">python3 scripts/rotate_jury_password.py \
+  --credentials-file /home/tymot/formflow-release-backups/formflow-jury-credentials.txt
+# Uwaga: plik z danymi dostępowymi musi być poza repo i nie może istnieć wcześniej.
+# W .env zostanie wyłącznie login, konfiguracja oraz hash hasła PBKDF2.
+docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml \
+  --profile docling --profile pdf up -d --build --no-deps api</code></pre>
+<p>Skrypt rotacji generuje nowe losowe hasło, zapisuje je jednorazowo w prywatnym pliku z uprawnieniami <code>0600</code> i ustawia <code>FORMFLOW_AUTH_MODE=on</code>, <code>FORMFLOW_AUTH_USER</code> oraz <code>FORMFLOW_AUTH_PASSWORD_HASH</code>. Hasło nie jest wypisywane w logu. Podczas rotacji aktywne sesje unieważnia restart kontenera API. <strong>Nie zamieniaj hasha na jawne hasło w <code>.env</code>.</strong></p>
+<p>Sesja: 8 h, przechowywana w pamięci procesu API; ciasteczko <code>__Host-formflow_jury</code> z <code>Secure</code>, <code>HttpOnly</code>, <code>SameSite=Lax</code>, tylko dla aktualnego hosta, bez domeny i z <code>Path=/</code>. Ograniczenie prób: 10 w 5 minut, w pamięci procesu. Logowanie nie wymaga JavaScript. Dodatkowa ochrona sprawdza nagłówek <code>Origin</code> przy żądaniach modyfikujących.</p>
+<p>Przed wystawieniem publicznym potwierdź, że reverse proxy zapewnia <strong>prawidłowy HTTPS</strong> i przekazuje <code>Host</code> oraz <code>Origin</code> bez zmiany originu. Tailscale Serve pod <code>9466</code> jest na razie <strong>prywatny (tailnet only)</strong>. Nie włączaj Funnel ani publicznego reverse proxy bez odrębnej decyzji. Adres dostępny dla jury po publikacji może być inny niż aktualny adres tailnetu.</p>
+<p><strong>Weryfikacja anonimowa (bez cookie):</strong></p>
+<pre><code class="lang-bash">curl -skI https://HOST/                      # 303 → /login
+curl -skI https://HOST/projekt/              # 303 → /login
+curl -skI https://HOST/documentation/        # 303 → /login
+curl -skI https://HOST/api/openapi.json      # 401 lub 405 przy HEAD; sprawdź GET
+curl -sk https://HOST/api/openapi.json       # JSON code=AUTH_REQUIRED</code></pre>
+<p><code>GET /healthz</code> pozostaje publicznie czytelny, ale nie zawiera ani haseł, ani danych formularzy. W przypadku braku skonfigurowanego hasha wszystkie chronione endpointy zwracają HTTP 503.</p>
 <h2 id="2-uruchomienie-kompletnego-stosu-developerskiego">2. Uruchomienie kompletnego stosu developerskiego</h2>
 <pre><code class="lang-bash">docker compose -f compose.yaml -f compose.dev.yaml \
   -f compose.docling.yaml -f compose.pdf.yaml \
@@ -47,7 +67,7 @@ docker compose -f compose.yaml -f compose.dev.yaml \
 <p><code>/healthz</code> sprawdza żywotność, <code>/readyz</code> wykrywa skonfigurowanego providera, lecz <strong>nie potwierdza kompletnego pipeline’u</strong>. Dodatkowo przetestuj <code>extract-preview</code> na DOCX oraz <code>convert?mode=diagnostic</code> na kontrolnym formularzu. Gdy ekstraktor Office zwraca 502 „Brak poprawnego PDF”, sprawdź czy worker i API pochodzą z tej samej rewizji kodu/obrazu; samo <code>up -d api</code> nie aktualizuje workerów.</p>
 <h2 id="4-dostep-https-i-bezpieczenstwo">4. Dostęp HTTPS i bezpieczeństwo</h2>
 <p>Na serwerze demonstracyjnym port lokalny 18171 jest dostępny prywatnie przez <strong>Tailscale Serve :9466</strong>. Nie należy go mylić z Funnel: dostępna usługa jest przeznaczona dla sieci tailnet. Nie publikuj <code>.env</code>, źródłowych dokumentów ani portów 8001/8002.</p>
-<p>Wersja aplikacyjna nie posiada własnego JWT/RBAC: kontrolę dostępu zapewnia Tailscale lub administrator bramy sieciowej. Wysyłanie formularzy do OpenRouter wymaga świadomej zgody w UI.</p>
+<p>Aplikacja ma jedno konto dostępu jury z sesją i hashem PBKDF2; <strong>nie</strong> ma wielu kont, JWT/RBAC ani audytu per użytkownik. Wysyłanie formularzy do OpenRouter nadal wymaga świadomej zgody w UI.</p>
 <p>Przed publikacją sprawdź prywatność repozytorium, prawa do materiałów COI i zasady użycia modelu.</p>
 <h2 id="5-aktualizacja">5. Aktualizacja</h2>
 <pre><code class="lang-bash">git pull --ff-only origin main

@@ -162,7 +162,8 @@ CSS = """
 .content code{background:#f0f3fa;padding:2px 5px;border-radius:5px;font-size:.87em;color:#274291}.content pre{background:#091735;color:#f1f4fe;border-radius:10px;padding:18px 20px;overflow-x:auto;line-height:1.55}.content pre code{color:inherit;background:none;padding:0}
 .table-wrap{overflow-x:auto;margin:22px 0}.content table{border-collapse:collapse;width:100%;font-size:14px}.content th,.content td{padding:12px 14px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.content th{background:#f5f7fc;color:var(--navy);font-weight:700}.content blockquote{margin:20px 0;border-left:3px solid var(--blue);padding:8px 16px;background:#f5f7fc}
 .meta{font-size:13px;color:var(--muted);margin-top:30px}.api-call{margin-top:24px;border:1px solid var(--border);border-radius:12px;background:var(--bg);padding:13px 17px;font-size:13px}
-@media(max-width:800px){.shell{display:block;padding:16px}.aside{position:static;margin-bottom:20px}.aside nav{flex-direction:row;flex-wrap:wrap}.aside h2{display:none}.content{padding:25px 20px}.header{padding:12px 18px}.header .back{font-size:12px}}
+.header-actions{display:flex;align-items:center;gap:20px}.logout-button{font:inherit;font-size:12px;padding:8px 12px;color:#fff;background:transparent;border:1px solid #647499;border-radius:7px;cursor:pointer}.logout-button:hover{border-color:#fff}
+@media(max-width:800px){.shell{display:block;padding:16px}.aside{position:static;margin-bottom:20px}.aside nav{flex-direction:row;flex-wrap:wrap}.aside h2{display:none}.content{padding:25px 20px}.header{padding:12px 18px}.header .back{font-size:12px}.header-actions{gap:10px}}
 """
 
 
@@ -185,7 +186,7 @@ def page_html(page: str, source: Path, label: str) -> str:
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji">{navigation}</nav></aside>
 <main class="content"><div class="eyebrow">HackNation 2026 · FormFlow v1.4</div>{body}

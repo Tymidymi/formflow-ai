@@ -2,6 +2,20 @@
 
 **Baza lokalna:** `http://127.0.0.1:18171`. Szczegółowe modele odpowiedzi: `/api/openapi.json`; dokumentacja HTML: `/api/docs`.
 
+## Autoryzacja
+
+W wersji demonstracyjnej wszystkie endpointy REST (oprócz publicznego
+`GET /healthz`) wymagają aktywnej sesji jury. Wejdź przez HTTPS na
+`GET /login`, zaloguj się formularzem `POST /auth/login` i korzystaj
+z tej samej sesji; dla automatycznego klienta REST cookie można uzyskać
+z formularza logowania. Bez sesji API zwraca HTTP 401
+`{"code":"AUTH_REQUIRED"}`, a widoki HTML przekierowują na login.
+Sesja może wygasnąć po 8 h. `POST /auth/logout` unieważnia cookie.
+
+**Nie przekazuj loginu ani hasła w URL ani w nagłówkach logowanych przez
+serwery proxy.** Endpointy nie przyjmują jawnego hasła w nagłówku Basic.
+Specyfikacja `/api/openapi.json` także wymaga logowania.
+
 ## Endpointy
 
 | Metoda i ścieżka | Opis |

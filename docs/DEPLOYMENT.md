@@ -14,6 +14,60 @@ cp .env.example .env
 # Opcjonalnie zmień OPENROUTER_MODEL i FORMFLOW_HOST_PORT
 ```
 
+## Dostęp dla jury i publikacja przez HTTPS
+
+**Włączona jest ochrona całej usługi, nie tylko samego landing page.**
+Obowiązuje `/`, `/projekt/`, `/documentation/`, `/static/`,
+`/api/openapi.json` oraz wszystkie endpointy REST.
+Wyjątki: `/login`, `POST /auth/login`, styl logowania oraz `GET /healthz`
+(bez danych użytkownika; konieczny dla sondy Docker). Po wylogowaniu
+cookie zostaje unieważnione. Nie można otworzyć dokumentacji
+ani wykonać konwersji bez zalogowania.
+
+Jeśli `.env` istnieje, uruchom:
+
+```bash
+python3 scripts/rotate_jury_password.py \
+  --credentials-file /home/tymot/formflow-release-backups/formflow-jury-credentials.txt
+# Uwaga: plik z danymi dostępowymi musi być poza repo i nie może istnieć wcześniej.
+# W .env zostanie wyłącznie login, konfiguracja oraz hash hasła PBKDF2.
+docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml \
+  --profile docling --profile pdf up -d --build --no-deps api
+```
+
+Skrypt rotacji generuje nowe losowe hasło, zapisuje je jednorazowo w prywatnym
+pliku z uprawnieniami `0600` i ustawia `FORMFLOW_AUTH_MODE=on`,
+`FORMFLOW_AUTH_USER` oraz `FORMFLOW_AUTH_PASSWORD_HASH`.
+Hasło nie jest wypisywane w logu. Podczas rotacji aktywne sesje
+unieważnia restart kontenera API. **Nie zamieniaj hasha na jawne hasło w `.env`.**
+
+Sesja: 8 h, przechowywana w pamięci procesu API; ciasteczko
+`__Host-formflow_jury` z `Secure`, `HttpOnly`, `SameSite=Lax`,
+tylko dla aktualnego hosta, bez domeny i z `Path=/`. Ograniczenie prób:
+10 w 5 minut, w pamięci procesu. Logowanie nie wymaga JavaScript.
+Dodatkowa ochrona sprawdza nagłówek `Origin` przy żądaniach modyfikujących.
+
+Przed wystawieniem publicznym potwierdź, że reverse proxy zapewnia
+**prawidłowy HTTPS** i przekazuje `Host` oraz `Origin` bez zmiany
+originu. Tailscale Serve pod `9466` jest na razie **prywatny (tailnet only)**.
+Nie włączaj Funnel ani publicznego reverse proxy bez odrębnej decyzji.
+Adres dostępny dla jury po publikacji może być inny niż aktualny adres tailnetu.
+
+**Weryfikacja anonimowa (bez cookie):**
+
+```bash
+curl -skI https://HOST/                      # 303 → /login
+curl -skI https://HOST/projekt/              # 303 → /login
+curl -skI https://HOST/documentation/        # 303 → /login
+curl -skI https://HOST/api/openapi.json      # 401 lub 405 przy HEAD; sprawdź GET
+curl -sk https://HOST/api/openapi.json       # JSON code=AUTH_REQUIRED
+```
+
+`GET /healthz` pozostaje publicznie czytelny, ale nie zawiera ani haseł,
+ani danych formularzy. W przypadku braku skonfigurowanego hasha
+wszystkie chronione endpointy zwracają HTTP 503.
+
 ## 2. Uruchomienie kompletnego stosu developerskiego
 
 ```bash
@@ -48,7 +102,7 @@ docker compose -f compose.yaml -f compose.dev.yaml \
 
 Na serwerze demonstracyjnym port lokalny 18171 jest dostępny prywatnie przez **Tailscale Serve :9466**. Nie należy go mylić z Funnel: dostępna usługa jest przeznaczona dla sieci tailnet. Nie publikuj `.env`, źródłowych dokumentów ani portów 8001/8002.
 
-Wersja aplikacyjna nie posiada własnego JWT/RBAC: kontrolę dostępu zapewnia Tailscale lub administrator bramy sieciowej. Wysyłanie formularzy do OpenRouter wymaga świadomej zgody w UI.
+Aplikacja ma jedno konto dostępu jury z sesją i hashem PBKDF2; **nie** ma wielu kont, JWT/RBAC ani audytu per użytkownik. Wysyłanie formularzy do OpenRouter nadal wymaga świadomej zgody w UI.
 
 Przed publikacją sprawdź prywatność repozytorium, prawa do materiałów COI i zasady użycia modelu.
 
