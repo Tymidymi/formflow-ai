@@ -442,7 +442,7 @@ async def extract(
 
     # Every page has its own image and OCR; process independent pages concurrently
     # but cap external model pressure and retain the original physical order.
-    page_slots = asyncio.Semaphore(2)
+    page_slots = asyncio.Semaphore(3)
 
     async def bounded_page(page):
         async with page_slots:
