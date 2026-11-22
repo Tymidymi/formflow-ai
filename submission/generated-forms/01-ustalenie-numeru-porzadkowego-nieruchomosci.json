@@ -1,0 +1,892 @@
+{
+  "title": "WNIOSEK O USTALENIE NUMERU PORZĄDKOWEGO",
+  "tabs": [
+    {
+      "id": "de1024ed-3244-52d7-9c58-97630dad2e70",
+      "title": "Strona 1",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 15,
+          "cols": 3,
+          "field": {
+            "id": "ffdbbd71-7f09-5cf6-b512-603171202842",
+            "type": "SECTION",
+            "techName": "sekcja_0_0_2_1",
+            "title": "2.1",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "ae748d60-f02f-5e0a-bc19-c9cfebad1b8a",
+                  "type": "TEXT_FIELD",
+                  "techName": "wnioskodawca",
+                  "title": "Wnioskodawca:",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "22f431a8-55b2-5f31-bf3f-91cf23c3900a",
+                  "type": "TEXT_FIELD",
+                  "techName": "imie_i_nazwisko_nazwa_wnioskodawcy",
+                  "title": "(imię i nazwisko/nazwa wnioskodawcy)",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "bbcb2120-22fa-5a92-8d93-a09ebf5e9dbf",
+                  "type": "TEXT_FIELD",
+                  "techName": "gminy_elblag",
+                  "title": "Gminy Elbląg",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "4e97e234-beff-5d23-a5f5-d27c7774157d",
+                  "type": "TEXT_FIELD",
+                  "techName": "adres",
+                  "title": "(adres)",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 4,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "b40af61a-cbf4-56ac-bd02-3696ea837b78",
+                  "type": "TEXT_FIELD",
+                  "techName": "nr_telefonu_adres_e_mail",
+                  "title": "(nr telefonu/adres e-mail)",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 4,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 5,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "5ddcbd30-3445-54e7-b007-740fb8a4758e",
+                  "type": "DATEPICKER",
+                  "techName": "data",
+                  "title": "(data)",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 5,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 6,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "3ce3676a-8790-5e38-8714-94f7ab647bf5",
+                  "type": "TEXT_BLOCK",
+                  "techName": "adresat",
+                  "title": "Adresat:",
+                  "description": "<html><head></head><body><p>Wójt Gminy Elbląg ul. Browarna 85 82-300 Elbląg</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 6,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 7,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "04f5df0a-19f1-5763-8a27-1a565f9c57f8",
+                  "type": "TEXT_FIELD",
+                  "techName": "wniosku_o_ustalenie_numeru_porzadkowego_budynkowi_zloka",
+                  "title": "Wniosku o ustalenie numeru porządkowego budynkowi zlokalizowanemu w miejscowości",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 7,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 8,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "9fcb0304-66a4-589c-a320-0d90dc2a09d2",
+                  "type": "TEXT_FIELD",
+                  "techName": "przy_ulicy",
+                  "title": "przy ulicy",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 8,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 9,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "fea91eee-73ec-5dea-b93e-6377d02add2a",
+                  "type": "TEXT_FIELD",
+                  "techName": "nr_ewidencyjny_dzialki",
+                  "title": "nr ewidencyjny działki",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 9,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 10,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "becc128c-7fb2-55e8-8298-93417c6c49ac",
+                  "type": "TEXT_FIELD",
+                  "techName": "w_obrebie",
+                  "title": "w obrębie",
+                  "description": "",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 10,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 11,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "e1d38d3c-5c23-562d-901b-c8f94f74c3ef",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_wnioskodawcy",
+                  "title": "(podpis wnioskodawcy)",
+                  "description": "<html><head></head><body><p>podpis wnioskodawcy</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 11,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 12,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "dd18210a-3783-5cff-911d-2a40313dcdb7",
+                  "type": "TEXT_BLOCK",
+                  "techName": "dane_nieobowiazkowe",
+                  "title": "Dane nieobowiązkowe.",
+                  "description": "<html><head></head><body><p>Dane nieobowiązkowe.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 12,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 13,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "7c68e425-b115-5911-a18c-30e4ec033c2b",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podpis_wlasnoreczny_a_w_przypadku_skladania_wniosku_w_p",
+                  "title": "Podpis własnoręczny, a w przypadku składania wniosku w postaci elektronicznej: kwalifikowany podpis elektroniczny, podpis osobisty albo podpis zaufany.",
+                  "description": "<html><head></head><body><p>2 ) Podpis własnoręczny, a w przypadku składania wniosku w postaci elektronicznej: kwalifikowany podpis elektroniczny, podpis osobisty albo podpis zaufany.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 13,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "784153b8-8543-5c47-85ce-db6a0c5e4944",
+      "title": "Strona 2",
+      "type": "MAIN",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 5,
+          "cols": 3,
+          "field": {
+            "id": "5351cba8-0b6c-59bc-8f5f-cd724495f9e6",
+            "type": "SECTION",
+            "techName": "sekcja_1_0_1",
+            "title": "1",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "0df3d0d9-659f-51b3-a45f-3706b1c8f481",
+                  "type": "TEXT_BLOCK",
+                  "techName": "administrator_panstwa_danych_osobowych_jest_gmina_elbla",
+                  "title": "Administrator Państwa danych osobowych jest Gmina Elbląg. Można się z nim kontaktować w następujący sposób:",
+                  "description": "<html><head></head><body><p>1.       Administratorem Państwa danych osobowych jest Gmina Elbląg. Można się z nim kontaktować w następujący sposób: - listownie na adres: Urząd Gminy Elbląg  82-300 Elbląg, ul. Browarna 85, - przez e-mail:               sekretariat@gminaelblag.pl - telefonicznie:              55    234-18-84</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "7e67d10b-f21f-55e8-af95-71415c5a615c",
+                  "type": "TEXT_BLOCK",
+                  "techName": "listownie_na_adres_urzad_gminy_elblag_82_300_elblag_ul_",
+                  "title": "listownie na adres: Urząd Gminy Elbląg  82-300 Elbląg, ul. Browarna 85,",
+                  "description": "<html><head></head><body><p>- listownie na adres: Urząd Gminy Elbląg  82-300 Elbląg, ul. Browarna 85,</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "40c2602d-664f-52c7-aefa-78fb732b7f37",
+                  "type": "TEXT_BLOCK",
+                  "techName": "przez_e_mail_sekretariat_gminaelblag_pl",
+                  "title": "przez e-mail: sekretariat@gminaelblag.pl",
+                  "description": "<html><head></head><body><p>przez e-mail: sekretariat@gminaelblag.pl</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 3,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "a8911854-b2bd-5f19-a0ec-b65d66cb7ffe",
+                  "type": "TEXT_BLOCK",
+                  "techName": "telefonicznie_55_234_18_84",
+                  "title": "telefonicznie: 55 234-18-84",
+                  "description": "<html><head></head><body><p>telefonicznie: 55 234-18-84</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 3,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 5,
+          "rows": 4,
+          "cols": 3,
+          "field": {
+            "id": "fe63c7dc-123d-5683-901c-c1fb028de42d",
+            "type": "SECTION",
+            "techName": "sekcja_1_1_2",
+            "title": "2",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "319bf859-7b90-5748-8b64-9adca74b63f1",
+                  "type": "TEXT_BLOCK",
+                  "techName": "wyznaczylismy_inspektora_ochrony_danych_jest_to_osoba_z",
+                  "title": "Wyznaczyliśmy Inspektora Ochrony Danych. Jest to osoba, z którą możesz się kontaktować we wszystkich sprawach dotyczących przetwarzania Twoich danych osobowych oraz korzystania z przysługujących Ci praw związanych z przt",
+                  "description": "<html><head></head><body><p>2.       Wyznaczyliśmy Inspektora Ochrony Danych. Jest to osoba, z którą możesz się kontaktować we wszystkich sprawach dotyczących przetwarzania Twoich danych osobowych oraz korzystania z przysługujących Ci praw związanych z przetwarzaniem danych.                                                                Z inspektorem możesz się kontaktować w następujący sposób: - listownie na adres: 82-300 Elbląg, ul. Browarna 85</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 1,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "0746ffc7-8b37-51af-9114-36992afd1b65",
+                  "type": "TEXT_BLOCK",
+                  "techName": "listownie_na_adres_82_300_elblag_ul_browarna_85",
+                  "title": "listownie na adres: 82-300 Elbląg, ul. Browarna 85",
+                  "description": "<html><head></head><body><p>- listownie na adres: 82-300 Elbląg, ul. Browarna 85</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 1,
+                  "tooltipMessage": ""
+                }
+              },
+              {
+                "x": 0,
+                "y": 2,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "e8a01fa8-7ad8-574e-aba2-b5ab6cd25433",
+                  "type": "TEXT_BLOCK",
+                  "techName": "przez_e_mail_iod_gminaelblag_pl",
+                  "title": "przez e-mail: iod@gminaelblag.pl",
+                  "description": "<html><head></head><body><p>przez e-mail: iod@gminaelblag.pl</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 2,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 1,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 9,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "dab25094-db4f-5045-a6d3-241c8a014216",
+            "type": "SECTION",
+            "techName": "sekcja_1_2_3",
+            "title": "3",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "47a5ce24-66c9-5d4a-ab18-02b66f9322ca",
+                  "type": "TEXT_BLOCK",
+                  "techName": "panstwa_dane_osobowe_beda_przetwarzane_w_celu_ustalenia",
+                  "title": "Państwa dane osobowe będą przetwarzane w celu ustalenia i potwierdzenia numeru porządkowego nieruchomości na podstawie art. 6 ust. 1 lit c RODO, art. 47 a ust. 1 ustawy z dnia 17 maja 1989 r. Prawo geodezyjne i kartograf",
+                  "description": "<html><head></head><body><p>3.       Państwa dane osobowe będą przetwarzane w celu ustalenia i potwierdzenia numeru porządkowego nieruchomości na podstawie art. 6 ust. 1 lit c RODO, art. 47 a ust. 1 ustawy z dnia 17 maja 1989 r. Prawo geodezyjne i kartograficzne.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 2,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 11,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "93115d1c-e6b9-5cd4-9628-285c56d52165",
+            "type": "SECTION",
+            "techName": "sekcja_1_3_4",
+            "title": "4",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "d6a3f329-8b24-5bf3-9587-791b8d38d3c6",
+                  "type": "TEXT_BLOCK",
+                  "techName": "panstwa_dane_osobowe_mozemy_przekazywac_i_udostepniac_w",
+                  "title": "Państwa dane osobowe możemy przekazywać i udostępniać wyłącznie podmiotom uprawnionym na podstawie obowiązujących przepisów prawa są nimi np.: sądy, organy ścigania, organy podatkowe oraz inne podmioty publiczne, gdy",
+                  "description": "<html><head></head><body><p>Państwa dane osobowe możemy przekazywać i udostępniać wyłącznie podmiotom uprawnionym na podstawie obowiązujących przepisów prawa są nimi np.: sądy, organy ścigania, organy podatkowe oraz inne podmioty publiczne, gdy wystąpią z takim żądaniem oczywiście w oparciu o stosowną podstawę prawną. Państwa dane osobowe możemy także przekazywać podmiotom, które przetwarzają je na zlecenie administratora tzw. podmiotom przetwarzającym, są nimi np.: podmioty świadczące usługi informatyczne, telekomunikacyjne, pocztowe i inne, jednakże przekazanie Państwa danych nastąpić może tylko wtedy, gdy zapewnią one odpowiednią ochronę Państwa praw.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 3,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 13,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "bccd1e91-775a-54ec-bac6-728b77184e95",
+            "type": "SECTION",
+            "techName": "sekcja_1_4_5",
+            "title": "5",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "6325c819-6f6e-52e3-8dcd-055dcfcd3fe0",
+                  "type": "TEXT_BLOCK",
+                  "techName": "panstwa_dane_osobowe_nie_beda_przekazywane_do_panstw_tr",
+                  "title": "Państwa dane osobowe nie będą przekazywane do państw trzecich ani do organizacji międzynarodowych.",
+                  "description": "<html><head></head><body><p>Państwa dane osobowe nie będą przekazywane do państw trzecich ani do organizacji międzynarodowych.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 4,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 15,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "a5287dd6-d446-53f9-9be9-60a21f389e72",
+            "type": "SECTION",
+            "techName": "sekcja_1_5_6",
+            "title": "6",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "cf3a508d-229f-56be-b7e3-6e40a3996e9a",
+                  "type": "TEXT_BLOCK",
+                  "techName": "panstwa_dane_osobowe_beda_przetwarzane_przez_okres_zgod",
+                  "title": "Państwa dane osobowe będą przetwarzane przez okres zgodny z obowiązującymi przepisami prawa, tj. przez 25 lat, a następnie przekazane do archiwum państwowego.",
+                  "description": "<html><head></head><body><p>6.       Państwa dane osobowe będą przetwarzane przez okres zgodny z obowiązującymi przepisami prawa, tj. przez 25 lat, a następnie przekazane do archiwum państwowego.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 5,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 17,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "87000557-4bec-513d-ac43-add46685bb16",
+            "type": "SECTION",
+            "techName": "sekcja_1_6_7",
+            "title": "7",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "17120063-de74-597b-b18e-7f990a1530f4",
+                  "type": "TEXT_BLOCK",
+                  "techName": "maja_panstwo_prawo_do_zadania_od_administratora_dostepu",
+                  "title": "Mają Państwo prawo do żądania od administratora dostępu do danych, można je sprostować, gdy zachodzi taka konieczność. Mają Państwo także prawo żądania usunięcia lub ograniczenia przetwarzania.",
+                  "description": "<html><head></head><body><p>7.       Mają Państwo prawo do żądania od administratora dostępu do danych, można je sprostować, gdy zachodzi  taka  konieczność.  Mają  Państwo także  prawo żądania usunięcia lub ograniczenia przetwarzania.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 6,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 19,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "9fe01e14-0d60-5f59-b615-fc69d2af59b2",
+            "type": "SECTION",
+            "techName": "sekcja_1_7_8",
+            "title": "8",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "2314b040-f3de-5c4d-b6bf-2af060c21eaf",
+                  "type": "TEXT_BLOCK",
+                  "techName": "podania_danych_wymaga_ustawa_na_podstawie_ktorej_dziala",
+                  "title": "Podania danych wymaga ustawa na podstawie, której działa administrator.",
+                  "description": "<html><head></head><body><p>8.       Podania danych wymaga ustawa na podstawie, której działa administrator.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 7,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 21,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "9ae318e4-f6bd-5429-808a-8125afd61b46",
+            "type": "SECTION",
+            "techName": "sekcja_1_8_9",
+            "title": "9",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "45a561f1-2041-57b3-85dc-89a2a2f02d21",
+                  "type": "TEXT_BLOCK",
+                  "techName": "przysluguje_panstwu_takze_skarga_do_organu_do_organu_na",
+                  "title": "Przysługuje Państwu także skarga do organu do organu nadzorczego - Prezesa Urzędu Ochrony Danych Osobowych ul. Stawki 2, 00-193 Warszawa, gdy przetwarzanie Państwa danych osobowych naruszy przepisy ogólnego rozporządzen",
+                  "description": "<html><head></head><body><p>9.       Przysługuje Państwu także skarga do organu do organu nadzorczego - Prezesa Urzędu Ochrony Danych Osobowych              ul. Stawki 2, 00-193 Warszawa,                                   gdy przetwarzanie Państwa danych osobowych naruszy przepisy ogólnego rozporządzenia o ochronie danych osobowych z dnia 27 kwietnia 2016 r.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 8,
+            "tooltipMessage": ""
+          }
+        },
+        {
+          "x": 0,
+          "y": 23,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "808ed1db-ce1f-52b5-a158-f552a77a8431",
+            "type": "SECTION",
+            "techName": "sekcja_1_9_10",
+            "title": "10",
+            "description": "<html><head></head><body></body></html>",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "7382ab09-7b2b-59eb-8fc5-e8959e0ec0ea",
+                  "type": "TEXT_BLOCK",
+                  "techName": "panstwa_dane_nie_beda_przetwarzane_w_sposob_zautomatyzo",
+                  "title": "Państwa dane nie będą przetwarzane w sposób zautomatyzowany, w tym również w formie profilowania.",
+                  "description": "<html><head></head><body><p>10.      Państwa dane nie będą przetwarzane w sposób zautomatyzowany, w tym również w formie profilowania.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": true,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 9,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "90549f37-5bec-5410-9a07-13cdc2e82f6b",
+      "title": "Strona końcowa",
+      "type": "FINISH",
+      "questions": [
+        {
+          "x": 0,
+          "y": 0,
+          "rows": 2,
+          "cols": 3,
+          "field": {
+            "id": "80fbb615-22d4-5201-b52a-1e260f7a905f",
+            "type": "SECTION",
+            "techName": "podglad_wniosku",
+            "title": "Podgląd i wysłanie wniosku",
+            "description": "",
+            "options": [],
+            "validation": [],
+            "readOnly": false,
+            "repeatingSectionGrid": [
+              {
+                "x": 0,
+                "y": 0,
+                "rows": 1,
+                "cols": 3,
+                "field": {
+                  "id": "fa047635-80da-5478-acee-b80819a2cfee",
+                  "type": "TEXT_BLOCK",
+                  "techName": "tekst_koncowy",
+                  "title": "",
+                  "description": "<html><head></head><body><p>Sprawdź dane przed wysłaniem wniosku.</p></body></html>",
+                  "options": [],
+                  "validation": [],
+                  "readOnly": false,
+                  "repeatingSectionGrid": [],
+                  "states": [],
+                  "questionOrder": 0,
+                  "tooltipMessage": ""
+                }
+              }
+            ],
+            "states": [],
+            "questionOrder": 0,
+            "tooltipMessage": ""
+          }
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "links": [
+      {
+        "id": "0258def7-905e-5f58-b2df-a1973d2607a1",
+        "source": "de1024ed-3244-52d7-9c58-97630dad2e70",
+        "target": "784153b8-8543-5c47-85ce-db6a0c5e4944"
+      },
+      {
+        "id": "e733ce2b-6bbb-590f-bddb-0e69a6c5c31e",
+        "source": "784153b8-8543-5c47-85ce-db6a0c5e4944",
+        "target": "90549f37-5bec-5410-9a07-13cdc2e82f6b"
+      }
+    ]
+  }
+}

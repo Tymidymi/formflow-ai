@@ -7,6 +7,34 @@
   "note": "Development API uses OpenRouter; structural validation is not a guarantee of fidelity.",
   "entries": [
     {
+      "number": 1,
+      "title": "Wniosek o ustalenie numeru porządkowego nieruchomości",
+      "source_filename": "Wniosek o ustalenie numeru porządkowego nieruchomości.docx",
+      "source_format": "DOCX",
+      "status": "needs_review",
+      "model": "qwen/qwen3-vl-30b-a3b-instruct",
+      "provider": "openrouter-development",
+      "validation_valid": true,
+      "schema_valid": true,
+      "quality_ok": false,
+      "manual_review_recommended": true,
+      "input_fields": 10,
+      "pages": 2,
+      "quality_review_reasons": [
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: Wnioskodawca:",
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: (imię i nazwisko/nazwa wnioskodawcy)",
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: Gminy Elbląg",
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: (adres)",
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: (nr telefonu/adres e-mail)",
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: (data)",
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: Wniosku o ustalenie numeru porządkowego budynkowi zlokalizowanemu w miejscowości",
+        "Strona 1: Brak poprawnego obszaru odpowiedzi: przy ulicy"
+      ],
+      "source_sha256": "d26d86aea213ea09653381c987a5c12a3e1c20be4dfd6a3370613c8f04184c48",
+      "output_file": "01-ustalenie-numeru-porzadkowego-nieruchomosci.json",
+      "note": "Published JSON is the unmodified output of the live FormFlow API, not the sample reference COI JSON in the challenge archive."
+    },
+    {
       "number": 2,
       "title": "Wniosek o zwrot opłaty skarbowej",
       "source_filename": "Wniosek o zwrot opłaty skarbowej.pdf",
