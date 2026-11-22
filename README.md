@@ -8,6 +8,8 @@ Praca urzędnika odbywa się w trzech krokach: **Dodaj dokument → Sprawdź i p
 
 - [**Prezentacja konkursowa — PDF, 9 slajdów**](submission/FormFlow_AI_HackNation_2026_COI_9_slajdow.pdf)
 - [Prezentacja edytowalna — PowerPoint](submission/FormFlow_AI_HackNation_2026_COI_9_slajdow.pptx)
+- [**Film demonstracyjny — Full HD MP4 (2:55)**](submission/FormFlow_AI_HackNation_2026_FullHD_v2.mp4)
+- [Polskie napisy do filmu — SRT](submission/FormFlow_AI_2026_napisy.srt)
 
 ## Funkcje
 
@@ -164,15 +166,11 @@ Projekt wykonany na HackNation 2026. Opis użytych komponentów i kwestii licenc
 
 ### Film demonstracyjny (HackNation)
 
-Film z lektorem, animacjami i aktualnym interfejsem trwa 2:55, 1920×1080.
-Po wygenerowaniu umieść plik
-`FormFlow_AI_HackNation_2026_FullHD_v2.mp4` w
-`data/media/films/` (ignorowanym przez Git). Caddy udostępnia go pod
-`/film/FormFlow_AI_HackNation_2026_FullHD_v2.mp4`, po uwierzytelnieniu
-tym samym kontem co demo. Napisy są dostępne w tym samym katalogu jako
-`FormFlow_AI_2026_napisy.srt`.
+Finalny film z polskim lektorem i animacjami aktualnego interfejsu FormFlow
+trwa 2:55 i ma rozdzielczość 1920×1080. **Publiczny plik MP4** oraz
+napisy SRT znajdują się w katalogu [`submission/`](submission/).
 
-**Ważne:** chroniony link Tailscale nie jest równoznaczny z filmem
-umieszczonym w otwartym repozytorium, czego wymaga konkurs COI.
-Przed zgłoszeniem trzeba udostępnić film przez ogólnodostępny link
-(repozytorium, release lub powiązaną publikację) i przekazać go jury.
+Kopia filmu jest też serwowana przez Caddy pod
+`/film/FormFlow_AI_HackNation_2026_FullHD_v2.mp4`, chroniona
+tym samym kontem co demo. Do zgłoszenia konkursowego i udostępnienia
+jury wykorzystaj **publiczny link GitHub** z listy materiałów powyżej.

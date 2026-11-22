@@ -1,0 +1,111 @@
+1
+00:00:00,000 --> 00:00:06,935
+Każdy urząd zna ten problem. Formularze w PDF-ach, Wordzie, Excelu, na skanach. Dziesiątki pól,
+
+2
+00:00:06,935 --> 00:00:13,870
+stron i instrukcji. A każdy z nich trzeba kiedyś zmienić w usługę cyfrową.
+
+3
+00:00:14,370 --> 00:00:20,790
+Ręczne przenoszenie treści formularza to nie tylko przepisywanie tekstu. Trzeba rozpoznać pytania, podzielić dokument
+
+4
+00:00:20,790 --> 00:00:27,210
+na sekcje, uwzględnić walidację i zależności. To żmudna praca przy każdym nowym wzorze.
+
+5
+00:00:27,710 --> 00:00:33,315
+Dlatego stworzyliśmy FormFlow AI. Jeden proces, który zaczyna się od istniejącego
+
+6
+00:00:33,315 --> 00:00:38,920
+dokumentu, a kończy edytowalnym projektem formularza elektronicznego, gotowym do dalszego wykorzystania.
+
+7
+00:00:39,420 --> 00:00:44,915
+Urzędnik może przesłać PDF, dokument Word, arkusz kalkulacyjny albo skan. FormFlow
+
+8
+00:00:44,915 --> 00:00:50,410
+normalizuje plik, odczytuje zawartość i przygotowuje materiał do analizy struktury.
+
+9
+00:00:50,910 --> 00:00:56,035
+Całość zaczyna się w prostym kreatorze. Wybieramy plik i uruchamiamy analizę.
+
+10
+00:00:56,035 --> 00:01:01,160
+Interfejs prowadzi użytkownika przez cały proces w trzech czytelnych krokach.
+
+11
+00:01:01,660 --> 00:01:08,525
+System łączy ekstrakcję dokumentów i analizę multimodalną. Rozpoznaje nie tylko tekst, lecz także pytania,
+
+12
+00:01:08,525 --> 00:01:15,390
+obszary odpowiedzi, nagłówki i strukturę stron. Z tych informacji buduje formularz do weryfikacji.
+
+13
+00:01:15,890 --> 00:01:21,160
+Zamiast surowego wyniku OCR otrzymujemy interaktywny podgląd formularza. Można przeglądać strony,
+
+14
+00:01:21,160 --> 00:01:26,430
+pola i odpowiedzi, a także zestawić efekt ze źródłowym dokumentem.
+
+15
+00:01:26,930 --> 00:01:33,135
+Jeśli model coś pominie, nie trzeba zaczynać od nowa. W edytorze poprawimy nazwę pola,
+
+16
+00:01:33,135 --> 00:01:39,340
+dodamy pytanie, zmienimy sekcję lub przeniesiemy pole do właściwego miejsca. To urzędnik zatwierdza wynik.
+
+17
+00:01:39,840 --> 00:01:45,840
+FormFlow rozpoznaje także numerowane podsekcje, na przykład dwa jeden, dwa dwa, dwa trzy i
+
+18
+00:01:45,840 --> 00:01:51,840
+dwa cztery. A gdy dokument zawiera powtarzające się pola, użytkownik może skorygować ich przypisanie.
+
+19
+00:01:52,340 --> 00:01:59,085
+Podgląd wspiera walidację danych: sprawdza wymagane pola, formaty, a także cyfry kontrolne
+
+20
+00:01:59,085 --> 00:02:05,830
+numerów PESEL, NIP i REGON. Reguły warunkowe pomagają odwzorować logiczny przepływ formularza.
+
+21
+00:02:06,330 --> 00:02:12,500
+Gdy formularzy jest więcej, uruchamiamy batch. Do dziesięciu dokumentów w jednej paczce i
+
+22
+00:02:12,500 --> 00:02:18,670
+trzy analizy równolegle. Każdy wynik sprawdzamy osobno, a zatwierdzone formularze możemy pobrać wspólnie.
+
+23
+00:02:19,170 --> 00:02:25,075
+Na końcu otrzymujemy uporządkowaną strukturę JSON w formacie oczekiwanym przez COI. System
+
+24
+00:02:25,075 --> 00:02:30,980
+sprawdza jej zgodność ze schematem. Dopiero po weryfikacji można zapisać gotowy wynik.
+
+25
+00:02:31,480 --> 00:02:37,190
+Pod maską modułowe API rozdziela odczyt plików, interpretację i walidację struktury. Całość działa
+
+26
+00:02:37,190 --> 00:02:42,900
+w kontenerach Docker, a element analizujący dokumenty może być rozwijany niezależnie od edytora.
+
+27
+00:02:43,400 --> 00:02:49,110
+FormFlow AI. Od papierowego formularza do projektu e-usługi. Z automatyzacją tam,
+
+28
+00:02:49,110 --> 00:02:54,820
+gdzie daje wartość, i kontrolą człowieka tam, gdzie liczy się poprawność.
