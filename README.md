@@ -161,9 +161,9 @@ Projekt wykonany na HackNation 2026. Opis użytych komponentów i kwestii licenc
 
 Film z lektorem, animacjami i aktualnym interfejsem trwa 2:55, 1920×1080.
 Po wygenerowaniu umieść plik
-`FormFlow_AI_HackNation_2026_FullHD.mp4` w
+`FormFlow_AI_HackNation_2026_FullHD_v2.mp4` w
 `data/media/films/` (ignorowanym przez Git). Caddy udostępnia go pod
-`/film/FormFlow_AI_HackNation_2026_FullHD.mp4`, po uwierzytelnieniu
+`/film/FormFlow_AI_HackNation_2026_FullHD_v2.mp4`, po uwierzytelnieniu
 tym samym kontem co demo. Napisy są dostępne w tym samym katalogu jako
 `FormFlow_AI_2026_napisy.srt`.
 
