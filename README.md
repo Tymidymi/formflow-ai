@@ -11,7 +11,7 @@ Praca urzędnika odbywa się w trzech krokach: **Dodaj dokument → Sprawdź i p
 - Model multimodalny open-weight Qwen3-VL interpretuje strukturę stron; deterministyczny moduł mapuje wynik na format COI.
 - Walidacja schematu JSON COI, reguły pól (m.in. PESEL, NIP, REGON, telefon i e-mail), opcje wyboru, warunki wyświetlania, sekcje oraz informacje do odczytu.
 - Podgląd wygenerowanego e-formularza, edytor i ręczne potwierdzenie zgodności ze źródłem.
-- Wybór do 5 dokumentów, przetwarzanie kolejno przez REST API, przegląd każdego wyniku i wspólny eksport zatwierdzonych JSON-ów do ZIP.
+- Wybór do 10 dokumentów, do 3 równoległych konwersji przez REST API (z automatycznym uzupełnianiem wolnych miejsc), przegląd każdego wyniku i wspólny eksport zatwierdzonych JSON-ów do ZIP.
 - Rozpoznawanie numerowanych podsekcji źródła (np. 2.1, 2.2, 2.3) z ostrożnym przypisaniem pól; ręczne przenoszenie pól między sekcjami bez zmiany identyfikatorów i zależności.
 - Walidacja odpowiedzi w podglądzie: wymagane wartości, formaty, sumy kontrolne PESEL/NIP/REGON, telefon i kod pocztowy.
 - Landing projektu: `/projekt/`, link do demonstracji i repo oraz oznaczone miejsca na prezentację i film.

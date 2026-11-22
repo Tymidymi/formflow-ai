@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/static/style.css"/>
   <link rel="stylesheet" href="/static/preview.bundle.css"/>
   <script src="/static/app.js" defer></script>
+  <script src="/static/batch-runner.js" defer></script>
   <script src="/static/batch.js" defer></script>
   <script src="/static/preview.bundle.js" defer></script>
 </head>
@@ -76,9 +77,9 @@
         <button id="return-to-review" type="button" class="wizard-return" hidden>Wróć do przygotowanego formularza →</button>
       </div>
       <details class="batch-panel" id="batch-panel">
-        <summary><strong>Wiele dokumentów naraz</strong><span>Przetwarzanie wsadowe · do 5 plików</span></summary>
+        <summary><strong>Wiele dokumentów naraz</strong><span>Przetwarzanie wsadowe · do 10 plików</span></summary>
         <div class="batch-content">
-          <p>Dodaj do pięciu formularzy. Analizujemy je kolejno, żeby nie przeciążać serwera. Wyniki pozostają w tej karcie przeglądarki, aż je pobierzesz.</p>
+          <p>Dodaj do dziesięciu formularzy. Analizujemy do trzech dokumentów równolegle; pozostałe rozpoczynają się automatycznie, gdy zwolni się miejsce. Każdy wynik pozostaje do sprawdzenia w tej karcie przeglądarki.</p>
           <label for="batch-file-input">Formularze do przetworzenia</label>
           <input id="batch-file-input" type="file" accept=".pdf,.doc,.docx,.ods,.xlsx,.jpg,.jpeg,.png" multiple/>
           <label class="batch-consent"><input id="batch-consent" type="checkbox"/>

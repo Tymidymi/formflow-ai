@@ -186,6 +186,8 @@ def capabilities():
             ".png",
         ],
         "max_upload_bytes": max_upload_bytes(),
+        "batch_max_files": 10,
+        "max_parallel_conversions": MAX_PARALLEL_CONVERSIONS,
         "pipeline": "source-page-v2",
         "office_normalization_engine": "libreoffice-pdf+docling-slim-source",
         "note": "Development uses external AI. Office retains original structural evidence from Docling Slim alongside rendered PDF pages.",
@@ -241,19 +243,19 @@ async def validate_json(request: Request):
 async def export_reviewed_batch(request: Request):
     """Package already reviewed COI JSON definitions, without storing inputs.
 
-    Conversion itself is processed sequentially by the browser using the
-    existing /convert endpoint, to avoid multi-document timeouts and RAM spikes.
+    The browser processes up to ten files with a bounded parallel worker pool
+    using /convert. Export accepts only individually reviewed forms.
     """
     payload = await request.body()
-    if len(payload) > 5 * 1024 * 1024:
+    if len(payload) > 10 * 1024 * 1024:
         return JSONResponse(status_code=413, content={"detail": "Zbyt duża paczka JSON."})
     try:
         data = json.loads(payload)
     except (ValueError, UnicodeDecodeError):
         return JSONResponse(status_code=400, content={"detail": "Nieprawidłowy JSON."})
     items = data.get("forms") if isinstance(data, dict) else None
-    if not isinstance(items, list) or not 1 <= len(items) <= 5:
-        return JSONResponse(status_code=422, content={"detail": "Paczka wymaga od 1 do 5 formularzy."})
+    if not isinstance(items, list) or not 1 <= len(items) <= 10:
+        return JSONResponse(status_code=422, content={"detail": "Paczka wymaga od 1 do 10 formularzy."})
     archive = BytesIO()
     names = set()
     with ZipFile(archive, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
@@ -489,7 +491,11 @@ async def _convert_form(
 
 
 CONVERSION_TIMEOUT_SECONDS = 240
-CONVERSION_SLOTS = asyncio.Semaphore(2)
+# Three concurrent conversions on the 6-core / memory-constrained demo VPS.
+# Browser uses the same limit: queued jobs stay client-side instead of consuming
+# the 240-second server request deadline while waiting for semaphore capacity.
+MAX_PARALLEL_CONVERSIONS = 3
+CONVERSION_SLOTS = asyncio.Semaphore(MAX_PARALLEL_CONVERSIONS)
 
 
 # A wall-clock deadline includes normalization, every model call and verification.

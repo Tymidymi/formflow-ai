@@ -32,7 +32,7 @@
 <tr><td><code>POST /api/v1/forms/extract-preview</code></td><td>Lokalny OCR i podgląd tekstu, <strong>bez modelu</strong></td></tr>
 <tr><td><code>POST /api/v1/forms/convert</code></td><td>Projekt JSON COI</td></tr>
 <tr><td><code>POST /api/v1/forms/validate-json</code></td><td>Strukturalna kontrola COI</td></tr>
-<tr><td><code>POST /api/v1/forms/batch/export</code></td><td>ZIP z 1–5 zweryfikowanych strukturalnie JSON-ów COI</td></tr>
+<tr><td><code>POST /api/v1/forms/batch/export</code></td><td>ZIP z 1–10 zweryfikowanych strukturalnie JSON-ów COI</td></tr>
 <tr><td><code>GET /api/v1/demo/convert</code></td><td>Syntetyczny przykład bez AI</td></tr>
 </table></div>
 <h2 id="upload">Upload</h2>
@@ -70,13 +70,13 @@
 <p>W odpowiedziach błędów może wystąpić <code>request_id</code> do korelacji z logiem technicznym. Konwersja ma limit 240 sekund, a dwie równoległe konwersje to maksymalna współbieżność.</p>
 <p><strong>Dokumentacja architektury:</strong> <a href="index.html">TECHNICAL.md</a>.</p>
 <h2 id="przetwarzanie-wielu-dokumentow">Przetwarzanie wielu dokumentów</h2>
-<p>W interfejsie <strong>Wiele dokumentów naraz</strong> można wybrać do 5 plików. Przeglądarka wywołuje <code>/api/v1/forms/convert?mode=diagnostic</code> <strong>kolejno</strong>, oddzielnym żądaniem na plik, z tą samą świadomą zgodą na zewnętrzne AI. Każdy szkic musi zostać otwarty, poprawiony i zatwierdzony. Serwer nie przechowuje kolejki, uploadów ani wyników po zakończeniu żądania.</p>
+<p>W interfejsie <strong>Wiele dokumentów naraz</strong> można wybrać do <strong>10 plików</strong>. Przeglądarka uruchamia maksymalnie <strong>3 niezależne konwersje równolegle</strong>, a kolejne żądanie startuje od razu po zakończeniu dowolnego poprzedniego. Jest to ograniczona pula zadań, nie jedna sekwencyjna kolejka: limit 3 chroni RAM VPS i zapobiega oczekiwaniu na wolny slot wewnątrz 240-sekundowego deadline&#x27;u API. Każdy dokument używa odrębnego <code>POST /api/v1/forms/convert?mode=diagnostic</code>, z tą samą świadomą zgodą na zewnętrzne AI. Każdy szkic trzeba sprawdzić i zatwierdzić. Błąd jednego dokumentu nie zatrzymuje innych analiz. Kolejka i wyniki są trzymane wyłącznie w przeglądarce; serwer nie zapisuje uploadów ani wyników po zakończeniu żądania.</p>
 <p>Po przeglądzie interfejs wywołuje:</p>
 <pre><code class="lang-http">POST /api/v1/forms/batch/export
 Content-Type: application/json
 
 {&quot;forms&quot;:[{&quot;filename&quot;:&quot;wniosek.pdf&quot;,&quot;form&quot;:{&quot;title&quot;:&quot;...&quot;,&quot;tabs&quot;:[],&quot;flow&quot;:{}}}]}</code></pre>
-<p>W przykładzie powyżej obiekt <code>form</code> jest wyłącznie symbolem pełnego JSON COI. <strong>Taki przykładowy pusty formularz zostanie odrzucony</strong>: eksport wymaga <code>validation.valid = true</code>, <code>schema_valid = true</code> oraz co najmniej jednego pola wejściowego na każdy formularz. W odpowiedzi HTTP 200 wraca <code>application/zip</code>, bez trwałego zapisu na serwerze. Dopuszczalne jest 1–5 formularzy, maksymalnie 5 MiB JSON; nieprawidłowe dane kończą się 400, 413 lub 422.</p>
+<p>W przykładzie powyżej obiekt <code>form</code> jest wyłącznie symbolem pełnego JSON COI. <strong>Taki przykładowy pusty formularz zostanie odrzucony</strong>: eksport wymaga <code>validation.valid = true</code>, <code>schema_valid = true</code> oraz co najmniej jednego pola wejściowego na każdy formularz. W odpowiedzi HTTP 200 wraca <code>application/zip</code>, bez trwałego zapisu na serwerze. Dopuszczalne jest 1–10 formularzy, maksymalnie 10 MiB JSON; nieprawidłowe dane kończą się 400, 413 lub 422.</p>
 <p>To endpoint pakowania, a nie wspólne żądanie konwersji AI: podział pozwala uniknąć przekraczania limitów pojedynczego requestu.</p>
 <div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
 <p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>

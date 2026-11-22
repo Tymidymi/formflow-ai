@@ -6,7 +6,7 @@
 
 Usługa przyjmuje **pojedynczy pusty formularz** z zasobów urzędu i wyprowadza konfigurowalny formularz elektroniczny w formacie JSON COI. Odbiorcą jest urzędnik odpowiedzialny za digitalizację formularzy; narzędzie nie składa wniosków w imieniu obywateli.
 
-Obsługiwane wejścia: `.pdf`, `.doc`, `.docx`, `.ods`, `.xlsx`, `.jpg`, `.jpeg`, `.png`. Wyjścia: obiekt COI JSON (tryb `coi`), obiekt diagnostyczny zawierający `form`, `validation`, `quality`, `grounding`, `inventory` i informacje o zużyciu modelu (tryb `diagnostic`). Frontend zapewnia wizualizację, edycję i ręczną weryfikację. Interfejs oferuje też kolejkę maksymalnie 5 plików, analizowanych sekwencyjnie w przeglądarce, oraz eksport ZIP po indywidualnej kontroli.
+Obsługiwane wejścia: `.pdf`, `.doc`, `.docx`, `.ods`, `.xlsx`, `.jpg`, `.jpeg`, `.png`. Wyjścia: obiekt COI JSON (tryb `coi`), obiekt diagnostyczny zawierający `form`, `validation`, `quality`, `grounding`, `inventory` i informacje o zużyciu modelu (tryb `diagnostic`). Frontend zapewnia wizualizację, edycję i ręczną weryfikację. Interfejs oferuje też paczki do 10 plików, analizowanych w puli 3 równoległych żądań, oraz eksport ZIP po indywidualnej kontroli.
 
 ## 2. Architektura i granice zaufania
 
@@ -147,7 +147,7 @@ Instrukcja wdrożenia (w tym Compose i weryfikacja portów): [DEPLOYMENT.md](DEP
 - **Numery podsekcji:** `source_sections.py` odczytuje ogólne wzorce nagłówków numerycznych z OCR i w ograniczonych, jednoznacznych przypadkach rozdziela jedną zlaną sekcję na kilka numerowanych sekcji COI. Powtórzone etykiety przypisuje na podstawie ich kolejności w źródle. Nie tworzy żadnych dodatkowych pytań, a niepewny przypadek pozostawia bez zmian.
 - **Edytor:** `fieldMoveSection` pozwala przenosić pole pomiędzy sekcjami tej samej strony przy zachowaniu `id`, `techName`, reguł `SHOW` i struktury siatki. Puste sekcje po przeniesieniu są usuwane; nie zmienia się papierowego źródła ani niezależnie przechowywanych danych.
 - **Kontrola odpowiedzi:** JSON Forms/JSON Schema sprawdza formaty i wymagane pola; dodatkowy moduł podglądu sprawdza sumy kontrolne PESEL, NIP, REGON i prosty format numeru telefonu. Są to walidacje wpisanych odpowiedzi, a nie twierdzenie o bezbłędnym rozpoznaniu OCR.
-- **Batch:** przeglądarka kolejno wykonuje `POST /api/v1/forms/convert?mode=diagnostic` dla maksymalnie 5 plików, przechowuje szkice wyłącznie w bieżącej karcie. Wspólny ZIP jest generowany na żądanie przez `POST /api/v1/forms/batch/export` dopiero dla plików zatwierdzonych przez użytkownika. Serwer ponownie waliduje każdy COI JSON; nie zapisuje ZIP ani formularzy trwale.
+- **Batch:** przeglądarka uruchamia do 3 równoległych `POST /api/v1/forms/convert?mode=diagnostic` dla maksymalnie 10 wybranych plików; zwolnienie slotu od razu uruchamia kolejne żądanie. Szkice pozostają wyłącznie w bieżącej karcie. Wspólny ZIP jest generowany na żądanie przez `POST /api/v1/forms/batch/export` dopiero dla plików zatwierdzonych przez użytkownika. Serwer ponownie waliduje każdy COI JSON; nie zapisuje ZIP ani formularzy trwale.
 - **Strona informacyjna:** `/projekt/` zawiera demo, link do kodu, opis rozwiązania i miejsca do uzupełnienia materiałami konkursowymi; pierwotny kreator pozostaje pod `/`.
 
 

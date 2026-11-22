@@ -265,3 +265,10 @@ def test_same_origin_post_is_not_blocked_by_origin_check():
         headers={"Origin": "http://testserver", "Sec-Fetch-Site": "same-origin"},
     )
     assert response.status_code != 403
+
+
+def test_batch_capabilities_match_backend_slots():
+    from app.main import MAX_PARALLEL_CONVERSIONS
+    data = client.get("/api/v1/capabilities").json()
+    assert data["batch_max_files"] == 10
+    assert data["max_parallel_conversions"] == MAX_PARALLEL_CONVERSIONS == 3

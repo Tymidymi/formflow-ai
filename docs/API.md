@@ -29,7 +29,7 @@ Wszystkie pozostałe kody błędów w poniższej dokumentacji dotyczą
 | `POST /api/v1/forms/extract-preview` | Lokalny OCR i podgląd tekstu, **bez modelu** |
 | `POST /api/v1/forms/convert` | Projekt JSON COI |
 | `POST /api/v1/forms/validate-json` | Strukturalna kontrola COI |
-| `POST /api/v1/forms/batch/export` | ZIP z 1–5 zweryfikowanych strukturalnie JSON-ów COI |
+| `POST /api/v1/forms/batch/export` | ZIP z 1–10 zweryfikowanych strukturalnie JSON-ów COI |
 | `GET /api/v1/demo/convert` | Syntetyczny przykład bez AI |
 
 ## Upload
@@ -94,9 +94,16 @@ W odpowiedziach błędów może wystąpić `request_id` do korelacji z logiem te
 
 ## Przetwarzanie wielu dokumentów
 
-W interfejsie **Wiele dokumentów naraz** można wybrać do 5 plików.
-Przeglądarka wywołuje `/api/v1/forms/convert?mode=diagnostic` **kolejno**, oddzielnym żądaniem na plik, z tą samą świadomą zgodą na zewnętrzne AI.
-Każdy szkic musi zostać otwarty, poprawiony i zatwierdzony. Serwer nie przechowuje kolejki, uploadów ani wyników po zakończeniu żądania.
+W interfejsie **Wiele dokumentów naraz** można wybrać do **10 plików**.
+Przeglądarka uruchamia maksymalnie **3 niezależne konwersje równolegle**, a kolejne
+żądanie startuje od razu po zakończeniu dowolnego poprzedniego. Jest to
+ograniczona pula zadań, nie jedna sekwencyjna kolejka: limit 3 chroni RAM VPS
+i zapobiega oczekiwaniu na wolny slot wewnątrz 240-sekundowego deadline'u API.
+Każdy dokument używa odrębnego `POST /api/v1/forms/convert?mode=diagnostic`,
+z tą samą świadomą zgodą na zewnętrzne AI. Każdy szkic trzeba sprawdzić
+i zatwierdzić. Błąd jednego dokumentu nie zatrzymuje innych analiz.
+Kolejka i wyniki są trzymane wyłącznie w przeglądarce; serwer nie zapisuje
+uploadów ani wyników po zakończeniu żądania.
 
 Po przeglądzie interfejs wywołuje:
 
@@ -107,6 +114,6 @@ Content-Type: application/json
 {"forms":[{"filename":"wniosek.pdf","form":{"title":"...","tabs":[],"flow":{}}}]}
 ```
 
-W przykładzie powyżej obiekt `form` jest wyłącznie symbolem pełnego JSON COI. **Taki przykładowy pusty formularz zostanie odrzucony**: eksport wymaga `validation.valid = true`, `schema_valid = true` oraz co najmniej jednego pola wejściowego na każdy formularz. W odpowiedzi HTTP 200 wraca `application/zip`, bez trwałego zapisu na serwerze. Dopuszczalne jest 1–5 formularzy, maksymalnie 5 MiB JSON; nieprawidłowe dane kończą się 400, 413 lub 422.
+W przykładzie powyżej obiekt `form` jest wyłącznie symbolem pełnego JSON COI. **Taki przykładowy pusty formularz zostanie odrzucony**: eksport wymaga `validation.valid = true`, `schema_valid = true` oraz co najmniej jednego pola wejściowego na każdy formularz. W odpowiedzi HTTP 200 wraca `application/zip`, bez trwałego zapisu na serwerze. Dopuszczalne jest 1–10 formularzy, maksymalnie 10 MiB JSON; nieprawidłowe dane kończą się 400, 413 lub 422.
 
 To endpoint pakowania, a nie wspólne żądanie konwersji AI: podział pozwala uniknąć przekraczania limitów pojedynczego requestu.

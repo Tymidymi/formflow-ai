@@ -56,7 +56,7 @@ Przeprowadzono mały benchmark kilku otwartych modeli VLM, także Qwen3-VL-30B/2
 - `apps/api/tests/test_source_sections.py`: rozdzielenie podpunktów, powtórzone etykiety, brak dzielenia dla niepewnego źródła.
 - `apps/frontend/tests/editor.test.mjs`: przeniesienie pola pomiędzy sekcjami, utrzymanie zależności SHOW, identyfikatorów i siatki.
 - `apps/frontend/tests/adapter.test.mjs`: sumy kontrolne PESEL/NIP/REGON i format telefonu.
-- `apps/api/tests/test_batch_export.py`: ZIP 1–5 poprawnych formularzy, odrzucenie niepoprawnych oraz sanitizacja nazw plików.
+- `apps/api/tests/test_batch_export.py`: ZIP 1–10 poprawnych formularzy, odrzucenie niepoprawnych oraz sanitizacja nazw plików.
 - `apps/api/tests/test_api.py`: landing `/projekt/`, linki, dokumentacja lokalna oraz najważniejsze endpointy.
 
 Przetwarzanie wsadowe nie jest gwarancją trafności AI: każdy wygenerowany JSON pozostaje szkicem i wymaga ręcznej kontroli przed eksportem.
@@ -100,3 +100,21 @@ Backend zachowuje testy blokady POST z `Origin` obcej domeny.
 **Ważne:** logowanie jest natywnym HTTP Basic, nie własną sesją cookie.
 Przed publikacją publiczną sprawdź całą ścieżkę przez docelowy HTTPS
 i ograniczenie ryzyka brute-force. Nie publikuj pliku z hashem bcrypt.
+
+
+## Przetwarzanie równoległe: 10 plików, 3 aktywne
+
+`apps/frontend/tests/batch.test.mjs` testuje 10 zadań z kontrolowanymi
+opóźnieniami: w żadnym momencie nie działa więcej niż 3, kolejne startuje
+po zwolnieniu slotu, a błąd jednego zadania nie zatrzymuje dziewięciu innych.
+Backend udostępnia spójne `batch_max_files: 10` i
+`max_parallel_conversions: 3` w `GET /api/v1/capabilities`;
+`CONVERSION_SLOTS` ogranicza rzeczywiste przetwarzanie do 3 instancji.
+Wspólny eksport przyjmuje do 10 poprawnych formularzy i do 10 MiB JSON.
+Testy backendu obejmują dokładnie 10, odmowę dla 11 i poprawność ZIP.
+
+Limit 3 wynika z dostępnej pamięci demonstracyjnego VPS (RAM dostępny ok.
+1,3 GiB, bez SWAP w chwili wdrożenia). Dziesięć OCR + multimodalnych
+wywołań AI jednocześnie mogłoby przekroczyć limity RAM lub czas odpowiedzi.
+Kolejne dokumenty czekają w przeglądarce, a nie jako wiszące żądania
+API. Nie uruchamiano 10 płatnych testów modelu w ramach tego testu kodu.

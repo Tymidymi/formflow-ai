@@ -1,4 +1,4 @@
-/* Sequential batch conversion: no server-side persistence, one model job at a time. */
+/* Parallel batch conversion: bounded client-side workers, no server-side persistence. */
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
@@ -6,7 +6,10 @@ const fileInput=$("batch-file-input"), consent=$("batch-consent");
 const start=$("batch-start"), list=$("batch-results");
 const summary=$("batch-summary"), exportButton=$("batch-export");
 const panel=$("batch-panel");
-if (!fileInput || !window.FormFlowWizard) return;
+if (!fileInput || !window.FormFlowWizard || !window.FormFlowBatchRunner) return;
+const runner=window.FormFlowBatchRunner;
+const MAX_FILES=runner.MAX_FILES;
+let maxParallel=runner.MAX_PARALLEL;
 
 let files=[],entries=[],active=-1,running=false,conversionReady=false,needsConsent=true;
 const allowed=/\.(pdf|doc|docx|ods|xlsx|jpe?g|png)$/i;
@@ -24,7 +27,7 @@ function setSummary(text,failed=false){
 }
 function updateStart(){
   start.disabled=running||!conversionReady||files.length<1||
-    files.length>5||(needsConsent&&!consent.checked);
+    files.length>MAX_FILES||(needsConsent&&!consent.checked);
   fileInput.disabled=running;
   consent.disabled=running;
 }
@@ -89,7 +92,7 @@ function openItem(index){
 }
 fileInput.addEventListener("change",()=>{
   files=Array.from(fileInput.files||[]);
-  if(files.length>5){setSummary("Wybierz maksymalnie 5 dokumentów.",true);}
+  if(files.length>MAX_FILES){setSummary("Wybierz maksymalnie 10 dokumentów.",true);}
   else if(files.some(f=>!allowed.test(f.name))){setSummary("Nieobsługiwany format. Dozwolone PDF, DOC, DOCX, XLSX, ODS oraz obrazy.",true);}
   else setSummary(files.length?"Wybrano "+files.length+" dokumentów.":"");
   updateStart();
@@ -97,7 +100,7 @@ fileInput.addEventListener("change",()=>{
 consent.addEventListener("change",updateStart);
 
 start.addEventListener("click",async()=>{
-  if(running||!conversionReady||!files.length||files.length>5||
+  if(running||!conversionReady||!files.length||files.length>MAX_FILES||
      files.some(f=>!allowed.test(f.name))||(needsConsent&&!consent.checked))return;
   if(entries.some(e=>e.approved) && !window.confirm(
      "Nowa paczka zastąpi wcześniej zatwierdzone formularze. Czy na pewno już je pobrano?"
@@ -109,31 +112,43 @@ start.addEventListener("click",async()=>{
   running=true;
   window.FormFlowWizard.setBatchBusy(true);
   render();
-  for(let i=0;i<entries.length;i++){
-    const entry=entries[i];
-    entry.status="processing";
-    setSummary("Analizujemy "+(i+1)+" z "+entries.length+": "+entry.file.name);
-    render();
-    try{
-      const body=new FormData();
-      body.append("file",entry.file,entry.file.name);
-      const response=await fetch("/api/v1/forms/convert?mode=diagnostic",{
-        method:"POST",body,headers:{"X-External-AI-Consent":needsConsent?"true":"false"}
-      });
-      const data=await window.FormFlowHTTP.readAPIResponse(response);
-      if(!response.ok||!data?.form)
-        throw Error(typeof data?.detail==="string"?data.detail:"Błąd HTTP "+response.status);
-      entry.data=data;
-      entry.status="draft";
-    }catch(error){
-      entry.status="failed";
-      entry.error=String(error?.message||"Błąd analizy").slice(0,220);
-    }
+  const showProgress=()=>{
+    const done=entries.filter(entry=>entry.status==="draft"||entry.status==="failed").length;
+    const active=entries.filter(entry=>entry.status==="processing").length;
+    setSummary("Ukończono "+done+"/"+entries.length+". Trwa "+active+
+      " analiz równoległych (maks. "+maxParallel+").");
+  };
+  try{
+    // Start up to maxParallel requests immediately, then refill the worker
+    // pool as soon as any completes. Failed files do not block other jobs.
+    await runner.processAll(entries,async(entry)=>{
+      entry.status="processing";
+      showProgress();
+      render();
+      try{
+        const body=new FormData();
+        body.append("file",entry.file,entry.file.name);
+        const response=await fetch("/api/v1/forms/convert?mode=diagnostic",{
+          method:"POST",body,headers:{"X-External-AI-Consent":needsConsent?"true":"false"}
+        });
+        const data=await window.FormFlowHTTP.readAPIResponse(response);
+        if(!response.ok||!data?.form)
+          throw Error(typeof data?.detail==="string"?data.detail:"Błąd HTTP "+response.status);
+        entry.data=data;
+        entry.status="draft";
+      }catch(error){
+        entry.status="failed";
+        entry.error=String(error?.message||"Błąd analizy").slice(0,220);
+      }finally{
+        showProgress();
+        render();
+      }
+    },maxParallel);
+  }finally{
+    running=false;
+    window.FormFlowWizard.setBatchBusy(false);
     render();
   }
-  running=false;
-  window.FormFlowWizard.setBatchBusy(false);
-  render();
 });
 exportButton.addEventListener("click",async()=>{
   if(running)return;
@@ -168,6 +183,8 @@ exportButton.addEventListener("click",async()=>{
 window.FormFlowBatch={capture};
 fetch("/api/v1/capabilities").then(window.FormFlowHTTP.readAPIResponse).then(data=>{
   conversionReady=Boolean(data.conversion);
+  maxParallel=Math.min(runner.MAX_PARALLEL,
+    Math.max(1,Math.floor(Number(data.max_parallel_conversions)||1)));
   needsConsent=data.model_provider!=="ollama-offline";
   if(!needsConsent)consent.closest("label").hidden=true;
   updateStart();
