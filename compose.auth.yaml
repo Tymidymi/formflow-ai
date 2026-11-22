@@ -18,6 +18,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./data/private/caddy/jury-users.caddy:/etc/caddy/jury-users.caddy:ro
+      - ./data/media/films:/srv/formflow-films:ro
     tmpfs:
       - /tmp:rw,nosuid,nodev,size=8m,uid=1000,gid=1000
       - /data:rw,nosuid,nodev,size=8m,uid=1000,gid=1000

@@ -17,4 +17,6 @@ build/
 # Never commit user-uploaded forms or contest reference fixtures without permission.
 uploads/
 data/private/
+# Rendered contest films are hosted by the gateway, not committed into the source.
+data/media/
 contracts/coi/private/

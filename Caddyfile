@@ -9,12 +9,21 @@
 		import /etc/caddy/jury-users.caddy
 	}
 
-	reverse_proxy api:8000 {
-		# Do not forward shared credentials into the Python application.
-		header_up -Authorization
-		transport http {
-			dial_timeout 10s
-			response_header_timeout 250s
+	# Media shares the same HTTP Basic protection as the app and docs.
+	handle_path /film/* {
+		root * /srv/formflow-films
+		header Cache-Control "private, max-age=3600"
+		file_server
+	}
+
+	handle {
+		reverse_proxy api:8000 {
+			# Do not forward shared credentials into Python.
+			header_up -Authorization
+			transport http {
+				dial_timeout 10s
+				response_header_timeout 250s
+			}
 		}
 	}
 }
