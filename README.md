@@ -43,6 +43,17 @@ Szczegóły: [dokumentacja techniczna](docs/TECHNICAL.md), [API](docs/API.md), [
 
 Dokumentacja w aplikacji: `/documentation/` (samodzielna strona HTML, bez CDN). Zmiany w Markdown eksportuje `python scripts/build_docs.py`; CI sprawdza zgodność przez `python scripts/build_docs.py --check`.
 
+## Czas analizy PDF w demonstracji
+
+Przy wielostronicowych dokumentach czas odpowiedzi zależy od szybkości
+zewnętrznego dostawcy modelu. Demo OpenRouter domyślnie używa
+`OPENROUTER_PROVIDER_SORT=throughput` (wybór szybszej infrastruktury dla
+**tego samego** otwartego modelu), a budżet konwersji wynosi 360 s.
+Caddy czeka na nagłówki API maksymalnie 390 s. Strategię można zmienić
+przez zmienną środowiskową na `latency`, `price` lub pustą wartość,
+jeżeli priorytetem jest inny parametr. Dłuższy timeout nie gwarantuje
+poprawności rozpoznawania: wygenerowane pola nadal wymagają weryfikacji.
+
 ## Dostęp dla jury — Caddy Basic Auth
 
 Dostęp do **każdej** strony i metody API (demo, landing, dokumentacja,

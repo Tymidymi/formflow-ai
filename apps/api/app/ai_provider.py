@@ -124,6 +124,15 @@ async def generate(
             image_count += 1
     if len(user_content) == 1 and len(text.strip()) < 40:
         raise AIProviderError("Brak wystarczającej treści do analizy.")
+    # Prefer the fastest available provider for the same open-weight model.
+    # OpenRouter supports explicit provider sorting without changing the
+    # model's semantic contract. Can be disabled with an empty env value.
+    provider_sort = os.getenv("OPENROUTER_PROVIDER_SORT", "throughput").strip().lower()
+    if provider_sort not in ("throughput", "latency", "price", ""):
+        raise AIProviderError(
+            "Nieprawidłowa strategia wyboru dostawcy modelu.",
+            code="MODEL_CONFIG_ERROR",
+        )
     max_tokens = 6500
     data = {
         "model": model,
@@ -139,6 +148,8 @@ async def generate(
             },
         ],
     }
+    if provider_sort:
+        data["provider"] = {"sort": provider_sort}
     effort = os.environ.get("OPENROUTER_REASONING_EFFORT", "").strip()
     if effort:
         data["reasoning"] = {"effort": effort}

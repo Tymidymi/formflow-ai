@@ -144,6 +144,9 @@ def test_qwen_temperature_zero_passed_to_provider(monkeypatch):
     assert requests[0]["temperature"] == 0
     assert requests[0]["model"].startswith("qwen/")
     assert "reasoning" not in requests[0]
+    # Same Qwen model, but choose provider by throughput to reduce slow-tail
+    # completion times on scanned PDF pages.
+    assert requests[0]["provider"]["sort"] == "throughput"
 
 
 def test_invalid_temperature_fails_without_api_call(monkeypatch):

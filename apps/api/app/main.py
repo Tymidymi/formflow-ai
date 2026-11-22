@@ -490,7 +490,7 @@ async def _convert_form(
     }
 
 
-CONVERSION_TIMEOUT_SECONDS = 240
+CONVERSION_TIMEOUT_SECONDS = 360
 # Three concurrent conversions on the 6-core / memory-constrained demo VPS.
 # Browser uses the same limit: queued jobs stay client-side instead of consuming
 # the 240-second server request deadline while waiting for semaphore capacity.
