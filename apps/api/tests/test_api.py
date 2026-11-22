@@ -243,9 +243,10 @@ def test_project_landing_is_compact_jury_link_index():
     assert 'href="/documentation/"' in html
     assert 'href="/api/docs"' in html
     assert html.count('class="link-row') == 6
-    assert html.count('class="link-row pending"') == 1
+    assert html.count('class="link-row pending"') == 0
     assert "Prezentacja PDF" in html and "Film demonstracyjny" in html
     assert 'href="/film/FormFlow_AI_HackNation_2026_FullHD_v2.mp4"' in html
+    assert 'href="https://github.com/Tymidymi/formflow-ai/blob/main/submission/FormFlow_AI_HackNation_2026_COI_9_slajdow.pdf"' in html
     assert "Cyfryzacja w trzech krokach" not in html
 
 
