@@ -213,3 +213,36 @@ def test_ui():
     assert 'id="step-review" hidden' in r.text
     assert 'id="step-finish" hidden' in r.text
     assert 'id="file-consent" hidden' in r.text
+
+
+def test_unexpected_conversion_exception_returns_structured_json(monkeypatch):
+    """Worker failures must not become a blank HTTP 500 for the browser."""
+    from app import main as main_module
+
+    async def broken_conversion(*args, **kwargs):
+        raise RuntimeError("simulated internal document parser failure")
+
+    monkeypatch.setattr(main_module, "_convert_form", broken_conversion)
+    response = client.post(
+        "/api/v1/forms/convert?mode=diagnostic",
+        files={"file": ("sample.pdf", b"%PDF-1.4\n%test\n", "application/pdf")},
+    )
+    assert response.status_code == 500
+    data = response.json()
+    assert data["code"] == "CONVERSION_INTERNAL_ERROR"
+    assert "simulated" not in data["detail"]
+    assert len(data["request_id"]) == 32
+
+
+def test_project_landing_is_compact_jury_link_index():
+    response = client.get("/projekt/")
+    assert response.status_code == 200
+    html = response.text
+    assert 'href="/"' in html
+    assert "github.com/Tymidymi/formflow-ai" in html
+    assert 'href="/documentation/"' in html
+    assert 'href="/api/docs"' in html
+    assert html.count('class="link-row') == 6
+    assert html.count('class="link-row pending"') == 2
+    assert "Prezentacja PDF" in html and "Film demonstracyjny" in html
+    assert "Cyfryzacja w trzech krokach" not in html

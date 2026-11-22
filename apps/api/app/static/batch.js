@@ -120,7 +120,7 @@ start.addEventListener("click",async()=>{
       const response=await fetch("/api/v1/forms/convert?mode=diagnostic",{
         method:"POST",body,headers:{"X-External-AI-Consent":needsConsent?"true":"false"}
       });
-      const data=await response.json();
+      const data=await window.FormFlowHTTP.readAPIResponse(response);
       if(!response.ok||!data?.form)
         throw Error(typeof data?.detail==="string"?data.detail:"Błąd HTTP "+response.status);
       entry.data=data;
@@ -150,7 +150,7 @@ exportButton.addEventListener("click",async()=>{
       body:JSON.stringify({forms:reviewed})
     });
     if(!response.ok){
-      const data=await response.json().catch(()=>({}));
+      const data=await window.FormFlowHTTP.readAPIResponse(response).catch(()=>({}));
       throw Error(data.detail||"Nie udało się utworzyć ZIP.");
     }
     const blob=await response.blob();
@@ -166,7 +166,7 @@ exportButton.addEventListener("click",async()=>{
   }finally{exportButton.disabled=false;render();}
 });
 window.FormFlowBatch={capture};
-fetch("/api/v1/capabilities").then(r=>r.json()).then(data=>{
+fetch("/api/v1/capabilities").then(window.FormFlowHTTP.readAPIResponse).then(data=>{
   conversionReady=Boolean(data.conversion);
   needsConsent=data.model_provider!=="ollama-offline";
   if(!needsConsent)consent.closest("label").hidden=true;

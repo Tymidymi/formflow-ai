@@ -67,6 +67,11 @@ npm --prefix apps/frontend run build</code></pre>
 <li><code>apps/api/tests/test_api.py</code>: landing <code>/projekt/</code>, linki, dokumentacja lokalna oraz najważniejsze endpointy.</li>
 </ul>
 <p>Przetwarzanie wsadowe nie jest gwarancją trafności AI: każdy wygenerowany JSON pozostaje szkicem i wymaga ręcznej kontroli przed eksportem.</p>
+<h2 id="obs-uga-b-edow-odpowiedzi-http-pdf-i-inne-formaty">Obsługa błędów odpowiedzi HTTP (PDF i inne formaty)</h2>
+<p>Interfejs nie zakłada, że każda odpowiedź API zawiera JSON. W razie pustego body, odpowiedzi HTML od proxy albo przerwanego odczytu wyświetla bezpieczny komunikat z kodem HTTP i numerem żądania, jeżeli został zwrócony w nagłówku <code>X-Request-ID</code>. Konwersja nie jest automatycznie ponawiana, by uniknąć podwójnych kosztów modelu AI.</p>
+<p>Backend <code>POST /api/v1/forms/convert</code> zwraca kontrolowany JSON HTTP 500 z kodem <code>CONVERSION_INTERNAL_ERROR</code> dla nieobsłużonych błędów wykonania, zachowując dotychczasowe jawne odpowiedzi 422/502/504. Stosowny wyjątek rejestrowany jest w logu audytowym bez ujawniania treści dokumentów.</p>
+<p>Test regresji: <code>apps/frontend/tests/http.test.mjs</code> oraz <code>test_unexpected_conversion_exception_returns_structured_json</code> w <code>apps/api/tests/test_api.py</code>.</p>
+<p>Rzeczywisty dwustronicowy PDF z zestawu regresyjnego przeszedł pełną analizę przez Tailscale Serve <code>9466</code>: status 200, JSON COI poprawny strukturalnie, ocena semantyczna <code>needs_review</code>. Nie jest to gwarancja dla wszystkich PDF.</p>
 <div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
 <p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
 </main>

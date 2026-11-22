@@ -60,3 +60,24 @@ Przeprowadzono mały benchmark kilku otwartych modeli VLM, także Qwen3-VL-30B/2
 - `apps/api/tests/test_api.py`: landing `/projekt/`, linki, dokumentacja lokalna oraz najważniejsze endpointy.
 
 Przetwarzanie wsadowe nie jest gwarancją trafności AI: każdy wygenerowany JSON pozostaje szkicem i wymaga ręcznej kontroli przed eksportem.
+
+## Obsługa błędów odpowiedzi HTTP (PDF i inne formaty)
+
+Interfejs nie zakłada, że każda odpowiedź API zawiera JSON. W razie pustego body,
+odpowiedzi HTML od proxy albo przerwanego odczytu wyświetla bezpieczny komunikat
+z kodem HTTP i numerem żądania, jeżeli został zwrócony w nagłówku
+`X-Request-ID`. Konwersja nie jest automatycznie ponawiana, by uniknąć
+podwójnych kosztów modelu AI.
+
+Backend `POST /api/v1/forms/convert` zwraca kontrolowany JSON HTTP 500 z kodem
+`CONVERSION_INTERNAL_ERROR` dla nieobsłużonych błędów wykonania, zachowując
+dotychczasowe jawne odpowiedzi 422/502/504. Stosowny wyjątek rejestrowany jest
+w logu audytowym bez ujawniania treści dokumentów.
+
+Test regresji: `apps/frontend/tests/http.test.mjs` oraz
+`test_unexpected_conversion_exception_returns_structured_json` w
+`apps/api/tests/test_api.py`.
+
+Rzeczywisty dwustronicowy PDF z zestawu regresyjnego przeszedł pełną analizę
+przez Tailscale Serve `9466`: status 200, JSON COI poprawny strukturalnie,
+ocena semantyczna `needs_review`. Nie jest to gwarancja dla wszystkich PDF.

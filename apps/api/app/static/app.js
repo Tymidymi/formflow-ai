@@ -78,13 +78,13 @@ async function inspect(file){
   try{
     const body=new FormData();body.append("file",file,file.name);
     const response=await fetch("/api/v1/forms/inspect",{method:"POST",body});
-    const data=await response.json();
+    const data=await readAPIResponse(response);
     if(requestId!==inspectionId)return;
     if(!response.ok)throw Error(data.detail||"Nie udało się przyjąć dokumentu.");
     currentFile=file;markFile(true);
   }catch(error){
     if(requestId!==inspectionId)return;
-    show(result,"Nie udało się dodać dokumentu",String(error.message||"Błąd pliku."),true);
+    show(result,"Nie udało się dodać dokumentu",userFacingError(error),true);
     currentFile=null;markFile(false);
   }
 }
@@ -108,6 +108,39 @@ function showPreview(form,details){
   stepTo(2);
   window.FormFlowPreview.open(form,{...details,wizardMode:true,scrollIntoView:false});
 }
+/**
+ * Proxy/gateway failures may have an empty or HTML body. Do not assume a
+ * successful JSON parse: report HTTP status and request ID to users instead.
+ */
+async function readAPIResponse(response){
+  let raw;
+  try {
+    raw=await response.text();
+  }catch{
+    throw Error("Połączenie zostało przerwane podczas odbierania odpowiedzi serwera. Spróbuj ponownie.");
+  }
+  const id=response.headers?.get("X-Request-ID");
+  const suffix=id && /^[a-f0-9]{32}$/i.test(id) ? "\nNumer zgłoszenia: "+id : "";
+  if(!raw.trim()){
+    const reason=response.status===504||response.status===502||response.status===503
+      ? "Serwer lub brama przerwały oczekiwanie na analizę PDF."
+      : "Serwer nie zwrócił danych w odpowiedzi.";
+    throw Error(reason+" (HTTP "+response.status+")."+suffix+
+      "\nOdczyt pliku mógł się powieść, ale wynik analizy nie został dostarczony.");
+  }
+  try {return JSON.parse(raw);}
+  catch{
+    throw Error("Serwer zwrócił odpowiedź niebędącą JSON (HTTP "+response.status+
+      ")."+suffix+"\nSpróbuj ponownie lub zgłoś numer zgłoszenia.");
+  }
+}
+window.FormFlowHTTP={readAPIResponse};
+function userFacingError(error){
+  if(error instanceof TypeError && /fetch|network|failed/i.test(error.message||"")){
+    return "Przerwano połączenie z serwerem podczas analizy. Spróbuj ponownie.";
+  }
+  return String(error?.message||"Nie udało się wykonać operacji.");
+}
 function errorFromAPI(data,response){
   let message="Wystąpił błąd („"+response.status+"”). Spróbuj ponownie.";
   if(typeof data?.detail==="string")message=data.detail;
@@ -129,7 +162,7 @@ generateButton.addEventListener("click",async()=>{
     const response=await fetch("/api/v1/forms/convert?mode=diagnostic",{
       method:"POST",headers:{"X-External-AI-Consent":externalConsentRequired?"true":"false"},body
     });
-    const data=await response.json();
+    const data=await readAPIResponse(response);
     if(!response.ok||!data.form)throw Error(errorFromAPI(data,response));
     const report=data.validation||{},quality=data.quality||{};
     const warnings=(report.errors||[]).slice(0,8).map(x=>x.message).join("\n");
@@ -147,7 +180,7 @@ generateButton.addEventListener("click",async()=>{
       inventory:data.inventory,source:"generated"});
   }catch(error){
     show(result,"Nie udało się przygotować formularza",
-      (error.message||"Spróbuj ponownie.")+
+      userFacingError(error)+
       "\nMożesz spróbować ponownie. Wybrany dokument nadal jest dostępny.",true);
   }finally{setBusy(false);}
 });
@@ -157,12 +190,12 @@ demoButton.addEventListener("click",async()=>{
   setBusy(true);result.hidden=true;
   try{
     const response=await fetch("/api/v1/demo/convert");
-    const data=await response.json();
+    const data=await readAPIResponse(response);
     if(!response.ok||!data.form)throw Error(errorFromAPI(data,response));
     showPreview(data.form,{file:null,validation:data.validation,
       quality:data.quality,source:"synthetic"});
   }catch(error){
-    show(result,"Przykład nie został uruchomiony",error.message||"Błąd.",true);
+    show(result,"Przykład nie został uruchomiony",userFacingError(error),true);
   }finally{setBusy(false);}
 });
 previewButton.addEventListener("click",async()=>{
@@ -172,12 +205,12 @@ previewButton.addEventListener("click",async()=>{
   try{
     const body=new FormData();body.append("file",currentFile,currentFile.name);
     const response=await fetch("/api/v1/forms/extract-preview",{method:"POST",body});
-    const data=await response.json();
+    const data=await readAPIResponse(response);
     if(!response.ok)throw Error(errorFromAPI(data,response));
     show(extractionResult,"Tekst dokumentu",
       "Silnik: "+(data.extraction?.engine||"lokalny")+
       "\n\n"+(data.text_preview||"Nie udało się odczytać tekstu."),false);
-  }catch(error){show(extractionResult,"Błąd odczytu",error.message||"Błąd.",true);}
+  }catch(error){show(extractionResult,"Błąd odczytu",userFacingError(error),true);}
   updateButton();
 });
 
@@ -236,7 +269,7 @@ downloadButton.addEventListener("click",async()=>{
     downloadStatus.textContent="Nie udało się pobrać pliku: "+(error.message||"Błąd.");
   }finally{downloadButton.disabled=false;}
 });
-fetch("/api/v1/capabilities").then(r=>r.json()).then(data=>{
+fetch("/api/v1/capabilities").then(readAPIResponse).then(data=>{
   const mb=Math.round(data.max_upload_bytes/1024/1024);
   limit.textContent=mb+" MB";
   conversionAvailable=Boolean(data.conversion);

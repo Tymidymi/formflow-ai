@@ -500,7 +500,25 @@ async def convert_form(
             return_when=asyncio.FIRST_COMPLETED,
         )
         if work in done:
-            return work.result()
+            try:
+                return work.result()
+            except Exception as exc:
+                # Unhandled worker/parser bugs must not surface as blank 500
+                # responses or expose internal traces to the caller.
+                record(
+                    "conversion_failed",
+                    stage="runtime",
+                    error_code="CONVERSION_INTERNAL_ERROR",
+                    error_class=type(exc).__name__,
+                )
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "code": "CONVERSION_INTERNAL_ERROR",
+                        "detail": "Wewnętrzny błąd analizy dokumentu. Spróbuj ponownie lub zgłoś numer zgłoszenia.",
+                        "request_id": REQUEST_ID.get(),
+                    },
+                )
         code = "CLIENT_DISCONNECTED" if closed in done else "CONVERSION_TIMEOUT"
         record("conversion_failed", stage="budget", error_code=code)
         return JSONResponse(
