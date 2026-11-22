@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#091735">
+<title>FormFlow — REST API</title>
+<link rel="stylesheet" href="/static/documentation/docs.css">
+</head>
+<body>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<div class="shell">
+<aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
+<a href="api.html" class="active" aria-current="page">REST API</a>
+<a href="deployment.html">Wdrożenie</a>
+<a href="testing.html">Testowanie</a>
+<a href="licenses.html">Licencje</a></nav></aside>
+<main class="content"><div class="eyebrow">HackNation 2026 · FormFlow v1.4</div><h1 id="formflow-rest-api">FormFlow — REST API</h1>
+<p><strong>Baza lokalna:</strong> <code>http://127.0.0.1:18171</code>. Szczegółowe modele odpowiedzi: <code>/api/openapi.json</code>; dokumentacja HTML: <code>/api/docs</code>.</p>
+<h2 id="endpointy">Endpointy</h2>
+<div class="table-wrap"><table>
+<tr><th>Metoda i ścieżka</th><th>Opis</th></tr>
+<tr><td><code>GET /</code></td><td>Interfejs użytkownika</td></tr>
+<tr><td><code>GET /healthz</code></td><td>Liveness</td></tr>
+<tr><td><code>GET /readyz</code></td><td>Gotowość silnika do konwersji</td></tr>
+<tr><td><code>GET /api/v1/capabilities</code></td><td>Dostępne formaty, limit uploadu, wariant modelu</td></tr>
+<tr><td><code>POST /api/v1/forms/inspect</code></td><td>Kontrola MIME, nazwy, rozmiaru</td></tr>
+<tr><td><code>POST /api/v1/forms/extract-preview</code></td><td>Lokalny OCR i podgląd tekstu, <strong>bez modelu</strong></td></tr>
+<tr><td><code>POST /api/v1/forms/convert</code></td><td>Projekt JSON COI</td></tr>
+<tr><td><code>POST /api/v1/forms/validate-json</code></td><td>Strukturalna kontrola COI</td></tr>
+<tr><td><code>GET /api/v1/demo/convert</code></td><td>Syntetyczny przykład bez AI</td></tr>
+</table></div>
+<h2 id="upload">Upload</h2>
+<p><code>multipart/form-data</code>, pole <code>file</code>, pojedynczy plik <code>PDF/DOC/DOCX/ODS/XLSX/JPG/JPEG/PNG</code>. Nazwa maks. <strong>250 znaków</strong>, zakazane <code>; : &gt; &lt; / \\ | &#x27; * % $</code>. Zawartość pliku musi odpowiadać rozszerzeniu (MIME/magic bytes). Rozmiar: <code>MAX_UPLOAD_MB</code> (domyślnie 15 MB).</p>
+<h3 id="zwyk-y-eksport-tylko-po-przejsciu-kontroli">Zwykły eksport (tylko po przejściu kontroli)</h3>
+<pre><code class="lang-bash">curl -sS -H &#x27;X-External-AI-Consent: true&#x27; \
+  -F &#x27;file=@wniosek.pdf&#x27; \
+  &#x27;http://127.0.0.1:18171/api/v1/forms/convert&#x27;</code></pre>
+<p>HTTP 200: bezpośrednio konfiguracja COI JSON z kluczami <code>title</code>, <code>tabs</code>, <code>flow</code>. HTTP 422 <code>COI_REVIEW_REQUIRED</code>: automatyczna kontrola wykryła problem; nie oznacza to braku możliwości ręcznego przygotowania formularza.</p>
+<h3 id="tryb-diagnostyczny-dla-ui">Tryb diagnostyczny dla UI</h3>
+<pre><code class="lang-bash">curl -sS -H &#x27;X-External-AI-Consent: true&#x27; \
+  -F &#x27;file=@wniosek.pdf&#x27; \
+  &#x27;http://127.0.0.1:18171/api/v1/forms/convert?mode=diagnostic&amp;vision=auto&#x27;</code></pre>
+<p>HTTP 200: obiekt zawiera <code>status</code> (<code>generated</code> lub <code>needs_review</code>), <code>form</code>, <code>validation</code>, <code>quality</code>, <code>grounding</code>, <code>inventory</code>, <code>document</code>, <code>usage</code>, <code>model</code>. Status <code>generated</code> nie zastępuje ręcznej kontroli.</p>
+<h3 id="lokalne-ocr-bez-modelu">Lokalne OCR bez modelu</h3>
+<pre><code class="lang-bash">curl -sS -F &#x27;file=@wniosek.pdf&#x27; \
+  &#x27;http://127.0.0.1:18171/api/v1/forms/extract-preview&#x27;</code></pre>
+<p>Zwraca tekst podglądu, metadane stron i liczbę obrazów. Nie wykonuje żądania do OpenRouter.</p>
+<h3 id="walidacja-wynikowego-coi">Walidacja wynikowego COI</h3>
+<pre><code class="lang-bash">curl -sS -H &#x27;Content-Type: application/json&#x27; \
+  --data-binary @formularz.json \
+  &#x27;http://127.0.0.1:18171/api/v1/forms/validate-json&#x27;</code></pre>
+<p>Odpowiedź zawiera co najmniej <code>schema_valid</code>, <code>valid</code>, <code>errors</code> i <code>warnings</code>. Walidacja COI jest strukturalna — importer docelowy nie został przetestowany.</p>
+<h2 id="kody-b-edow-przyk-ady">Kody błędów (przykłady)</h2>
+<div class="table-wrap"><table>
+<tr><th>HTTP</th><th>Kod / sytuacja</th></tr>
+<tr><td>400</td><td>Niepoprawny JSON wejściowy</td></tr>
+<tr><td>403</td><td><code>EXTERNAL_API_CONSENT_REQUIRED</code></td></tr>
+<tr><td>413</td><td>Przekroczony limit danych</td></tr>
+<tr><td>415</td><td>Nieobsługiwany lub fałszywie oznaczony format</td></tr>
+<tr><td>422</td><td><code>DOCUMENT_REJECTED</code>, <code>INVALID_SEMANTIC_FORM</code>, <code>COI_REVIEW_REQUIRED</code></td></tr>
+<tr><td>502</td><td>Niedostępna lub błędna odpowiedź ekstraktora/modelu</td></tr>
+<tr><td>503</td><td>Brak skonfigurowanego modelu lub workera</td></tr>
+</table></div>
+<p>W odpowiedziach błędów może wystąpić <code>request_id</code> do korelacji z logiem technicznym. Konwersja ma limit 240 sekund, a dwie równoległe konwersje to maksymalna współbieżność.</p>
+<p><strong>Dokumentacja architektury:</strong> <a href="index.html">TECHNICAL.md</a>.</p>
+<div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
+<p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
+</main>
+</div>
+</body>
+</html>

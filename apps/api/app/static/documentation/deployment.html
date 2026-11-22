@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#091735">
+<title>FormFlow — Wdrożenie</title>
+<link rel="stylesheet" href="/static/documentation/docs.css">
+</head>
+<body>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<div class="shell">
+<aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
+<a href="api.html">REST API</a>
+<a href="deployment.html" class="active" aria-current="page">Wdrożenie</a>
+<a href="testing.html">Testowanie</a>
+<a href="licenses.html">Licencje</a></nav></aside>
+<main class="content"><div class="eyebrow">HackNation 2026 · FormFlow v1.4</div><h1 id="formflow-wdrozenie-i-utrzymanie">FormFlow — wdrożenie i utrzymanie</h1>
+<h2 id="wymagania">Wymagania</h2>
+<p>Docker Engine + Compose v2, co najmniej kilka GB wolnego RAM na workery, możliwość pobrania obrazów i zależności. Komponenty obrazu: API Python 3.13, Office z LibreOffice i Docling Slim, PDF z Tesseract, pypdfium2 i pypdf. Model multimodalny wymaga odpowiedniego dostawcy lub dedykowanego hosta GPU.</p>
+<p>Wszystkie polecenia wykonuj z katalogu głównego repozytorium. Plik <code>.env</code> nie jest wersjonowany.</p>
+<h2 id="1-konfiguracja">1. Konfiguracja</h2>
+<pre><code class="lang-bash">cp .env.example .env
+# W trybie developerskim ustaw OPENROUTER_API_KEY
+# Opcjonalnie zmień OPENROUTER_MODEL i FORMFLOW_HOST_PORT</code></pre>
+<h2 id="2-uruchomienie-kompletnego-stosu-developerskiego">2. Uruchomienie kompletnego stosu developerskiego</h2>
+<pre><code class="lang-bash">docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml \
+  --profile docling --profile pdf up -d --build</code></pre>
+<ul>
+<li><code>compose.yaml</code>: API bez włączonego AI; podstawowe ograniczenia bezpieczeństwa.</li>
+<li><code>compose.dev.yaml</code>: dostęp do OpenRouter + zwiększony limit RAM API; <strong>nie używać jako konfiguracji offline</strong>.</li>
+<li><code>compose.docling.yaml</code>: renderer Office (wewnętrzny port 8001).</li>
+<li><code>compose.pdf.yaml</code>: OCR PDF (wewnętrzny port 8002).</li>
+<li><code>compose.ollama.yaml</code>: opcjonalny lokalny adapter/model; nie jest wymiennikiem gotowym bez pobrania wag i testów.</li>
+<li>Nie uruchamiaj samodzielnego <code>compose.yaml</code>, jeśli oczekujesz pełnej konwersji: <code>readyz</code> zgłosi brak AI.</li>
+</ul>
+<p>API ma bind wyłącznie na <code>127.0.0.1:${FORMFLOW_HOST_PORT:-18171}</code>. Workerów nie publikuj bezpośrednio do Internetu.</p>
+<h2 id="3-smoke-test">3. Smoke test</h2>
+<pre><code class="lang-bash">curl -fsS http://127.0.0.1:18171/healthz
+curl -fsS http://127.0.0.1:18171/readyz
+curl -fsS http://127.0.0.1:18171/api/v1/capabilities
+curl -fsS http://127.0.0.1:18171/api/v1/demo/convert &gt; /tmp/formflow-demo.json
+docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml ps</code></pre>
+<p><code>/healthz</code> sprawdza żywotność, <code>/readyz</code> wykrywa skonfigurowanego providera, lecz <strong>nie potwierdza kompletnego pipeline’u</strong>. Dodatkowo przetestuj <code>extract-preview</code> na DOCX oraz <code>convert?mode=diagnostic</code> na kontrolnym formularzu. Gdy ekstraktor Office zwraca 502 „Brak poprawnego PDF”, sprawdź czy worker i API pochodzą z tej samej rewizji kodu/obrazu; samo <code>up -d api</code> nie aktualizuje workerów.</p>
+<h2 id="4-dostep-https-i-bezpieczenstwo">4. Dostęp HTTPS i bezpieczeństwo</h2>
+<p>Na serwerze demonstracyjnym port lokalny 18171 jest dostępny prywatnie przez <strong>Tailscale Serve :9466</strong>. Nie należy go mylić z Funnel: dostępna usługa jest przeznaczona dla sieci tailnet. Nie publikuj <code>.env</code>, źródłowych dokumentów ani portów 8001/8002.</p>
+<p>Wersja aplikacyjna nie posiada własnego JWT/RBAC: kontrolę dostępu zapewnia Tailscale lub administrator bramy sieciowej. Wysyłanie formularzy do OpenRouter wymaga świadomej zgody w UI.</p>
+<p>Przed publikacją sprawdź prywatność repozytorium, prawa do materiałów COI i zasady użycia modelu.</p>
+<h2 id="5-aktualizacja">5. Aktualizacja</h2>
+<pre><code class="lang-bash">git pull --ff-only origin main
+npm --prefix apps/frontend ci
+npm --prefix apps/frontend run build
+
+docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml \
+  --profile docling --profile pdf up -d --build</code></pre>
+<p>Przy zmianie kontraktu API/ekstraktora <strong>odbuduj również workery</strong>. Wcześniej zachowaj kopię releasu i sprawdź niezależny wynik JSON. Nie nadpisuj produkcji wariantem nieprzetestowanym.</p>
+<h2 id="6-diagnostyka">6. Diagnostyka</h2>
+<pre><code class="lang-bash">docker ps --filter name=formflow
+docker logs --tail 60 formflow-ai-api-1
+docker logs --tail 60 formflow-ai-docling-office-1
+docker logs --tail 60 formflow-ai-pdf-engine-1
+docker stats --no-stream formflow-ai-api-1 formflow-ai-docling-office-1 formflow-ai-pdf-engine-1</code></pre>
+<p>Logi mają metadane techniczne i identyfikator żądania, nie powinny przechowywać treści dokumentu. Rezultaty diagnostyczne mogą ujawniać fragmenty źródeł — traktuj je jako poufne.</p>
+<p><strong>Wymóg utrzymaniowy:</strong> użytkownik końcowy musi potwierdzić poprawność każdego wygenerowanego formularza. Sam status <code>schema_valid</code> nie jest wystarczającym testem odbiorowym.</p>
+<h2 id="7-zatrzymanie-bez-usuwania-danych">7. Zatrzymanie bez usuwania danych</h2>
+<pre><code class="lang-bash">docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml \
+  --profile docling --profile pdf stop</code></pre>
+<p>Do usunięcia niepotrzebnego starego wpisu Tailscale Serve dla portu 9467 (wymaga uprawnień operatora/root): <code>sudo tailscale serve --https=9467 off</code>. <strong>Nie używaj <code>tailscale serve reset</code></strong>, bo usunie również konfigurację innych usług VPS.</p>
+<div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
+<p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
+</main>
+</div>
+</body>
+</html>

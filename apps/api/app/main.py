@@ -7,7 +7,7 @@ from typing import Literal
 from uuid import uuid4
 
 from fastapi import FastAPI, File, Header, Query, Request, UploadFile
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from .settings import max_upload_bytes
@@ -28,11 +28,17 @@ app = FastAPI(
     title="FormFlow AI",
     version="1.4.0",
     description="COI prototype using OpenRouter API; not compliant with COI no-external-API requirement.",
-    docs_url="/api/docs",
+    docs_url=None,
     redoc_url=None,
     openapi_url="/api/openapi.json",
 )
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
+app.mount("/documentation", StaticFiles(directory=ROOT / "static" / "documentation", html=True), name="documentation")
+
+
+@app.get("/api/docs", include_in_schema=False)
+def api_documentation():
+    return RedirectResponse(url="/documentation/api.html", status_code=307)
 
 
 @app.middleware("http")

@@ -34,6 +34,8 @@ Komponenty Office/PDF są w prywatnej sieci Dockera, nie publikują portów, a A
 
 Szczegóły: [dokumentacja techniczna](docs/TECHNICAL.md), [API](docs/API.md), [wdrożenie](docs/DEPLOYMENT.md), [testowanie i ograniczenia](docs/TESTING.md), [zależności i licencje](THIRD_PARTY_LICENSES.md).
 
+Dokumentacja w aplikacji: `/documentation/` (samodzielna strona HTML, bez CDN). Zmiany w Markdown eksportuje `python scripts/build_docs.py`; CI sprawdza zgodność przez `python scripts/build_docs.py --check`.
+
 ## Szybki start (Docker, tryb developerski)
 
 Wymagane: Docker + Compose v2, RAM na kontenery i dostęp do modelu skonfigurowany w pliku `.env`.
@@ -66,7 +68,7 @@ curl -sS -F 'file=@wniosek.pdf' \
   'http://127.0.0.1:18171/api/v1/forms/extract-preview'
 ```
 
-Interaktywny opis metod: `/api/docs`. Domyślny tryb `/api/v1/forms/convert` zwraca sam JSON COI **tylko wtedy, gdy przejdzie walidację strukturalną i automatyczne kontrole jakości**; w przeciwnym razie zwraca `422 COI_REVIEW_REQUIRED`. UI używa trybu diagnostycznego i wymaga ręcznej kontroli także przy pomyślnym wyniku automatycznym.
+Dokumentacja REST API: `/api/docs`; specyfikacja OpenAPI: `/api/openapi.json`. Domyślny tryb `/api/v1/forms/convert` zwraca sam JSON COI **tylko wtedy, gdy przejdzie walidację strukturalną i automatyczne kontrole jakości**; w przeciwnym razie zwraca `422 COI_REVIEW_REQUIRED`. UI używa trybu diagnostycznego i wymaga ręcznej kontroli także przy pomyślnym wyniku automatycznym.
 
 ## Testy
 

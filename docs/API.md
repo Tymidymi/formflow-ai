@@ -1,6 +1,6 @@
 # FormFlow — REST API
 
-**Baza lokalna:** `http://127.0.0.1:18171`. Szczegółowe modele odpowiedzi: `/api/openapi.json` lub Swagger UI `/api/docs`.
+**Baza lokalna:** `http://127.0.0.1:18171`. Szczegółowe modele odpowiedzi: `/api/openapi.json`; dokumentacja HTML: `/api/docs`.
 
 ## Endpointy
 

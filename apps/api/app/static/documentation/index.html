@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#091735">
+<title>FormFlow — Architektura</title>
+<link rel="stylesheet" href="/static/documentation/docs.css">
+</head>
+<body>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<div class="shell">
+<aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html" class="active" aria-current="page">Architektura</a>
+<a href="api.html">REST API</a>
+<a href="deployment.html">Wdrożenie</a>
+<a href="testing.html">Testowanie</a>
+<a href="licenses.html">Licencje</a></nav></aside>
+<main class="content"><div class="eyebrow">HackNation 2026 · FormFlow v1.4</div><h1 id="formflow-ai-dokumentacja-techniczna">FormFlow AI — dokumentacja techniczna</h1>
+<p><strong>Wersja:</strong> 1.4.0 · <strong>Data:</strong> 22 listopada 2026 · <strong>Status:</strong> prototyp demonstracyjny HackNation / COI.</p>
+<h2 id="1-cel-i-zakres">1. Cel i zakres</h2>
+<p>Usługa przyjmuje <strong>pojedynczy pusty formularz</strong> z zasobów urzędu i wyprowadza konfigurowalny formularz elektroniczny w formacie JSON COI. Odbiorcą jest urzędnik odpowiedzialny za digitalizację formularzy; narzędzie nie składa wniosków w imieniu obywateli.</p>
+<p>Obsługiwane wejścia: <code>.pdf</code>, <code>.doc</code>, <code>.docx</code>, <code>.ods</code>, <code>.xlsx</code>, <code>.jpg</code>, <code>.jpeg</code>, <code>.png</code>. Wyjścia: obiekt COI JSON (tryb <code>coi</code>), obiekt diagnostyczny zawierający <code>form</code>, <code>validation</code>, <code>quality</code>, <code>grounding</code>, <code>inventory</code> i informacje o zużyciu modelu (tryb <code>diagnostic</code>). Frontend zapewnia wizualizację, edycję i ręczną weryfikację.</p>
+<h2 id="2-architektura-i-granice-zaufania">2. Architektura i granice zaufania</h2>
+<pre><code class="lang-text">                         ┌───────────────────────────────┐
+                         │ Przeglądarka: HTML, JS, React │
+                         │ Wizard / JSON Forms / editor  │
+                         └──────────────┬────────────────┘
+                                        │
+                  POST multipart/JSON   ▼
+                         ┌───────────────────────────────┐
+                         │ FastAPI :8000 (loopback 18171)│
+                         │ walidacja, timeout, audyt     │
+                         └───────┬───────────┬───────────┘
+                                 │           │
+                       Office    │           │ PDF/scan
+                                 ▼           ▼
+                         ┌────────────┐ ┌───────────────┐
+                         │ LibreOffice│ │ PDFium, pypdf │
+                         │ Docling Slim│ │ Tesseract     │
+                         │ port 8001  │ │ port 8002     │
+                         └──────┬─────┘ └───────┬───────┘
+                                └───────┬───────┘
+                                        ▼
+                              tekst + obraz strony
+                                        │
+                                        ▼
+                             open-weight Qwen3-VL
+                       (OpenRouter DEV lub Ollama lokalnie)
+                                        │
+                                        ▼
+                       CanonicalForm / source page inventory
+                                        │
+                                        ▼
+                    builder COI + warunki + walidator JSON
+                                        │
+                                        ▼
+                         ręczny przegląd → eksport</code></pre>
+<p>Kontenery Office i PDF komunikują się z API w <code>extractor_private</code> — wewnętrznej sieci Docker bez publikowanych portów. Pliki Office są renderowane przez procesy z oddzielnymi profilami i limitami. API przyjmuje dane ze świata zewnętrznego jako <strong>niezaufane</strong>. Tekst OCR i dokument nie są instrukcjami dla modelu.</p>
+<h3 id="odpowiedzialnosc-modu-ow">Odpowiedzialność modułów</h3>
+<div class="table-wrap"><table>
+<tr><th>Moduł</th><th>Zakres</th></tr>
+<tr><td><code>apps/api/app/main.py</code></td><td>REST, orkiestracja, consent, limit konwersji, status, błędy</td></tr>
+<tr><td><code>uploads.py</code>, <code>settings.py</code></td><td>Limity plików, MIME, nazwy i rozszerzenia</td></tr>
+<tr><td><code>extraction_router.py</code></td><td>Normalizacja formatów do stron, kontrola wierności, metadane</td></tr>
+<tr><td><code>apps/extractor/app.py</code></td><td>Konwersja Office do PDF, izolowany LibreOffice</td></tr>
+<tr><td><code>apps/extractor/{office_structure,xlsx_print,ods_print}.py</code></td><td>Źródłowa struktura i metadane wydruku</td></tr>
+<tr><td><code>apps/pdf_engine/</code></td><td>PDF, render stron, OCR Tesseract pol/eng</td></tr>
+<tr><td><code>source_pages.py</code>, <code>render_fidelity.py</code>, <code>source_fidelity.py</code></td><td>Spójność stron oraz utrata widocznych danych</td></tr>
+<tr><td><code>ai_provider.py</code>, <code>ollama_provider.py</code></td><td>Multimodalne żądanie i structured output</td></tr>
+<tr><td><code>page_inventory.py</code>, <code>source_semantics.py</code></td><td>Inwentaryzacja pól, opcje, regiony, kontrole źródłowe</td></tr>
+<tr><td><code>canonical_form.py</code></td><td>Typowany pośredni kontrakt Pydantic</td></tr>
+<tr><td><code>coi_builder.py</code>, <code>coi_conditions.py</code></td><td>Mapowanie na COI, deterministyczne identyfikatory, warunki</td></tr>
+<tr><td><code>coi_validation.py</code>, <code>contracts/coi_form_schema.json</code></td><td>Kontrola schematu i reguł strukturalnych COI</td></tr>
+<tr><td><code>field_grounding.py</code>, <code>conversion_audit.py</code></td><td>Heurystyczne pokrycie OCR i audyt techniczny</td></tr>
+<tr><td><code>apps/frontend/</code></td><td>JSON Forms, adapter, edytor i testy JS</td></tr>
+</table></div>
+<h2 id="3-przep-yw-przetwarzania">3. Przepływ przetwarzania</h2>
+<ol>
+<li><strong>Walidacja pliku.</strong> <code>validate_filename</code> sprawdza nazwę (do 250 znaków, zakazane znaki), <code>detect_mime</code> sprawdza magic bytes/strukturę Office, a <code>MAX_UPLOAD_MB</code> określa limit (domyślnie 15 MB). Pliki ZIP Office mają limity liczby wpisów i rozpakowanego rozmiaru.</li>
+<li><strong>Normalizacja.</strong> DOC/DOCX i arkusze są przetwarzane w oddzielnym workerze LibreOffice. XLSX/ODS otrzymują znormalizowane <strong>wyłącznie ustawienia wydruku w kopii</strong>. Docling Slim odczytuje unikatowe komórki źródłowe i tekst, a wynik wizualny jest reprezentowany jako PDF.</li>
+<li><strong>Wierność renderowania.</strong> PDFium kontroluje, czy tekst nie wyszedł poza widoczny obszar PDF; dla DOCX dodatkowo sprawdzana jest zgodność tekstu źródłowego. Materialna utrata danych kończy się błędem zamiast cichą konwersją.</li>
+<li><strong>Ekstrakcja stron.</strong> PDF Worker korzysta z pypdf, pypdfium2 i Tesseract (polski/angielski); skany mogą wymagać OCR. Obrazy stron i tekst są wiązane numerem fizycznej strony.</li>
+<li><strong>Analiza multimodalna.</strong> Na każdą stronę przypada <strong>jedno</strong> żądanie VLM z tekstem, obrazem i kontraktem JSON; typy obejmują TEXT_FIELD, TEXTAREA, NUMBER, DATEPICKER, RADIO, CHECKBOX, SELECT, FILE_UPLOADER i INFO_BLOCK. Bez modelowego drugiego przebiegu lub nieograniczonych retry.</li>
+<li><strong>Normalizacja deterministyczna.</strong> Odrębnie analizowane są podpisy (informacja, nie pole tekstowe), teksty informacyjne, zgodność opcji, regiony, warunki oraz odniesienia do oryginału. System <strong>nie</strong> dodaje ręcznie zakodowanych pól konkretnych formularzy.</li>
+<li><strong>Kanoniczny model i COI.</strong> Pydantic <code>CanonicalForm</code> odrzuca nieprawidłowe struktury. Builder tworzy strony MAIN, sekcje, pola, identyfikatory i FINISH; możliwe stany SHOW są budowane tylko z jawnych odniesień i wartości.</li>
+<li><strong>Kontrola wyniku.</strong> Schemat i reguły COI oraz heurystyki wierności źródłu podają niezależne wyniki. Brak automatycznego błędu <strong>nie</strong> stanowi gwarancji poprawności — frontend wymaga od użytkownika przeglądu przed eksportem.</li>
+</ol>
+<h3 id="coi-json">COI JSON</h3>
+<p>Eksport ma postać <code>title</code>, <code>tabs</code> i <code>flow</code> z polami <code>repeatingSectionGrid</code> w sekcjach MAIN. Ostatnia strona to FINISH. Odwzorowujemy m.in. TEXT_FIELD, DATEPICKER, CHECKBOX, RADIO, NUMBER, SELECT i read-only TEXT_BLOCK. Builder obsługuje słowniki <code>Kraje</code>, <code>TERYT_DOWODOWY</code>, <code>TERYT_4G_DOWODOWY</code> na wskazanych polach. Reguły walidacyjne są dobierane tylko tam, gdzie wynikają z etykiet i typu pytania (np. PESEL, e-mail, numer telefonu).</p>
+<p>Wzorcowy kontrakt organizatora przechowywany jest w <code>apps/api/app/contracts/coi_form_schema.json</code>; walidator sprawdza również dodatkowe reguły strukturalne. <strong>Nie potwierdzono importu wygenerowanego JSON w rzeczywistym środowisku COI</strong>.</p>
+<h2 id="4-rest-api-i-scenariusze-b-edow">4. REST API i scenariusze błędów</h2>
+<p>Dokumentacja API: <code>GET /api/docs</code>, specyfikacja OpenAPI: <code>GET /api/openapi.json</code>.</p>
+<div class="table-wrap"><table>
+<tr><th>Endpoint</th><th>Funkcja</th></tr>
+<tr><td><code>GET /</code></td><td>Frontend</td></tr>
+<tr><td><code>GET /healthz</code></td><td>Liveness</td></tr>
+<tr><td><code>GET /readyz</code></td><td>Gotowość konfiguracji analizy</td></tr>
+<tr><td><code>GET /api/v1/capabilities</code></td><td>Format wejścia, limit i model</td></tr>
+<tr><td><code>POST /api/v1/forms/inspect</code></td><td>Weryfikacja wejścia</td></tr>
+<tr><td><code>POST /api/v1/forms/extract-preview</code></td><td>Tekst/metadata OCR bez wywołania modelu</td></tr>
+<tr><td><code>POST /api/v1/forms/convert</code></td><td>JSON COI lub raport diagnostyczny</td></tr>
+<tr><td><code>POST /api/v1/forms/validate-json</code></td><td>Zgodność JSON COI i ostrzeżenia</td></tr>
+<tr><td><code>GET /api/v1/demo/convert</code></td><td>Syntetyczna demonstracja offline</td></tr>
+</table></div>
+<p>Parametry <code>convert</code>: <code>mode=coi|diagnostic</code>, <code>vision=auto|on|off</code>. Tryb OpenRouter wymaga nagłówka <code>X-External-AI-Consent: true</code>. <code>coi</code> blokuje surowy eksport, gdy <code>validation.valid</code> lub <code>quality.ok</code> jest fałszywe, i zwraca HTTP 422; <code>diagnostic</code> dostarcza dane do weryfikacji.</p>
+<p>Możliwe odpowiedzi: 400 dla niepoprawnego JSON, 403 gdy brak zgody na zewnętrzny model, 413 dla przekroczenia limitu, 415 dla nieobsługiwanej zawartości/formatu, 422 dla błędów jakości lub dokumentu, 502 gdy ekstraktor/model nie zwrócił prawidłowej odpowiedzi, 503 gdy AI/worker niedostępny. Dokładne warianty zależą od etapu.</p>
+<h2 id="5-wydajnosc-i-ograniczenia">5. Wydajność i ograniczenia</h2>
+<ul>
+<li>Deadline całego requestu: <strong>240 s</strong> (włącznie z kolejką i OCR); współbieżność maksymalnie <strong>2 konwersje</strong>.</li>
+<li>Obrazy stron do VLM: jedna analiza per strona; jednoczesna analiza najwyżej dwóch stron.</li>
+<li>Przestrzeń dla uploadu: <code>MAX_UPLOAD_MB</code> domyślnie 15; liczba stron i budżety OCR/VLM są ograniczone.</li>
+<li>Docker: API non-root 10001, Office 10002, PDF 10003, read-only filesystem, tmpfs, ograniczenia procesów, sekrety w runtime.</li>
+<li>Model OpenRouter jest zależnością <strong>trybu developerskiego</strong>; <code>compose.ollama.yaml</code> umożliwia konfigurację lokalnej inferencji na maszynie z odpowiednim RAM/GPU, ale nie przeszła ona pełnej walidacji e2e.</li>
+<li>Pamięć RAM i opóźnienia zależą od dokumentu, silnika OCR i przepustowości dostawcy modelu.</li>
+</ul>
+<h2 id="6-bezpieczenstwo-i-prywatnosc">6. Bezpieczeństwo i prywatność</h2>
+<ul>
+<li>Nieufne pliki: sprawdzanie MIME i sygnatur, ZIP limits, formaty jawnie dozwolone, limity zadania.</li>
+<li>Office i PDF: procesy non-root, bez publikowanych portów, wewnętrzna sieć oraz tymczasowe dane zamiast trwałego katalogu uploadów.</li>
+<li>API: odpowiednie nagłówki bezpieczeństwa, brak ekspozycji kluczy w frontendzie i brak treści dokumentów w metadanych dziennika zdarzeń.</li>
+<li>Dostęp zdalny: przez prywatny Tailscale Serve, <strong>nie</strong> przez publiczny Funnel.</li>
+<li>Brak warstwy JWT lub kont użytkowników w samym FormFlow: ograniczenie dostępu musi zapewnić środowisko wdrożenia.</li>
+<li>W trybie OpenRouter dokument (tekst i obraz) trafia do usługi zewnętrznej za jawną zgodą użytkownika. Nie używać prawdziwych danych osobowych lub dokumentów poufnych w demonstracji.</li>
+</ul>
+<h2 id="7-testy-i-odbior">7. Testy i odbiór</h2>
+<ul>
+<li>Python: <code>PYTHONPATH=apps/api python -m pytest -q apps/api/tests</code>.</li>
+<li>JS: <code>npm --prefix apps/frontend test</code> i <code>npm --prefix apps/frontend run build</code>.</li>
+<li>E2E: upload fikcyjnego <code>service.docx</code>, porównanie pól i typów ze wzorcem przez <code>scripts/evaluate_independent.py</code>; dodatkowe źródła przez <code>scripts/validate_forms.py</code>.</li>
+<li>Gotowość do prezentacji wymaga sprawdzenia <code>/healthz</code>, <code>/readyz</code>, <code>/api/v1/capabilities</code>, <code>/api/v1/demo/convert</code>, <code>extract-preview</code>, konwersji, edycji, walidacji i pobrania wyniku.</li>
+<li>Nie mylić formalnej walidacji schematu z trafnością semantyczną. W testach 22.11.2026 na rzeczywistych formularzach nadal występowały braki pól, wyborów i warunków; nie zakładać skuteczności 100%.</li>
+</ul>
+<h2 id="8-uruchomienie-i-obs-uga">8. Uruchomienie i obsługa</h2>
+<p>Instrukcja wdrożenia (w tym Compose i weryfikacja portów): <a href="deployment.html">DEPLOYMENT.md</a>. API i przykłady żądań: <a href="api.html">API.md</a>. Granice jakości i scenariusze testów: <a href="testing.html">TESTING.md</a>. Zależności i licencje: <a href="licenses.html">THIRD_PARTY_LICENSES.md</a>.</p>
+<div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
+<p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
+</main>
+</div>
+</body>
+</html>

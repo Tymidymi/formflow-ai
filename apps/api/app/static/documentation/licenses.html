@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#091735">
+<title>FormFlow — Licencje</title>
+<link rel="stylesheet" href="/static/documentation/docs.css">
+</head>
+<body>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<div class="shell">
+<aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
+<a href="api.html">REST API</a>
+<a href="deployment.html">Wdrożenie</a>
+<a href="testing.html">Testowanie</a>
+<a href="licenses.html" class="active" aria-current="page">Licencje</a></nav></aside>
+<main class="content"><div class="eyebrow">HackNation 2026 · FormFlow v1.4</div><h1 id="formflow-ai-komponenty-zewnetrzne-i-licencje">FormFlow AI — komponenty zewnętrzne i licencje</h1>
+<p>Stan: 22.11.2026. <strong>Inwentaryzacja zależności bezpośrednich</strong>, nie certyfikat zgodności licencyjnej. Pełne sprawdzenie zależności pośrednich i dystrybucji obrazów jest konieczne przed produkcyjnym wdrożeniem.</p>
+<div class="table-wrap"><table>
+<tr><th>Komponent</th><th>Wersja / źródło</th><th>Informacja licencyjna</th></tr>
+<tr><td>Python (obrazy API i workerów)</td><td>3.13.9</td><td>PSF</td></tr>
+<tr><td>FastAPI</td><td>0.115.12</td><td>MIT (sprawdzić metadane obrazu)</td></tr>
+<tr><td>Uvicorn</td><td>0.34.3</td><td>BSD-3-Clause</td></tr>
+<tr><td>Pydantic</td><td>2.11.7</td><td>MIT</td></tr>
+<tr><td>jsonschema</td><td>4.25.1</td><td>MIT</td></tr>
+<tr><td>httpx</td><td>0.28.1</td><td>BSD-3-Clause</td></tr>
+<tr><td>pypdf</td><td>6.1.3</td><td>BSD-3-Clause</td></tr>
+<tr><td>pypdfium2</td><td>5.2.0</td><td>Apache-2.0/BSD-3-Clause + zależności PDFium</td></tr>
+<tr><td>Pillow</td><td>12.0.0</td><td>HPND/MIT-CMU (zweryfikować z dystrybucją)</td></tr>
+<tr><td>python-docx</td><td>1.2.0</td><td>MIT</td></tr>
+<tr><td>openpyxl</td><td>3.1.5</td><td>MIT</td></tr>
+<tr><td>Docling Slim</td><td>2.151.1</td><td>MIT (plus zależności format-office)</td></tr>
+<tr><td>Tesseract OCR</td><td>pakiet Debian, języki pol/eng</td><td>Apache-2.0</td></tr>
+<tr><td>React / React DOM</td><td>18.3.1</td><td>MIT</td></tr>
+<tr><td>JSON Forms</td><td>3.8.0</td><td>MIT</td></tr>
+<tr><td>esbuild</td><td>0.25.12</td><td>MIT</td></tr>
+<tr><td>LibreOffice Writer i Calc</td><td>pakiet Debian Trixie</td><td><strong>różne licencje, w tym MPL/LGPL</strong> — wymaga oceny zakresu dystrybucji i obowiązków licencyjnych</td></tr>
+<tr><td>DejaVu Fonts</td><td>pakiet Debian</td><td>sprawdzić w metadanych pakietu</td></tr>
+<tr><td>Ollama (opcjonalny overlay)</td><td>0.12.7</td><td>sprawdzić licencję oraz warunki wag modelu</td></tr>
+</table></div>
+<p>Prawidłowe wersje pakietów Python są przypięte w plikach <code>apps/{api,extractor,pdf_engine}/requirements*.txt</code>; Node w <code>apps/frontend/package-lock.json</code>. Obrazy Dockera używają konkretnych tagów, bez <code>latest</code>.</p>
+<h2 id="elementy-ktorych-nie-wolno-przeoczyc">Elementy, których nie wolno przeoczyć</h2>
+<ul>
+<li>Komponenty systemowe LibreOffice i transytywne zależności Pythona/Node mogą nakładać dodatkowe obowiązki. Nie stwierdzamy, że zbadano wszystkie licencje lub że dowolna wersja projektu spełnia szczególne zasady konkursu.</li>
+<li>Model Qwen3-VL jest modelem open-weight; licencję konkretnego checkpointu i warunki hostingu trzeba sprawdzić osobno.</li>
+<li>Oryginalny kontrakt JSON COI w <code>apps/api/app/contracts/coi_form_schema.json</code> został dostarczony w materiałach zadania. <strong>Przed upublicznieniem repo trzeba potwierdzić prawo do jego redystrybucji.</strong></li>
+<li>Klucze API, źródłowe formularze testowe oraz wyniki mogące zawierać dane nie są publikowane w Git.</li>
+</ul>
+<p>Szczegóły architektury i wdrożenia: <a href="index.html">dokumentacja techniczna</a>.</p>
+<div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
+<p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
+</main>
+</div>
+</body>
+</html>

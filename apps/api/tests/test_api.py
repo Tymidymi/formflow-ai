@@ -12,6 +12,33 @@ def test_health():
     assert client.get("/healthz").json()["version"] == "1.4.0"
 
 
+def test_technical_documentation_is_self_hosted():
+    home = client.get("/")
+    assert home.status_code == 200
+    assert 'href="/documentation/"' in home.text
+
+    page = client.get("/documentation/")
+    assert page.status_code == 200
+    assert "FormFlow AI" in page.text
+    assert "Architektura" in page.text
+    assert '/static/documentation/docs.css' in page.text
+    assert "cdn.jsdelivr.net" not in page.text
+
+    css = client.get("/static/documentation/docs.css")
+    assert css.status_code == 200
+    assert "--navy:#091735" in css.text
+
+    for slug in ("api", "deployment", "testing", "licenses"):
+        result = client.get(f"/documentation/{slug}.html")
+        assert result.status_code == 200
+        assert "<main" in result.text
+
+    api = client.get("/api/docs", follow_redirects=False)
+    assert api.status_code == 307
+    assert api.headers["location"] == "/documentation/api.html"
+    assert client.get("/api/openapi.json").status_code == 200
+
+
 def test_validation_pdf_signature():
     r = client.post(
         "/api/v1/forms/inspect",

@@ -87,7 +87,7 @@ Wzorcowy kontrakt organizatora przechowywany jest w `apps/api/app/contracts/coi_
 
 ## 4. REST API i scenariusze błędów
 
-Dokumentacja interaktywna: `GET /api/docs`, specyfikacja: `GET /api/openapi.json`.
+Dokumentacja API: `GET /api/docs`, specyfikacja OpenAPI: `GET /api/openapi.json`.
 
 | Endpoint | Funkcja |
 |---|---|

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#091735">
+<title>FormFlow — Testowanie</title>
+<link rel="stylesheet" href="/static/documentation/docs.css">
+</head>
+<body>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
+<div class="shell">
+<aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
+<a href="api.html">REST API</a>
+<a href="deployment.html">Wdrożenie</a>
+<a href="testing.html" class="active" aria-current="page">Testowanie</a>
+<a href="licenses.html">Licencje</a></nav></aside>
+<main class="content"><div class="eyebrow">HackNation 2026 · FormFlow v1.4</div><h1 id="formflow-testowanie-i-znane-ograniczenia">FormFlow — testowanie i znane ograniczenia</h1>
+<h2 id="automatyczne-testy-kodu">Automatyczne testy kodu</h2>
+<pre><code class="lang-bash">python -m pip install -r apps/api/requirements-test.txt
+PYTHONPATH=apps/api python -m pytest -q -p no:cacheprovider apps/api/tests
+
+npm --prefix apps/frontend ci
+npm --prefix apps/frontend test
+npm --prefix apps/frontend run build</code></pre>
+<p>Weryfikacja 22.11.2026 (kandydat v1.4, nowszy interfejs): <strong>122 testy Python przeszły</strong>, <strong>20 testów JS przeszło</strong>, <strong>frontend zbudowany</strong>. To weryfikuje kontrakty, przypadki brzegowe i zgodność kodu; nie jest dowodem dokładnego odwzorowania dowolnego dokumentu źródłowego.</p>
+<h2 id="test-integracyjny">Test integracyjny</h2>
+<ol>
+<li><code>GET /healthz</code>, <code>GET /readyz</code> i <code>GET /api/v1/capabilities</code>.</li>
+<li><code>GET /api/v1/demo/convert</code> — fikcyjny formularz, bez zewnętrznych wywołań.</li>
+<li><code>POST /api/v1/forms/extract-preview</code> — plik DOCX, kontrola liczby stron i tekstu PDF.</li>
+<li><code>POST /api/v1/forms/convert?mode=diagnostic</code> — ten sam plik, kontrola <code>form</code>, <code>validation</code>, <code>grounding</code>, <code>quality</code>.</li>
+<li>Porównanie pól, typów, etykiet, opcji i warunków ze źródłem, a nie tylko liczby pól.</li>
+<li>Edycja w UI, potwierdzenie weryfikacji, pobranie JSON, test <code>POST /api/v1/forms/validate-json</code>.</li>
+<li>Test formatów PDF, skan JPG/PNG, DOC/DOCX oraz XLSX/ODS, w tym dokumentów wielostronicowych. Przetwarzanie nowych formularzy jest częścią demonstracji jury.</li>
+</ol>
+<p>Niezależna kontrola <code>service.docx</code>: <code>scripts/evaluate_independent.py</code>. Powtarzalne serię diagnostyczne: <code>scripts/validate_forms.py</code>. Dane wejściowe konkursowe i wynikowe zawierające treść dokumentów <strong>nie</strong> powinny trafić do publicznego GitHub.</p>
+<h2 id="znane-ograniczenia-i-problemy">Znane ograniczenia i problemy</h2>
+<ul>
+<li>Multimodalne Qwen3-VL potrafi nie rozpoznać pola, zmienić je w blok statyczny albo błędnie zinterpretować wybór przez skreślenie. Przy temperaturze 0 wyniki mogą być różne.</li>
+<li>Drugi modelowy weryfikator został usunięty: w testach potrafił skasować prawidłowo rozpoznane pola. Aktualny pipeline opiera się na jednym przebiegu i kontrolach deterministycznych.</li>
+<li>Tabele, rysunki i układ dokumentów Office mogą nie przetrwać renderowania w 100%; materialna utrata tekstu powoduje błąd 422.</li>
+<li>Warunki <code>SHOW</code> wymagają istniejącego pola i opcji. Formalnie poprawny JSON COI nie gwarantuje poprawnej logiki formularza.</li>
+<li><code>quality.ok</code> i <code>schema_valid</code> są heurystykami/strukturą. <strong>Nie są</strong> pomiarem accuracy względem ground truth.</li>
+<li>Wersja demonstracyjna nie została sprawdzona z rzeczywistym importerem COI. Dostępność importerów i rzeczywiste API pozostają poza zakresem.</li>
+<li>Port Tailscale jest prywatny; sama aplikacja nie ma wieloużytkownikowego uwierzytelnienia. Wymaga kontroli dostępu na poziomie infrastruktury.</li>
+<li>Lokalny model Ollama może działać na mocniejszym hoście, ale nie ma potwierdzonego wyniku e2e na obecnej maszynie.</li>
+</ul>
+<h2 id="kryteria-gotowosci-do-konkursu">Kryteria gotowości do konkursu</h2>
+<ul>
+<li>Kompletny plik README, instrukcja uruchomienia Docker, opis REST API i architektury.</li>
+<li>Działające <code>/healthz</code> oraz <strong>faktyczna</strong> analiza jednego kontrolnego dokumentu, nie tylko gotowość.</li>
+<li>Schemat COI przechodzi walidację; wynik jest weryfikowany z oryginałem.</li>
+<li>Frontend pokazuje źródło, podgląd eUsługi, edycję i eksport.</li>
+<li>Materiały konkursowe (PDF prezentacji do 10 slajdów, JSON wynikowe, film do 3 minut i kod) są osobnymi składnikami zgłoszenia; nie stanowią części danych testowych repozytorium.</li>
+</ul>
+<h2 id="ocena-jakosci-modeli">Ocena jakości modeli</h2>
+<p>Przeprowadzono mały benchmark kilku otwartych modeli VLM, także Qwen3-VL-30B/235B, Mistral Small i Nemotron. <strong>Żaden nie wygrał bezbłędnie na wszystkich rzeczywistych formularzach</strong>. Nie zmieniać produkcyjnego modelu bez nowej, niezależnie zweryfikowanej próby. Historyczne pliki przebiegów i dokumenty źródłowe pozostają poza repozytorium.</p>
+<p><strong>Dalsza praca:</strong> zwiększać reprezentatywny zestaw testowy z poprawnymi odpowiedziami (pola, opcje, warunki, strony), nie tworzyć wyjątku w kodzie dla konkretnego formularza.</p>
+<div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
+<p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
+</main>
+</div>
+</body>
+</html>
