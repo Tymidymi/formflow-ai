@@ -3,14 +3,31 @@
 Only validates observed fields. It does not create, rename, or reconstruct
 source controls and has no dictionary of example form questions.
 """
+
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    field_validator,
+    model_validator,
+)
 
 InputType = Literal[
-    "TEXT_FIELD", "TEXTAREA", "NUMBER", "DATEPICKER",
-    "RADIO", "CHECKBOX", "SELECT", "FILE_UPLOADER", "INFO_BLOCK",
+    "TEXT_FIELD",
+    "TEXTAREA",
+    "NUMBER",
+    "DATEPICKER",
+    "RADIO",
+    "CHECKBOX",
+    "SELECT",
+    "FILE_UPLOADER",
+    "INFO_BLOCK",
 ]
 MAX_PAGES = 24
 MAX_SECTIONS = 24
@@ -46,6 +63,7 @@ class CanonicalField(BaseModel):
     column: StrictStr | None = Field(default=None, max_length=65)
     content: StrictStr | None = Field(default=None, max_length=7000)
     source: StrictStr | None = Field(default=None, max_length=80)
+    region: list[float] | None = Field(default=None, min_length=4, max_length=4)
     source_choice_ref: StrictStr | None = Field(default=None, max_length=130)
     show_when: SourceCondition | None = None
     dictionary_name: StrictStr | None = Field(default=None, max_length=80)
@@ -76,24 +94,29 @@ class CanonicalField(BaseModel):
 class CanonicalSection(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: StrictStr = Field(min_length=1, max_length=220)
-    fields: list[CanonicalField] = Field(default_factory=list, max_length=MAX_FIELDS_PER_SECTION)
+    fields: list[CanonicalField] = Field(
+        default_factory=list, max_length=MAX_FIELDS_PER_SECTION
+    )
 
 
 class CanonicalPage(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: StrictStr = Field(min_length=1, max_length=220)
-    sections: list[CanonicalSection] = Field(default_factory=list, max_length=MAX_SECTIONS)
+    sections: list[CanonicalSection] = Field(
+        default_factory=list, max_length=MAX_SECTIONS
+    )
 
 
 class CanonicalForm(BaseModel):
     """Validated extraction inventory; distinct from the final COI JSON."""
+
     model_config = ConfigDict(extra="forbid")
     title: StrictStr = Field(min_length=1, max_length=255)
     pages: list[CanonicalPage] = Field(min_length=1, max_length=MAX_PAGES)
 
     @model_validator(mode="after")
     def validate_limits(self):
-        count=sum(len(s.fields) for page in self.pages for s in page.sections)
+        count = sum(len(s.fields) for page in self.pages for s in page.sections)
         if count > MAX_FIELDS_TOTAL:
             raise ValueError("Zbyt wiele pól w formularzu.")
         return self

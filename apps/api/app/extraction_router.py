@@ -1,126 +1,204 @@
-"""Route extraction to isolated private Docker workers with safe fallback.
+"""Normalize input into physical PDF pages; OCR and vision share page identity."""
 
-PDF/JPG/PNG: local PDFium/pypdf layout + Tesseract pol+eng worker.
-DOCX/XLSX/ODS: docling-slim Office worker. Legacy DOC: antiword text-only.
-All URLs are fixed hostnames on an internal Docker network (no SSRF).
-"""
-from __future__ import annotations
-
-import asyncio
 import base64
+from io import BytesIO
 import os
-from typing import Any
-
+from PIL import Image
 import httpx
-from .document_text import extract_document
 from .uploads import RejectedFile
+from .source_fidelity import assess_docx_render, mirrored_source_pages
+from .render_fidelity import check_visible_text
 
-OFFICE={".doc",".docx",".xlsx",".ods"}
-PDF_INPUTS={".pdf",".png",".jpg",".jpeg"}
-DOCLING_URL="http://docling-office:8001"
-PDF_URL="http://pdf-engine:8002"
+OFFICE = {".doc", ".docx", ".xlsx", ".ods"}
+DOCLING_URL = "http://docling-office:8001"  # retained internal service DNS
+PDF_URL = "http://pdf-engine:8002"
+MAX_BYTES = 15 * 1024 * 1024
 
-async def _request(url:str, extension:str, content:bytes, *, previews:bool=False)->dict:
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(65.0,connect=3.0),follow_redirects=False
-    ) as client:
-        response=await client.post(
-            url+"/extract",
-            params={"previews":"true"} if previews else {},
-            files={"file":("input"+extension,content,"application/octet-stream")},
-        )
-    if response.status_code in (413,415,422):
-        try: detail=response.json().get("detail","Błąd ekstrakcji pliku.")
-        except (ValueError,TypeError): detail="Błąd ekstrakcji pliku."
-        raise RejectedFile(str(detail),response.status_code)
-    if response.status_code!=200:
-        raise httpx.HTTPStatusError("Worker unavailable",request=response.request,response=response)
-    payload=response.json()
-    if not isinstance(payload,dict) or not isinstance(payload.get("text"),str):
-        raise ValueError("Worker returned invalid response")
+
+async def _request(url, extension, content, *, previews=False):
+    try:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(90, connect=3), follow_redirects=False
+        ) as client:
+            response = await client.post(
+                url + "/extract",
+                params={"previews": "true"} if previews else {},
+                files={
+                    "file": ("input" + extension, content, "application/octet-stream")
+                },
+            )
+    except httpx.HTTPError as exc:
+        raise RejectedFile("Moduł odczytu dokumentów jest niedostępny.", 503) from exc
+    if response.status_code != 200:
+        if response.status_code in (413, 415, 422):
+            try:
+                detail = response.json().get("detail", "Nieprawidłowy dokument.")
+            except (ValueError, TypeError):
+                detail = "Nieprawidłowy dokument."
+            raise RejectedFile(str(detail), response.status_code)
+        raise RejectedFile("Błąd modułu odczytu dokumentów.", 503)
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RejectedFile("Nieprawidłowa odpowiedź modułu odczytu.", 502)
     return payload
 
-async def extract_with_backend(content:bytes,extension:str,*,vision_mode:str="auto")->tuple[str,list,dict]:
-    if vision_mode not in {"auto","on","off"}:
+
+def image_pdf(content):
+    try:
+        with Image.open(BytesIO(content)) as opened:
+            if opened.width * opened.height > 32_000_000:
+                raise RejectedFile("Obraz przekracza limit 32 milionów pikseli.", 413)
+            canvas = opened.convert("RGB")
+            count = max(1, round(canvas.height / (canvas.width * 2**0.5)))
+            if count > 24:
+                raise RejectedFile("Obraz przekracza limit stron.", 413)
+            pages = [
+                canvas.crop(
+                    (
+                        0,
+                        round(i * canvas.height / count),
+                        canvas.width,
+                        round((i + 1) * canvas.height / count),
+                    )
+                )
+                for i in range(count)
+            ]
+            stream = BytesIO()
+            pages[0].save(stream, format="PDF", save_all=True, append_images=pages[1:])
+            return stream.getvalue()
+    except (OSError, ValueError) as exc:
+        raise RejectedFile("Nie można odczytać obrazu.", 422) from exc
+
+
+async def extract_with_backend(content, extension, *, vision_mode="auto"):
+    if vision_mode not in {"auto", "on", "off"}:
         raise ValueError("Nieprawidłowy tryb vision.")
-    pdf_enabled=os.environ.get("FORMFLOW_PDF_WORKER_URL")==PDF_URL
-    docling_enabled=os.environ.get("FORMFLOW_DOCLING_URL")==DOCLING_URL
-    pdf_vision=(vision_mode=="on" or (vision_mode=="auto" and
-                os.environ.get("FORMFLOW_PDF_VISION","false").lower() in ("true","1","yes")))
-    if pdf_enabled and extension in PDF_INPUTS:
+    original = extension
+    normalization = None
+    original_docx = content if extension == ".docx" else None
+    office_structure = None
+    office_print_normalization = None
+    visible_pdf_check = None
+    if extension in OFFICE:
+        if os.environ.get("FORMFLOW_DOCLING_URL") != DOCLING_URL:
+            raise RejectedFile("Brak modułu normalizacji Office.", 503)
+        payload = await _request(DOCLING_URL, extension, content)
+        office_structure = payload.get("source_structure")
+        office_print_normalization = payload.get("print_normalization")
+        if not isinstance(office_structure, dict):
+            office_structure = None
         try:
-            payload=await _request(PDF_URL,extension,content,previews=pdf_vision)
-            source_text=payload["text"][:100000]
-            images=[]
-            if extension in (".jpg",".jpeg",".png"):
-                mime="image/png" if extension==".png" else "image/jpeg"
-                images.append((mime,content))
-            page_numbers=[]
-            rejected_images=[]
-            if extension==".pdf" and pdf_vision:
-                for entry in payload.get("preview_images",[])[:12]:
-                    page=entry.get("page")
-                    if entry.get("mime")!="image/jpeg":
-                        rejected_images.append(page)
-                        continue
-                    raw=base64.b64decode(entry.get("base64",""),validate=True)
-                    if 0<len(raw)<1_500_000:
-                        images.append(("image/jpeg",raw))
-                        page_numbers.append(page)
-                    else:
-                        rejected_images.append(page)
-            count=payload.get("page_count") or 0
-            return source_text,images,{
-                "engine":payload.get("engine","pdf-layout-ocr"),
-                "pages":count,
-                "ocr_pages":payload.get("ocr_pages"),
-                "page_sources":payload.get("page_sources",[]),
-                "truncated":payload.get("truncated",False) or len(payload["text"])>100000,
-                "vision_enabled":bool(pdf_vision) if extension==".pdf" else True,
-                "vision_pages":len(images) if extension==".pdf" else 1,
-                "vision_page_numbers":page_numbers if extension==".pdf" else [1],
-                "vision_rejected_pages":rejected_images,
-                "vision_incomplete":bool(extension==".pdf" and pdf_vision and
-                                          (len(page_numbers)<count or rejected_images)),
-            }
-        except RejectedFile:raise
-        except (httpx.HTTPError,ValueError,TypeError,KeyError,base64.binascii.Error):
-            # Transparent fallback to the previous local parser.
-            text,images=await asyncio.to_thread(extract_document,content,extension)
-            return text,images,{"engine":"pdf-local-fallback",
-                "warning":"PDF/OCR worker unavailable",
-                "vision_enabled":pdf_vision,
-                "vision_incomplete":bool(extension==".pdf" and pdf_vision),
-                "vision_pages":len(images),
-                "vision_page_numbers":list(range(1,len(images)+1)),
-                "truncated":False}
-    if extension in OFFICE and docling_enabled:
+            content = base64.b64decode(payload["pdf_base64"], validate=True)
+        except (KeyError, ValueError, TypeError) as exc:
+            raise RejectedFile(
+                "Brak poprawnego PDF z normalizacji Office.", 502
+            ) from exc
+        if not content.startswith(b"%PDF-") or len(content) > MAX_BYTES:
+            raise RejectedFile("Nieprawidłowy PDF po normalizacji Office.", 422)
+        normalization = "libreoffice-pdf"
+        extension = ".pdf"
         try:
-            payload=await _request(DOCLING_URL,extension,content)
-            text=payload["text"]
-            if text.strip():
-                legacy=extension==".doc"
-                return text[:100000],[],{
-                    "engine":payload.get("engine","antiword-legacy-doc") if legacy else "docling-office",
-                    "tables":payload.get("tables",0),
-                    "source_pages":payload.get("page_count",0),
-                    "truncated":payload.get("truncated",False) or len(text)>100000,
-                    "layout_fidelity":payload.get("layout_fidelity","structured"),
-                    "legacy_doc_review_required":legacy,
-                    "office_sheet_count":payload.get("sheet_count"),
-                    "office_populated_cells":payload.get("populated_cells"),
-                    "document_title":payload.get("document_title"),
-                    "source_sections":payload.get("source_sections"),
-                    **({"warning":payload.get("warning",
-                        "Stary DOC wymaga kontroli układu.")} if legacy else {}),
-                }
-        except RejectedFile:raise
-        except (httpx.HTTPError,ValueError,KeyError,TypeError):
-            if extension==".doc":
-                raise RejectedFile("Moduł odczytu starego formatu DOC jest niedostępny.",503)
-            text,images=await asyncio.to_thread(extract_document,content,extension)
-            return text,images,{"engine":"local-fallback","warning":"Docling worker unavailable"}
-    if extension==".doc":
-        raise RejectedFile("Obsługa DOC wymaga izolowanego workera dokumentów.",503)
-    text,images=await asyncio.to_thread(extract_document,content,extension)
-    return text,images,{"engine":"local"}
+            visible_pdf_check = check_visible_text(content)
+        except ValueError as exc:
+            raise RejectedFile(str(exc), 422) from exc
+        if visible_pdf_check["material_clipping"]:
+            raise RejectedFile(
+                "PDF wygenerowany z Office zawiera tekst poza widocznym "
+                "obszarem strony. Konwersja byłaby niekompletna.",
+                422,
+            )
+    elif extension in {".png", ".jpg", ".jpeg"}:
+        content = image_pdf(content)
+        normalization = "image-page-slices"
+        extension = ".pdf"
+    if extension != ".pdf":
+        raise RejectedFile("Nieobsługiwany format.", 415)
+    if os.environ.get("FORMFLOW_PDF_WORKER_URL") != PDF_URL:
+        raise RejectedFile("Brak modułu odczytu PDF.", 503)
+    visual = (
+        vision_mode == "on"
+        or vision_mode == "auto"
+        and os.environ.get("FORMFLOW_PDF_VISION", "false").lower()
+        in {"true", "1", "yes"}
+    )
+    # Normalized Office/images always require visual evidence.
+    visual = visual or normalization is not None
+    payload = await _request(PDF_URL, ".pdf", content, previews=visual)
+    text = payload.get("text")
+    if not isinstance(text, str):
+        raise RejectedFile("Moduł PDF nie zwrócił tekstu źródłowego.", 502)
+    if original in {".xlsx", ".ods"} and mirrored_source_pages(text):
+        raise RejectedFile(
+            "Normalizacja arkusza wygenerowała niemal identyczne strony. "
+            "Nie można bezpiecznie ustalić unikalnych pól formularza.",
+            422,
+        )
+    fidelity = None
+    if original_docx is not None:
+        try:
+            result = assess_docx_render(original_docx, text)
+        except ValueError as exc:
+            raise RejectedFile(str(exc), 422) from exc
+        fidelity = result.report()
+        if not result.complete_enough:
+            raise RejectedFile(
+                "Renderer DOCX utracił znaczną część tekstu źródłowego. "
+                "Konwersja została przerwana zamiast wygenerować niepełny formularz.",
+                422,
+            )
+    images = []
+    numbers = []
+    rejected = []
+    for i, entry in enumerate(payload.get("preview_images", []) if visual else [], 1):
+        number = entry.get("page", i)
+        try:
+            data = base64.b64decode(entry["base64"], validate=True)
+        except (KeyError, ValueError, TypeError):
+            rejected.append(number)
+            continue
+        if entry.get("mime") == "image/jpeg" and 0 < len(data) <= 4 * 1024 * 1024:
+            images.append(("image/jpeg", data))
+            numbers.append(number)
+        else:
+            rejected.append(number)
+    count = payload.get("page_count") or 0
+    return (
+        text,
+        images,
+        {
+            "engine": payload.get("engine", "pdf-layout-ocr"),
+            "pages": count,
+            "ocr_pages": payload.get("ocr_pages"),
+            "page_sources": payload.get("page_sources", []),
+            "truncated": bool(payload.get("truncated")),
+            "vision_enabled": visual,
+            "vision_pages": len(images),
+            "vision_page_numbers": numbers,
+            "vision_rejected_pages": rejected,
+            "vision_incomplete": bool(visual and (len(numbers) != count or rejected)),
+            "normalization_engine": normalization,
+            "original_extension": original,
+            "normalization_fidelity": fidelity,
+            "office_print_normalization": office_print_normalization,
+            "office_pdf_visibility": visible_pdf_check,
+            "office_structure_engine": (
+                office_structure.get("engine") if office_structure else None
+            ),
+            "office_structure_status": (
+                office_structure.get("status") if office_structure else "not_available"
+            ),
+            "office_source_cells": (
+                office_structure.get("cell_count", 0) if office_structure else 0
+            ),
+            "office_source_chars": (
+                len(office_structure.get("plain_text", "")) if office_structure else 0
+            ),
+            # Internal-only: main.py passes this into the page analyzer and
+            # removes it from HTTP diagnostics to avoid echoing document text.
+            "source_sections": (
+                office_structure
+                if office_structure and office_structure.get("status") == "ok"
+                else None
+            ),
+        },
+    )

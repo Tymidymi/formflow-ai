@@ -20,7 +20,7 @@ services:
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     pids_limit: 48
-    mem_limit: 384m
+    mem_limit: 1536m
     environment:
       OMP_NUM_THREADS: "1"
       OPENBLAS_NUM_THREADS: "1"

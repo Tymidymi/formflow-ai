@@ -1,4 +1,4 @@
-"""Minimal upload acceptance policy for COI phase 1 (no document extraction yet)."""
+"""Upload acceptance before isolated document rendering."""
 
 from __future__ import annotations
 
@@ -39,15 +39,31 @@ def _office_mime(content: bytes, extension: str) -> str:
     try:
         with ZipFile(io.BytesIO(content)) as archive:
             infos = archive.infolist()
-            if len(infos) > ZIP_MAX_ENTRIES or sum(i.file_size for i in infos) > ZIP_MAX_EXPANDED:
-                raise RejectedFile("Archiwum Office przekracza limit bezpieczeństwa.", 413)
+            if (
+                len(infos) > ZIP_MAX_ENTRIES
+                or sum(i.file_size for i in infos) > ZIP_MAX_EXPANDED
+            ):
+                raise RejectedFile(
+                    "Archiwum Office przekracza limit bezpieczeństwa.", 413
+                )
             names = set(archive.namelist())
-            if extension == ".docx" and {"[Content_Types].xml", "word/document.xml"} <= names:
+            if (
+                extension == ".docx"
+                and {"[Content_Types].xml", "word/document.xml"} <= names
+            ):
                 return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            if extension == ".xlsx" and {"[Content_Types].xml", "xl/workbook.xml"} <= names:
-                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            if (
+                extension == ".xlsx"
+                and {"[Content_Types].xml", "xl/workbook.xml"} <= names
+            ):
+                return (
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
             if extension == ".ods" and "mimetype" in names:
-                if archive.read("mimetype", pwd=None) == b"application/vnd.oasis.opendocument.spreadsheet":
+                if (
+                    archive.read("mimetype", pwd=None)
+                    == b"application/vnd.oasis.opendocument.spreadsheet"
+                ):
                     return "application/vnd.oasis.opendocument.spreadsheet"
     except (BadZipFile, OSError, RuntimeError, ValueError) as exc:
         raise RejectedFile("Uszkodzony plik Office.", 415) from exc
@@ -62,7 +78,7 @@ def detect_mime(content: bytes, extension: str) -> str:
     if extension in {".jpg", ".jpeg"} and content.startswith(b"\xff\xd8\xff"):
         return "image/jpeg"
     if extension == ".doc" and content.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
-        # Only identifies OLE2 signature; complete DOC validation follows with legacy parser.
+        # Only identifies OLE2 signature; complete DOC validation follows in the isolated Office renderer.
         return "application/msword"
     if extension in {".docx", ".xlsx", ".ods"}:
         return _office_mime(content, extension)

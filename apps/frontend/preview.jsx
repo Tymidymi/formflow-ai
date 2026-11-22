@@ -133,6 +133,8 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
   const [showValidation, setShowValidation] = useState(false);
   const [workingForm, setWorkingForm] = useState(() => structuredClone(form));
   const [editing, setEditing] = useState(false);
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const manualReviewRequired = source === "generated";
   const [editError, setEditError] = useState("");
   const [editMessage, setEditMessage] = useState("");
   const [validating, setValidating] = useState(false);
@@ -151,6 +153,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
       if (history.current.length > 40) history.current.shift();
       setWorkingForm(next);
       setSavedReview(null);
+      setReviewConfirmed(false);
       setEditError("");
       setEditMessage("Zmiana zastosowana. Zapisz poprawki, aby sprawdzić strukturę COI.");
       return next;
@@ -163,6 +166,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
     if (!history.current.length) return;
     setWorkingForm(history.current.pop());
     setSavedReview(null);
+    setReviewConfirmed(false);
     setEditError("");
     setEditMessage("Cofnięto ostatnią zmianę.");
   }
@@ -170,6 +174,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
     editStart.current = structuredClone(workingForm);
     history.current=[];
     setEditing(true);
+    setReviewConfirmed(false);
     setView("form");
     if (page?.isFinish) setPageIndex(0);
     setEditError("");
@@ -198,6 +203,11 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
         setSavedReview(data);
         return false;
       }
+      if ((data.summary?.input_fields ?? 0) < 1) {
+        setEditError("Formularz nie zawiera żadnego pola do wypełnienia. Dodaj brakujące pytania przed eksportem.");
+        setSavedReview(data);
+        return false;
+      }
       setSavedReview(data);
       return data;
     } catch (error) {
@@ -210,6 +220,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
       history.current=[];
       editStart.current=structuredClone(workingForm);
       setEditing(false);
+      setReviewConfirmed(false);
       setAnswers({});
       setErrors([]);
       setShowValidation(false);
@@ -223,6 +234,10 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
       setEditError("Najpierw zapisz poprawki i sprawdź wynik walidacji COI.");
       return false;
     }
+    if (manualReviewRequired && !reviewConfirmed) {
+      setEditError("Najpierw porównaj każdą stronę z oryginałem i potwierdź kontrolę formularza.");
+      return false;
+    }
     if (!(await checkCOI())) return false;
     download("formflow-coi-poprawiony.json", JSON.stringify(workingForm,null,2), "application/json;charset=utf-8");
     setEditMessage("Pobrano zweryfikowaną konfigurację COI. Plik zachowuje poprawki.");
@@ -231,6 +246,10 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
   async function advanceToFinal() {
     if(editing) {
       setEditError("Najpierw zapisz poprawki, a następnie przejdź dalej.");
+      return;
+    }
+    if (manualReviewRequired && !reviewConfirmed) {
+      setEditError("Najpierw porównaj każdą stronę z oryginałem i potwierdź kontrolę formularza.");
       return;
     }
     const report=await checkCOI();
@@ -252,7 +271,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
         window.FormFlowPreview.hasEdits=()=>false;
       }
     };
-  },[workingForm,editing,hasEdits]);
+  },[workingForm,editing,hasEdits,reviewConfirmed]);
   useEffect(() => {
     const guard=event => {
       if(hasEdits){
@@ -320,7 +339,7 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
         </> : <>
           {hasEdits && <span className="ff-edited-label">● Formularz poprawiony ręcznie</span>}
           <button type="button" className="ff-quiet" onClick={startEditing}>✎ Popraw pytania</button>
-          <button type="button" className="ff-primary" disabled={validating}
+          <button type="button" className="ff-primary" disabled={validating || (manualReviewRequired && !reviewConfirmed)}
             onClick={wizardMode ? advanceToFinal : exportEditedCOI}>
             {validating?"Sprawdzanie…":wizardMode?"Wszystko się zgadza — dalej →":"Pobierz JSON COI"}
           </button>
@@ -338,8 +357,10 @@ function PreviewApp({form, file, extraction, validation, quality, grounding, inv
     </div>
     {savedReview && !savedReview.valid && <div className="ff-warning" role="alert">
       Walidator COI wskazuje problemy. Formularz ma charakter roboczy.</div>}
-    {quality && !quality.ok && !hasEdits && <div className="ff-warning" role="alert">
-      Wynik modelu wymaga ręcznej weryfikacji — część pytań mogła zostać pominięta.</div>}
+    {manualReviewRequired && !editing && <label className="ff-review-ack">
+      <input type="checkbox" checked={reviewConfirmed} onChange={event => { setReviewConfirmed(event.target.checked); setEditError(""); }} />
+      <span><strong>Potwierdzam ręczną kontrolę formularza.</strong> Porównałem wszystkie strony, pola i opcje z oryginałem oraz poprawiłem zauważone błędy. Sam poprawny JSON nie potwierdza kompletności.</span>
+    </label>}
     {extraction?.vision_incomplete && <div className="ff-warning" role="alert">
       Uwaga: obrazowo sprawdzono tylko {extraction.vision_pages||0} z {extraction.pages||"?"}
       {" "}stron PDF. Przejrzyj także pozostałe strony oryginału.</div>}
