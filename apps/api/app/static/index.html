@@ -4,7 +4,8 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light"/>
-  <title>FormFlow AI — formularz krok po kroku</title>
+  <title>FormFlow AI — Digitalizacja formularzy</title>
+  <meta name="theme-color" content="#091735"/>
   <link rel="stylesheet" href="/static/style.css"/>
   <link rel="stylesheet" href="/static/preview.bundle.css"/>
   <script src="/static/app.js" defer></script>
@@ -14,15 +15,15 @@
 <div class="app-shell">
   <aside class="sidebar">
     <a class="brand" href="/"><span class="mark">F<span>·</span></span><span>formflow <small>AI</small></span></a>
-    <div class="sidebar-hint">Zamień dokument w formularz internetowy — krok po kroku.</div>
+    <div class="sidebar-hint">Cyfryzacja dokumentów. Prościej, szybciej, w trzech krokach.</div>
     <nav aria-label="Menu główne"><a class="nav-active" href="/"><span>▣</span> Nowy formularz</a></nav>
     <div class="sidebar-bottom"><div class="mini-pulse"></div> Aplikacja działa
-      <p>HackNation 2026 · COI</p>
+      <p>HackNation 2026 · Wyzwanie COI</p>
       <a href="/api/docs" target="_blank" rel="noopener">Dokumentacja techniczna</a>
     </div>
   </aside>
   <main class="content" id="main-content">
-    <header class="topbar"><span>FormFlow AI <b>/</b> Tworzenie formularza</span><span class="env-chip">PROSTY KREATOR</span></header>
+    <header class="topbar"><span>FormFlow AI <b>/</b> Cyfryzacja formularzy</span><span class="env-chip">PROTOTYP KONKURSOWY</span></header>
 
     <div class="wizard-progress" aria-label="Postęp pracy">
       <ol class="wizard-steps">
@@ -34,9 +35,8 @@
 
     <section class="wizard-page" id="step-upload" aria-labelledby="upload-title">
       <div class="wizard-intro">
-        <div class="wizard-kicker">KROK 1 Z 3</div>
-        <h1 id="upload-title">Dodaj dokument,<br><em>od którego zaczniemy.</em></h1>
-        <p>Wybierz plik z formularzem, np. skan, zdjęcie lub dokument PDF. Program przygotuje jego wersję elektroniczną.</p>
+        <h1 id="upload-title" tabindex="-1">Zamień dokument<br><em>w cyfrowy formularz.</em></h1>
+        <p>Dodaj PDF, skan lub plik biurowy. Przygotujemy interaktywny formularz, który możesz sprawdzić i poprawić przed pobraniem.</p>
       </div>
       <div class="wizard-card">
         <div class="section-header">
@@ -45,8 +45,9 @@
         <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Wybierz dokument z komputera">
           <input id="file-input" type="file" accept=".pdf,.doc,.docx,.ods,.xlsx,.jpg,.jpeg,.png" hidden/>
           <div class="file-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 16V3m0 0L7 8m5-5 5 5M4 16v4h16v-4"/></svg></div>
-          <h3>Kliknij tutaj, aby wybrać plik</h3>
-          <p>Możesz też przeciągnąć dokument z komputera.</p>
+          <h3>Dodaj dokument do przetworzenia</h3>
+          <p>Przeciągnij plik tutaj lub wybierz go z komputera.</p>
+          <span class="upload-cta" aria-hidden="true">Wybierz plik <span>↗</span></span>
           <small>Maksymalny rozmiar: <b id="size-limit">15 MB</b></small>
         </div>
         <div class="result" id="result" hidden aria-live="polite"></div>
@@ -91,8 +92,7 @@
 
     <section class="wizard-page" id="step-review" hidden aria-labelledby="review-title">
       <div class="wizard-stage-title">
-        <div class="wizard-kicker">KROK 2 Z 3</div>
-        <h1 id="review-title">Sprawdź i popraw <em>formularz.</em></h1>
+        <h1 id="review-title" tabindex="-1">Sprawdź i popraw <em>formularz.</em></h1>
         <p>Przejrzyj przygotowane pytania. Jeśli zauważysz błąd, kliknij „Popraw pytania”. Gdy wszystko się zgadza, wybierz „Dalej”.</p>
       </div>
       <div class="review-tip"><span class="review-tip-icon" aria-hidden="true">i</span><span><strong>Wskazówka:</strong> sprawdź przede wszystkim nazwy pytań, brakujące pola i opcje wyboru. Możesz porównać wynik z oryginałem dokumentu.</span></div>
@@ -102,13 +102,12 @@
 
     <section class="wizard-page" id="step-finish" hidden aria-labelledby="finish-title">
       <div class="wizard-stage-title">
-        <div class="wizard-kicker">KROK 3 Z 3</div>
-        <h1 id="finish-title">Twój formularz<br><em>jest gotowy.</em></h1>
+        <h1 id="finish-title" tabindex="-1">Twój formularz<br><em>jest gotowy.</em></h1>
         <p>Sprawdziliśmy strukturę formularza. Teraz możesz zapisać go na komputerze.</p>
       </div>
       <div class="finish-card">
-        <div class="finish-check" aria-hidden="true">✓</div>
-        <h2>Formularz przygotowany do pobrania</h2>
+        <div class="finish-heading"><span class="finish-check" aria-hidden="true">✓</span>
+          <h2>Formularz przygotowany do pobrania</h2></div>
         <p id="finish-form-title" class="finish-form-title"></p>
         <div class="finish-summary"><div><strong id="finish-input-count">–</strong><span>pól do wypełnienia</span></div><div><strong id="finish-page-count">–</strong><span>stron formularza</span></div></div>
         <button id="download" class="wizard-primary" type="button">Pobierz gotowy formularz <span aria-hidden="true">↓</span></button>
