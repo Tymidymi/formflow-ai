@@ -4,17 +4,18 @@
 
 ## Autoryzacja
 
-W wersji demonstracyjnej wszystkie endpointy REST (oprócz publicznego
-`GET /healthz`) wymagają aktywnej sesji jury. Wejdź przez HTTPS na
-`GET /login`, zaloguj się formularzem `POST /auth/login` i korzystaj
-z tej samej sesji; dla automatycznego klienta REST cookie można uzyskać
-z formularza logowania. Bez sesji API zwraca HTTP 401
-`{"code":"AUTH_REQUIRED"}`, a widoki HTML przekierowują na login.
-Sesja może wygasnąć po 8 h. `POST /auth/logout` unieważnia cookie.
+Wszystkie endpointy przechodzą przez Caddy `basic_auth` (HTTP Basic), także
+`/api/openapi.json` oraz `/healthz`. Przy braku poświadczeń bramka
+zwraca HTTP 401 i nagłówek `WWW-Authenticate`. Nieautoryzowane żądania
+**nie docierają do FastAPI**. Zaloguj się w natywnym oknie przeglądarki
+lub użyj `curl --user jury` (curl zapyta o hasło).
+Hasło przesyłane jest tylko przez **HTTPS** po stronie użytkownika;
+wewnątrz Dockera Caddy usuwa nagłówek `Authorization` przed przekazaniem
+ruchu do API. Nie istnieje `/auth/login`, `/auth/logout` ani cookie sesji.
 
-**Nie przekazuj loginu ani hasła w URL ani w nagłówkach logowanych przez
-serwery proxy.** Endpointy nie przyjmują jawnego hasła w nagłówku Basic.
-Specyfikacja `/api/openapi.json` także wymaga logowania.
+Wszystkie pozostałe kody błędów w poniższej dokumentacji dotyczą
+żądania, które przeszło już przez bramkę uwierzytelniającą.
+
 
 ## Endpointy
 

@@ -8,8 +8,9 @@ services:
     restart: unless-stopped
     init: true
     user: "10001:10001"
-    ports:
-      - "127.0.0.1:${FORMFLOW_HOST_PORT:-18171}:8000"
+    # Private container-only service; Caddy is the sole published ingress.
+    expose:
+      - "8000"
     environment:
       MAX_UPLOAD_MB: "${MAX_UPLOAD_MB:-15}"
       PYTHONDONTWRITEBYTECODE: "1"

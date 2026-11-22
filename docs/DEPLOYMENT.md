@@ -16,63 +16,67 @@ cp .env.example .env
 
 ## Dostęp dla jury i publikacja przez HTTPS
 
-**Włączona jest ochrona całej usługi, nie tylko samego landing page.**
-Obowiązuje `/`, `/projekt/`, `/documentation/`, `/static/`,
-`/api/openapi.json` oraz wszystkie endpointy REST.
-Wyjątki: `/login`, `POST /auth/login`, styl logowania oraz `GET /healthz`
-(bez danych użytkownika; konieczny dla sondy Docker). Po wylogowaniu
-cookie zostaje unieważnione. Nie można otworzyć dokumentacji
-ani wykonać konwersji bez zalogowania.
+Dostęp kontroluje **Caddy 2.11.9 (oficjalny obraz Docker)** przez
+`basic_auth` na wszystkich ścieżkach, przed `reverse_proxy api:8000`.
+Bez nagłówka `Authorization` lub przy niepoprawnym haśle Caddy zwraca
+`401 Unauthorized` i `WWW-Authenticate: Basic`. Przeglądarka wyświetla
+natywne okno logowania. Nie ma sesji/cookie ani formularza logowania
+po stronie FastAPI. Caddy **nie** przekazuje tego nagłówka do backendu.
 
-Jeśli `.env` istnieje, uruchom:
+### Przygotowanie hasła
 
 ```bash
-python3 scripts/rotate_jury_password.py \
-  --credentials-file /home/tymot/formflow-release-backups/formflow-jury-credentials.txt
-# Uwaga: plik z danymi dostępowymi musi być poza repo i nie może istnieć wcześniej.
-# W .env zostanie wyłącznie login, konfiguracja oraz hash hasła PBKDF2.
+cp .env.example .env  # tylko przy pierwszym uruchomieniu
+python3 scripts/setup_gateway.py --username jury
+# Skrypt prosi o hasło i jego potwierdzenie bez echo, wywołuje
+# 'docker run caddy:2.11.9-alpine caddy hash-password', zapisuje
+# 'jury <hash bcrypt>' do ignorowanego pliku z uprawnieniami 0600.
+```
+
+Możesz zmienić hasło przez `python3 scripts/setup_gateway.py --username jury
+--rotate` i restart kontenera `gateway`. Nie umieszczaj hasła lub
+hasha w repozytorium ani w `compose.yaml`. Caddyfile importuje
+`/etc/caddy/jury-users.caddy` montowany tylko do odczytu.
+
+### Uruchomienie (obowiązkowa bramka)
+
+```bash
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
-  --profile docling --profile pdf up -d --build --no-deps api
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
+  --profile docling --profile pdf up -d --build
 ```
 
-Skrypt rotacji generuje nowe losowe hasło, zapisuje je jednorazowo w prywatnym
-pliku z uprawnieniami `0600` i ustawia `FORMFLOW_AUTH_MODE=on`,
-`FORMFLOW_AUTH_USER` oraz `FORMFLOW_AUTH_PASSWORD_HASH`.
-Hasło nie jest wypisywane w logu. Podczas rotacji aktywne sesje
-unieważnia restart kontenera API. **Nie zamieniaj hasha na jawne hasło w `.env`.**
+FastAPI nie ma opublikowanego portu hosta. Jedyny bind to
+`127.0.0.1:${FORMFLOW_HOST_PORT:-18171}` należący do Caddy.
+OCR/Office/PDF są w wewnętrznej sieci Docker; nie publikuj 8000/8001/8002.
+Tailscale Serve `9466` przekazuje HTTPS do localhost `18171`.
+Nie włączaj Funnel ani publicznego reverse proxy bez decyzji użytkownika.
 
-Sesja: 8 h, przechowywana w pamięci procesu API; ciasteczko
-`__Host-formflow_jury` z `Secure`, `HttpOnly`, `SameSite=Lax`,
-tylko dla aktualnego hosta, bez domeny i z `Path=/`. Ograniczenie prób:
-10 w 5 minut, w pamięci procesu. Logowanie nie wymaga JavaScript.
-Dodatkowa ochrona sprawdza nagłówek `Origin` przy żądaniach modyfikujących.
-
-Przed wystawieniem publicznym potwierdź, że reverse proxy zapewnia
-**prawidłowy HTTPS** i przekazuje `Host` oraz `Origin` bez zmiany
-originu. Tailscale Serve pod `9466` jest na razie **prywatny (tailnet only)**.
-Nie włączaj Funnel ani publicznego reverse proxy bez odrębnej decyzji.
-Adres dostępny dla jury po publikacji może być inny niż aktualny adres tailnetu.
-
-**Weryfikacja anonimowa (bez cookie):**
+### Test przed publiczną publikacją
 
 ```bash
-curl -skI https://HOST/                      # 303 → /login
-curl -skI https://HOST/projekt/              # 303 → /login
-curl -skI https://HOST/documentation/        # 303 → /login
-curl -skI https://HOST/api/openapi.json      # 401 lub 405 przy HEAD; sprawdź GET
-curl -sk https://HOST/api/openapi.json       # JSON code=AUTH_REQUIRED
+curl -si http://127.0.0.1:18171/ | head -n 12
+# Oczekiwane 401 oraz nagłówek WWW-Authenticate.
+curl --user jury http://127.0.0.1:18171/api/v1/demo/convert
+# curl zapyta o hasło, nie wpisuj go bezpośrednio w terminalu.
+docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
+  config --format json
+# Upewnij się, że TYLKO gateway ma opublikowany port.
 ```
 
-`GET /healthz` pozostaje publicznie czytelny, ale nie zawiera ani haseł,
-ani danych formularzy. W przypadku braku skonfigurowanego hasha
-wszystkie chronione endpointy zwracają HTTP 503.
+Dla użytkowników zewnętrznych wymagany jest prawidłowy **HTTPS**;
+HTTP Basic przesyła hasło w postaci odwracalnego Base64 w nagłówku.
+Używaj długiego, losowego hasła. Wersja demonstracyjna nie ma natywnego
+„wyloguj”, per-użytkownikowego audytu ani limitera prób logowania.
+Do wdrożenia produkcyjnego rozważ centralne SSO / rate limiting.
+
 
 ## 2. Uruchomienie kompletnego stosu developerskiego
 
 ```bash
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
   --profile docling --profile pdf up -d --build
 ```
 
@@ -80,29 +84,37 @@ docker compose -f compose.yaml -f compose.dev.yaml \
 - `compose.dev.yaml`: dostęp do OpenRouter + zwiększony limit RAM API; **nie używać jako konfiguracji offline**.
 - `compose.docling.yaml`: renderer Office (wewnętrzny port 8001).
 - `compose.pdf.yaml`: OCR PDF (wewnętrzny port 8002).
+- `compose.auth.yaml`: **obowiązkowy** Caddy Basic Auth, jedyny opublikowany port hosta.
 - `compose.ollama.yaml`: opcjonalny lokalny adapter/model; nie jest wymiennikiem gotowym bez pobrania wag i testów.
 - Nie uruchamiaj samodzielnego `compose.yaml`, jeśli oczekujesz pełnej konwersji: `readyz` zgłosi brak AI.
 
-API ma bind wyłącznie na `127.0.0.1:${FORMFLOW_HOST_PORT:-18171}`. Workerów nie publikuj bezpośrednio do Internetu.
+Caddy ma bind wyłącznie na `127.0.0.1:${FORMFLOW_HOST_PORT:-18171}`. API jest dostępne tylko w sieci Docker. Workerów nie publikuj bezpośrednio do Internetu.
 
 ## 3. Smoke test
 
 ```bash
-curl -fsS http://127.0.0.1:18171/healthz
-curl -fsS http://127.0.0.1:18171/readyz
-curl -fsS http://127.0.0.1:18171/api/v1/capabilities
-curl -fsS http://127.0.0.1:18171/api/v1/demo/convert > /tmp/formflow-demo.json
+# Każda ścieżka, także /healthz, jest chroniona: oczekiwane HTTP 401.
+curl -si http://127.0.0.1:18171/ | head -n 12
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml ps
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
+  --profile docling --profile pdf ps
+
+# Po skonfigurowaniu HTTPS (hasło wpisuje się na wezwanie curl):
+curl --user jury https://HOST/readyz
+curl --user jury https://HOST/api/v1/capabilities
+curl --user jury https://HOST/api/v1/demo/convert
 ```
 
-`/healthz` sprawdza żywotność, `/readyz` wykrywa skonfigurowanego providera, lecz **nie potwierdza kompletnego pipeline’u**. Dodatkowo przetestuj `extract-preview` na DOCX oraz `convert?mode=diagnostic` na kontrolnym formularzu. Gdy ekstraktor Office zwraca 502 „Brak poprawnego PDF”, sprawdź czy worker i API pochodzą z tej samej rewizji kodu/obrazu; samo `up -d api` nie aktualizuje workerów.
+Sprawdź pozycje `api` i `gateway`: oba kontenery muszą działać.
+Dodatkowo przetestuj `extract-preview` na DOCX, konwersję PDF i
+`convert?mode=diagnostic` na kontrolnym formularzu. Gdy worker Office zwraca
+502 „Brak poprawnego PDF”, sprawdź, czy API i worker są z tej samej rewizji.
 
 ## 4. Dostęp HTTPS i bezpieczeństwo
 
 Na serwerze demonstracyjnym port lokalny 18171 jest dostępny prywatnie przez **Tailscale Serve :9466**. Nie należy go mylić z Funnel: dostępna usługa jest przeznaczona dla sieci tailnet. Nie publikuj `.env`, źródłowych dokumentów ani portów 8001/8002.
 
-Aplikacja ma jedno konto dostępu jury z sesją i hashem PBKDF2; **nie** ma wielu kont, JWT/RBAC ani audytu per użytkownik. Wysyłanie formularzy do OpenRouter nadal wymaga świadomej zgody w UI.
+Zewnętrzny Caddy stosuje HTTP Basic Auth do całej aplikacji; sam FastAPI nie zarządza użytkownikami, sesjami ani JWT/RBAC. Wysyłanie formularzy do OpenRouter nadal wymaga świadomej zgody w UI.
 
 Przed publikacją sprawdź prywatność repozytorium, prawa do materiałów COI i zasady użycia modelu.
 
@@ -114,7 +126,7 @@ npm --prefix apps/frontend ci
 npm --prefix apps/frontend run build
 
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
   --profile docling --profile pdf up -d --build
 ```
 
@@ -138,7 +150,7 @@ Logi mają metadane techniczne i identyfikator żądania, nie powinny przechowyw
 
 ```bash
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
   --profile docling --profile pdf stop
 ```
 

@@ -4,6 +4,7 @@ Stan: 22.11.2026. **Inwentaryzacja zależności bezpośrednich**, nie certyfikat
 
 | Komponent | Wersja / źródło | Informacja licencyjna |
 |---|---|---|
+| Caddy (bramka HTTP Basic Auth) | 2.11.9-alpine (oficjalny Docker) | Apache-2.0 |
 | Python (obrazy API i workerów) | 3.13.9 | PSF |
 | FastAPI | 0.115.12 | MIT (sprawdzić metadane obrazu) |
 | Uvicorn | 0.34.3 | BSD-3-Clause |

@@ -23,9 +23,12 @@ Praca urzędnika odbywa się w trzech krokach: **Dodaj dokument → Sprawdź i p
 
 ```text
 Przeglądarka (formularz, weryfikacja, edytor)
-        │ HTTP / REST
+        │ HTTPS (Tailscale Serve)
         ▼
-FastAPI — upload, kontrola wejścia, orkiestracja
+Caddy :18171 — HTTP Basic Auth (jedyny opublikowany port)
+        │ wewnętrzna sieć Docker
+        ▼
+FastAPI :8000 — upload, kontrola wejścia, orkiestracja
         ├── Office Worker: LibreOffice + Docling Slim
         ├── PDF Worker: pypdf + PDFium + Tesseract
         └── VLM: Qwen3-VL (OpenRouter w trybie developerskim
@@ -34,40 +37,39 @@ FastAPI — upload, kontrola wejścia, orkiestracja
 CanonicalForm → builder COI → walidator → JSON + podgląd
 ```
 
-Komponenty Office/PDF są w prywatnej sieci Dockera, nie publikują portów, a API domyślnie nasłuchuje na `127.0.0.1:18171`.
+Komponenty Office/PDF są w prywatnej sieci Dockera, nie publikują portów, a bramka Caddy domyślnie nasłuchuje na `127.0.0.1:18171`.
 
 Szczegóły: [dokumentacja techniczna](docs/TECHNICAL.md), [API](docs/API.md), [wdrożenie](docs/DEPLOYMENT.md), [testowanie i ograniczenia](docs/TESTING.md), [zależności i licencje](THIRD_PARTY_LICENSES.md).
 
 Dokumentacja w aplikacji: `/documentation/` (samodzielna strona HTML, bez CDN). Zmiany w Markdown eksportuje `python scripts/build_docs.py`; CI sprawdza zgodność przez `python scripts/build_docs.py --check`.
 
-## Dostęp dla jury — login i hasło
+## Dostęp dla jury — Caddy Basic Auth
 
-Cała aplikacja, landing `/projekt/`, dokumentacja `/documentation/`, OpenAPI,
-pliki statyczne i endpointy REST są chronione jednym kontem jury.
-Bez autoryzacji można otworzyć tylko `/login`, arkusz stylów logowania
-i minimalny endpoint Docker `/healthz` (bez danych formularzy).
-Autoryzacja jest **domyślnie włączona** i w przypadku braku hasła nie dopuszcza
-do dokumentacji, demo ani API (fail-closed, HTTP 503).
+Dostęp do **każdej** strony i metody API (demo, landing, dokumentacja,
+OpenAPI, uploady, eksport, zasoby statyczne i `/healthz`) wymaga hasła
+HTTP Basic Auth sprawdzanego przez **Caddy**. Przeglądarka wyświetla własne
+okno logowania. Nie ma własnego kodu sesji, bazy użytkowników ani formularza
+logowania. Hasło jest hashowane przez oficjalne CLI Caddy (`bcrypt`),
+a plik `data/private/caddy/jury-users.caddy` (uprawnienia `0600`)
+pozostaje **poza Git**.
+
+**Kluczowy warunek:** API FastAPI nie publikuje żadnego portu hosta — dostęp
+wyłącznie przez kontener Caddy w `compose.auth.yaml`. Jedyny port hosta
+to `127.0.0.1:${FORMFLOW_HOST_PORT:-18171}` na bramce; Tailscale Serve 9466
+kieruje ruch właśnie tam. Caddy usuwa nagłówek `Authorization` przed
+przekazaniem żądania do API.
+
+Konfiguracja konta (wprowadź hasło bez wyświetlania w terminalu):
 
 ```bash
-cp .env.example .env     # jeśli jeszcze nie istnieje
-python3 scripts/rotate_jury_password.py --credentials-file /private/path/jury.txt
-# Skrypt generuje losowe hasło i zapisuje tylko PBKDF2 hash do .env.
-# Hasło dla jury pobierz z utworzonego pliku prywatnego.
-docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
-  --profile docling --profile pdf up -d --build
+python3 scripts/setup_gateway.py --username jury
+# Aby zmienić hasło: python3 scripts/setup_gateway.py --username jury --rotate
 ```
 
-Logowanie: `/login`. Hasło jest weryfikowane po stronie serwera, nie trafia
-do frontendu ani Git. Cookie sesji jest `Secure`, `HttpOnly`, `SameSite=Lax`
-i wygasa po 8 godzinach; wylogowanie unieważnia sesję. Po 10 nieudanych
-próbach w ciągu 5 minut włącza się ograniczenie kolejnych logowań.
-Wdrożenie dla jury **wymaga HTTPS**; nie wystawiaj portu 18171 bezpośrednio do Internetu.
+Zobacz [DEPLOYMENT.md](docs/DEPLOYMENT.md) przed publikacją publicznego HTTPS.
+HTTP Basic **nie ma własnego wylogowania ani limitera prób logowania** — hasło
+musi być długie i losowe. Korzystaj wyłącznie przez HTTPS.
 
-To minimalna ochrona demonstracji, nie pełny system wieloużytkownikowy.
-Publiczny dostęp przez HTTPS należy włączyć osobno dopiero po testach i bez
-wystawiania workerów Office/PDF. Szczegóły: [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Szybki start (Docker, tryb developerski)
 
@@ -76,29 +78,32 @@ Wymagane: Docker + Compose v2, RAM na kontenery i dostęp do modelu skonfigurowa
 ```bash
 cp .env.example .env
 # Uzupełnij OPENROUTER_API_KEY w .env (plik jest ignorowany przez Git).
+python3 scripts/setup_gateway.py --username jury
 
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
   --profile docling --profile pdf up -d --build
 
-curl -fsS http://127.0.0.1:18171/healthz
-curl -fsS http://127.0.0.1:18171/readyz
+# Caddy chroni także /healthz (bez hasła otrzymasz 401).
+curl -si http://127.0.0.1:18171/ | head -n 12
+# Po włączeniu HTTPS: curl --user jury https://HOST/readyz
 ```
 
-Otwórz `http://127.0.0.1:18171/` na maszynie z Dockerem albo skonfiguruj dostęp przez prywatny reverse proxy/Tailscale. **Sam `compose.yaml` nie włącza AI ani workerów.** Plik `compose.dev.yaml` świadomie uruchamia wariant z OpenRouter. Opcjonalna konfiguracja lokalnego modelu znajduje się w `compose.ollama.yaml`, ale wymaga odpowiedniego sprzętu i niezależnej walidacji jakości.
+Otwórz aplikację przez prywatne HTTPS/Tailscale Serve; Caddy wymaga HTTP Basic Auth również lokalnie. Nie używaj zwykłego HTTP do przekazywania haseł spoza serwera. **Sam `compose.yaml` nie włącza AI ani workerów.** Plik `compose.dev.yaml` świadomie uruchamia wariant z OpenRouter. Opcjonalna konfiguracja lokalnego modelu znajduje się w `compose.ollama.yaml`, ale wymaga odpowiedniego sprzętu i niezależnej walidacji jakości.
 
 ## API — przykład
 
 ```bash
 # Analiza i diagnostyka, w tym JSON do przeglądu i korekty
-curl -sS -X POST \
+# Opcja --user jury spowoduje interaktywną prośbę o hasło.
+curl --user jury -sS -X POST \
   -H 'X-External-AI-Consent: true' \
   -F 'file=@wniosek.pdf' \
-  'http://127.0.0.1:18171/api/v1/forms/convert?mode=diagnostic'
+  'https://HOST/api/v1/forms/convert?mode=diagnostic'
 
 # Podgląd OCR bez wywołania modelu zewnętrznego
-curl -sS -F 'file=@wniosek.pdf' \
-  'http://127.0.0.1:18171/api/v1/forms/extract-preview'
+curl --user jury -sS -F 'file=@wniosek.pdf' \
+  'https://HOST/api/v1/forms/extract-preview'
 ```
 
 Dokumentacja REST API: `/api/docs`; specyfikacja OpenAPI: `/api/openapi.json`. Domyślny tryb `/api/v1/forms/convert` zwraca sam JSON COI **tylko wtedy, gdy przejdzie walidację strukturalną i automatyczne kontrole jakości**; w przeciwnym razie zwraca `422 COI_REVIEW_REQUIRED`. UI używa trybu diagnostycznego i wymaga ręcznej kontroli także przy pomyślnym wyniku automatycznym.

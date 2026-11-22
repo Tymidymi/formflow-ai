@@ -9,6 +9,7 @@ import time
 import asyncio
 from typing import Literal
 from uuid import uuid4
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, File, Header, Query, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
@@ -26,7 +27,6 @@ from .field_grounding import analyze_grounding
 from .conversion_audit import REQUEST_ID, record
 from .page_inventory import extract as extract_structured
 from .demo_fixture import create_demo
-from .jury_auth import access_gate
 
 ROOT = Path(__file__).resolve().parent
 app = FastAPI(
@@ -73,10 +73,24 @@ async def security(request: Request, call_next):
                 },
             )
         else:
-            # Applied before every route, including mounted StaticFiles and
-            # the OpenAPI schema. No alternate public route bypasses the gate.
-            response = await access_gate(request)
-            if response is None:
+            # HTTP Basic credentials are verified by Caddy before any
+            # request reaches the backend. These checks protect costly POST
+            # actions against cross-origin browser submissions.
+            origin = request.headers.get("origin")
+            cross_site = request.headers.get("sec-fetch-site", "").lower() == "cross-site"
+            if request.method not in ("GET", "HEAD", "OPTIONS") and (
+                cross_site
+                or (origin is not None and (
+                    urlsplit(origin).scheme not in ("http", "https")
+                    or urlsplit(origin).netloc.lower()
+                    != request.headers.get("host", "").lower()
+                ))
+            ):
+                response = JSONResponse(
+                    status_code=403,
+                    content={"detail": "Niedozwolone pochodzenie żądania.", "code": "INVALID_ORIGIN"},
+                )
+            else:
                 response = await call_next(request)
         status = response.status_code
         response.headers["X-Request-ID"] = request_id

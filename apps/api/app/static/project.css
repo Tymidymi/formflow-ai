@@ -55,9 +55,3 @@ footer { border-top: 1px solid var(--border); background: var(--canvas); }
   .footer-inner { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
-
-
-.header-actions{display:flex;align-items:center;gap:22px}
-.logout-button{font:inherit;background:transparent;border:1px solid #607294;color:#e9edff;border-radius:7px;padding:9px 13px;cursor:pointer;font-size:12px}
-.logout-button:hover{border-color:#fff}
-@media(max-width:560px){.header-actions{gap:8px}.event{display:none}}

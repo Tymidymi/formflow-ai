@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
 <a href="api.html">REST API</a>
@@ -72,6 +72,14 @@ npm --prefix apps/frontend run build</code></pre>
 <p>Backend <code>POST /api/v1/forms/convert</code> zwraca kontrolowany JSON HTTP 500 z kodem <code>CONVERSION_INTERNAL_ERROR</code> dla nieobsłużonych błędów wykonania, zachowując dotychczasowe jawne odpowiedzi 422/502/504. Stosowny wyjątek rejestrowany jest w logu audytowym bez ujawniania treści dokumentów.</p>
 <p>Test regresji: <code>apps/frontend/tests/http.test.mjs</code> oraz <code>test_unexpected_conversion_exception_returns_structured_json</code> w <code>apps/api/tests/test_api.py</code>.</p>
 <p>Rzeczywisty dwustronicowy PDF z zestawu regresyjnego przeszedł pełną analizę przez Tailscale Serve <code>9466</code>: status 200, JSON COI poprawny strukturalnie, ocena semantyczna <code>needs_review</code>. Nie jest to gwarancja dla wszystkich PDF.</p>
+<h2 id="bezpieczenstwo-caddy-test-wdrozeniowy">Bezpieczeństwo Caddy — test wdrożeniowy</h2>
+<p>Konfiguracja jest sprawdzana przez oficjalne CLI Caddy: <code>docker run --rm ... caddy:2.11.9-alpine caddy validate --config /etc/caddy/Caddyfile</code>.</p>
+<p>Test przeprowadzony na docelowym VPS: anonimowy GET do <code>/</code>, <code>/projekt/</code>, <code>/documentation/</code>, <code>/api/docs</code>, <code>/api/openapi.json</code>, <code>/api/v1/demo/convert</code>, <code>/static/app.js</code>, <code>/static/preview.bundle.js</code> oraz <code>/healthz</code> otrzymuje HTTP 401 przez prywatne HTTPS Tailscale Serve</p>
+<ol>
+<li>Również POST bez hasła jest odrzucany przez Caddy.</li>
+</ol>
+<p><code>compose.auth.yaml</code> publikuje tylko kontener gateway na <code>127.0.0.1:18171</code>; API, Office i PDF są niewystawione na hosta. Backend zachowuje testy blokady POST z <code>Origin</code> obcej domeny.</p>
+<p><strong>Ważne:</strong> logowanie jest natywnym HTTP Basic, nie własną sesją cookie. Przed publikacją publiczną sprawdź całą ścieżkę przez docelowy HTTPS i ograniczenie ryzyka brute-force. Nie publikuj pliku z hashem bcrypt.</p>
 <div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
 <p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
 </main>

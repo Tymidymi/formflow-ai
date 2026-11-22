@@ -81,3 +81,22 @@ Test regresji: `apps/frontend/tests/http.test.mjs` oraz
 Rzeczywisty dwustronicowy PDF z zestawu regresyjnego przeszedł pełną analizę
 przez Tailscale Serve `9466`: status 200, JSON COI poprawny strukturalnie,
 ocena semantyczna `needs_review`. Nie jest to gwarancja dla wszystkich PDF.
+
+
+## Bezpieczeństwo Caddy — test wdrożeniowy
+
+Konfiguracja jest sprawdzana przez oficjalne CLI Caddy:
+`docker run --rm ... caddy:2.11.9-alpine caddy validate --config /etc/caddy/Caddyfile`.
+
+Test przeprowadzony na docelowym VPS: anonimowy GET do `/`,
+`/projekt/`, `/documentation/`, `/api/docs`, `/api/openapi.json`,
+`/api/v1/demo/convert`, `/static/app.js`, `/static/preview.bundle.js`
+oraz `/healthz` otrzymuje HTTP 401 przez prywatne HTTPS Tailscale Serve
+9466. Również POST bez hasła jest odrzucany przez Caddy.
+`compose.auth.yaml` publikuje tylko kontener gateway na
+`127.0.0.1:18171`; API, Office i PDF są niewystawione na hosta.
+Backend zachowuje testy blokady POST z `Origin` obcej domeny.
+
+**Ważne:** logowanie jest natywnym HTTP Basic, nie własną sesją cookie.
+Przed publikacją publiczną sprawdź całą ścieżkę przez docelowy HTTPS
+i ograniczenie ryzyka brute-force. Nie publikuj pliku z hashem bcrypt.

@@ -1,0 +1,40 @@
+# Authenticated ingress. Deploy with ALL four existing Compose overlays:
+# docker compose -f compose.yaml -f compose.dev.yaml \
+#   -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
+#   --profile docling --profile pdf up -d --build
+services:
+  api:
+    # No host port: ONLY Caddy is reachable from host/Tailscale.
+    ports: !reset []
+
+  gateway:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    init: true
+    user: "1000:1000"
+    read_only: true
+    ports:
+      - "127.0.0.1:${FORMFLOW_HOST_PORT:-18171}:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/private/caddy/jury-users.caddy:/etc/caddy/jury-users.caddy:ro
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=8m,uid=1000,gid=1000
+      - /data:rw,nosuid,nodev,size=8m,uid=1000,gid=1000
+      - /config:rw,nosuid,nodev,size=8m,uid=1000,gid=1000
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 32
+    mem_limit: 128m
+    networks:
+      - default
+    depends_on:
+      api:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"

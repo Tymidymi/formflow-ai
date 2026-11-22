@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html" class="active" aria-current="page">Architektura</a>
 <a href="api.html">REST API</a>
@@ -26,10 +26,16 @@
                          │ Przeglądarka: HTML, JS, React │
                          │ Wizard / JSON Forms / editor  │
                          └──────────────┬────────────────┘
-                                        │
-                  POST multipart/JSON   ▼
+                                        │ HTTPS/Tailscale Serve
+                                        ▼
                          ┌───────────────────────────────┐
-                         │ FastAPI :8000 (loopback 18171)│
+                         │ Caddy :18171 (HTTP Basic Auth)│
+                         │ jedyny port opublikowany      │
+                         └──────────────┬────────────────┘
+                                        │ Docker bridge (api:8000)
+                                        ▼
+                         ┌───────────────────────────────┐
+                         │ FastAPI :8000 (internal only)  │
                          │ walidacja, timeout, audyt     │
                          └───────┬───────────┬───────────┘
                                  │           │
@@ -141,10 +147,29 @@
 <li><strong>Batch:</strong> przeglądarka kolejno wykonuje <code>POST /api/v1/forms/convert?mode=diagnostic</code> dla maksymalnie 5 plików, przechowuje szkice wyłącznie w bieżącej karcie. Wspólny ZIP jest generowany na żądanie przez <code>POST /api/v1/forms/batch/export</code> dopiero dla plików zatwierdzonych przez użytkownika. Serwer ponownie waliduje każdy COI JSON; nie zapisuje ZIP ani formularzy trwale.</li>
 <li><strong>Strona informacyjna:</strong> <code>/projekt/</code> zawiera demo, link do kodu, opis rozwiązania i miejsca do uzupełnienia materiałami konkursowymi; pierwotny kreator pozostaje pod <code>/</code>.</li>
 </ul>
-<h2 id="10-kontrola-dostepu-jury">10. Kontrola dostępu jury</h2>
-<p>Wariant konkursowy chroni całą usługę przed nieautoryzowanym dostępem na poziomie middleware FastAPI (<code>apps/api/app/jury_auth.py</code>), przed routingiem stron HTML, zasobów statycznych i REST API. Hasło jest przechowywane w <code>.env</code> jako PBKDF2-SHA256 ze świeżą losową solą (<code>310 000</code> iteracji). Serwer tworzy krótką sesję w pamięci procesu, a przeglądarka przechowuje jedynie losowy token w bezpiecznym cookie HTTP-only. Termin ważności wynosi 8 h. Wylogowanie usuwa sesję. Globalny ogranicznik prób logowania (10 prób na 5 min) zmniejsza ryzyko odgadywania hasła. Żądania modyfikujące z obcego <code>Origin</code> są odrzucane. Logowanie i dokumentacja nie korzystają z zewnętrznych skryptów.</p>
-<p><strong>Wyjątki publiczne:</strong> <code>/login</code>, <code>POST /auth/login</code>, wyłącznie arkusz <code>/static/login.css</code> oraz bezpieczny liveness <code>/healthz</code>. Pozostałe ścieżki, także <code>/api/openapi.json</code>, <code>/static/</code> oraz <code>/documentation/</code>, wymagają aktywnej sesji.</p>
-<p>Dane dostępowe są generowane przez <code>scripts/rotate_jury_password.py</code> i przechowywane poza repozytorium; <code>.env</code> jest ignorowany przez Git. Brak konfiguracji powoduje HTTP 503 (fail closed). Wymagany HTTPS. Jest to pojedyncze konto przeznaczone do demonstracji jury, a nie pełna platforma zarządzania tożsamością. Ogranicznik i sesje działają w pamięci jednego procesu — restart API unieważnia logowanie.</p>
+<h2 id="10-kontrola-dostepu-jury-caddy-basic-auth">10. Kontrola dostępu jury (Caddy Basic Auth)</h2>
+<p>Cała powierzchnia HTTP FormFlow — landing, demo, dokumentacja, OpenAPI, pliki JS/CSS, endpointy REST oraz liveness — jest chroniona przez bramkę <strong>Caddy 2.11.9-alpine</strong>, opartą o oficjalny obraz Docker.</p>
+<ul>
+<li>Caddyfile: <code>basic_auth bcrypt</code> na całym <code>:8080</code> z kontem <code>jury</code>.</li>
+</ul>
+<p>  Hasło generuje oficjalne CLI <code>caddy hash-password</code>, a ignorowany plik <code>data/private/caddy/jury-users.caddy</code> (0600) przechowuje tylko hash.</p>
+<ul>
+<li>Konfiguracja <code>compose.auth.yaml</code> publikuje <strong>wyłącznie</strong> Caddy na</li>
+</ul>
+<p>  <code>127.0.0.1:18171</code>; API działa tylko wewnątrz Docker na <code>api:8000</code>. OCR i Office mają oddzielną sieć wewnętrzną, bez portów hosta.</p>
+<ul>
+<li>Caddy usuwa nagłówek <code>Authorization</code> przed przekazaniem żądania API.</li>
+</ul>
+<p>  Backend zachowuje ochronę <code>Origin</code> i <code>Sec-Fetch-Site</code> dla POST.</p>
+<ul>
+<li>Przeglądarka używa natywnego okna HTTP Basic, nie cookie sesyjnych.</li>
+</ul>
+<p>  Nie ma własnego modułu <code>jury_auth.py</code>, formularza logowania, JWT, bazy kont ani zapisanych haseł jawnych w Git.</p>
+<ul>
+<li>HTTPS jest dostarczany przez prywatny Tailscale Serve 9466;</li>
+</ul>
+<p>  publiczny dostęp przez Funnel nie jest włączany automatycznie.</p>
+<p>Jest to proste zabezpieczenie demonstracji z jednym wspólnym kontem. Brak natywnego wylogowania, ogranicznika prób logowania i szczegółowego audytu użytkowników. Przed szerszą publikacją używać silnego, losowego hasła, HTTPS i opcjonalnej ochrony przed nadużyciami.</p>
 <div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>
 <p class="meta">Dokumentacja wygenerowana z plików Markdown w repozytorium. Bez JavaScript i zewnętrznych zasobów.</p>
 </main>

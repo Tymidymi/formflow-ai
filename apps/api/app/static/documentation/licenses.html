@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
 <a href="api.html">REST API</a>
@@ -20,6 +20,7 @@
 <p>Stan: 22.11.2026. <strong>Inwentaryzacja zależności bezpośrednich</strong>, nie certyfikat zgodności licencyjnej. Pełne sprawdzenie zależności pośrednich i dystrybucji obrazów jest konieczne przed produkcyjnym wdrożeniem.</p>
 <div class="table-wrap"><table>
 <tr><th>Komponent</th><th>Wersja / źródło</th><th>Informacja licencyjna</th></tr>
+<tr><td>Caddy (bramka HTTP Basic Auth)</td><td>2.11.9-alpine (oficjalny Docker)</td><td>Apache-2.0</td></tr>
 <tr><td>Python (obrazy API i workerów)</td><td>3.13.9</td><td>PSF</td></tr>
 <tr><td>FastAPI</td><td>0.115.12</td><td>MIT (sprawdzić metadane obrazu)</td></tr>
 <tr><td>Uvicorn</td><td>0.34.3</td><td>BSD-3-Clause</td></tr>

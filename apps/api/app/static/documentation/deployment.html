@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/static/documentation/docs.css">
 </head>
 <body>
-<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><div class="header-actions"><a class="back" href="/">← Wróć do aplikacji</a><form action="/auth/logout" method="post"><button class="logout-button" type="submit">Wyloguj</button></form></div></header>
+<header class="header"><a class="brand" href="/">formflow<span>·</span> AI</a><a class="back" href="/">← Wróć do aplikacji</a></header>
 <div class="shell">
 <aside class="aside"><h2>Dokumentacja</h2><nav aria-label="Sekcje dokumentacji"><a href="index.html">Architektura</a>
 <a href="api.html">REST API</a>
@@ -25,49 +25,58 @@
 # W trybie developerskim ustaw OPENROUTER_API_KEY
 # Opcjonalnie zmień OPENROUTER_MODEL i FORMFLOW_HOST_PORT</code></pre>
 <h2 id="dostep-dla-jury-i-publikacja-przez-https">Dostęp dla jury i publikacja przez HTTPS</h2>
-<p><strong>Włączona jest ochrona całej usługi, nie tylko samego landing page.</strong> Obowiązuje <code>/</code>, <code>/projekt/</code>, <code>/documentation/</code>, <code>/static/</code>, <code>/api/openapi.json</code> oraz wszystkie endpointy REST. Wyjątki: <code>/login</code>, <code>POST /auth/login</code>, styl logowania oraz <code>GET /healthz</code> (bez danych użytkownika; konieczny dla sondy Docker). Po wylogowaniu cookie zostaje unieważnione. Nie można otworzyć dokumentacji ani wykonać konwersji bez zalogowania.</p>
-<p>Jeśli <code>.env</code> istnieje, uruchom:</p>
-<pre><code class="lang-bash">python3 scripts/rotate_jury_password.py \
-  --credentials-file /home/tymot/formflow-release-backups/formflow-jury-credentials.txt
-# Uwaga: plik z danymi dostępowymi musi być poza repo i nie może istnieć wcześniej.
-# W .env zostanie wyłącznie login, konfiguracja oraz hash hasła PBKDF2.
+<p>Dostęp kontroluje <strong>Caddy 2.11.9 (oficjalny obraz Docker)</strong> przez <code>basic_auth</code> na wszystkich ścieżkach, przed <code>reverse_proxy api:8000</code>. Bez nagłówka <code>Authorization</code> lub przy niepoprawnym haśle Caddy zwraca <code>401 Unauthorized</code> i <code>WWW-Authenticate: Basic</code>. Przeglądarka wyświetla natywne okno logowania. Nie ma sesji/cookie ani formularza logowania po stronie FastAPI. Caddy <strong>nie</strong> przekazuje tego nagłówka do backendu.</p>
+<h3 id="przygotowanie-has-a">Przygotowanie hasła</h3>
+<pre><code class="lang-bash">cp .env.example .env  # tylko przy pierwszym uruchomieniu
+python3 scripts/setup_gateway.py --username jury
+# Skrypt prosi o hasło i jego potwierdzenie bez echo, wywołuje
+# &#x27;docker run caddy:2.11.9-alpine caddy hash-password&#x27;, zapisuje
+# &#x27;jury &lt;hash bcrypt&gt;&#x27; do ignorowanego pliku z uprawnieniami 0600.</code></pre>
+<p>Możesz zmienić hasło przez <code>python3 scripts/setup_gateway.py --username jury --rotate</code> i restart kontenera <code>gateway</code>. Nie umieszczaj hasła lub hasha w repozytorium ani w <code>compose.yaml</code>. Caddyfile importuje <code>/etc/caddy/jury-users.caddy</code> montowany tylko do odczytu.</p>
+<h3 id="uruchomienie-obowiazkowa-bramka">Uruchomienie (obowiązkowa bramka)</h3>
+<pre><code class="lang-bash">docker compose -f compose.yaml -f compose.dev.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
+  --profile docling --profile pdf up -d --build</code></pre>
+<p>FastAPI nie ma opublikowanego portu hosta. Jedyny bind to <code>127.0.0.1:${FORMFLOW_HOST_PORT:-18171}</code> należący do Caddy. OCR/Office/PDF są w wewnętrznej sieci Docker; nie publikuj 8000/8001/8002. Tailscale Serve <code>9466</code> przekazuje HTTPS do localhost <code>18171</code>. Nie włączaj Funnel ani publicznego reverse proxy bez decyzji użytkownika.</p>
+<h3 id="test-przed-publiczna-publikacja">Test przed publiczną publikacją</h3>
+<pre><code class="lang-bash">curl -si http://127.0.0.1:18171/ | head -n 12
+# Oczekiwane 401 oraz nagłówek WWW-Authenticate.
+curl --user jury http://127.0.0.1:18171/api/v1/demo/convert
+# curl zapyta o hasło, nie wpisuj go bezpośrednio w terminalu.
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
-  --profile docling --profile pdf up -d --build --no-deps api</code></pre>
-<p>Skrypt rotacji generuje nowe losowe hasło, zapisuje je jednorazowo w prywatnym pliku z uprawnieniami <code>0600</code> i ustawia <code>FORMFLOW_AUTH_MODE=on</code>, <code>FORMFLOW_AUTH_USER</code> oraz <code>FORMFLOW_AUTH_PASSWORD_HASH</code>. Hasło nie jest wypisywane w logu. Podczas rotacji aktywne sesje unieważnia restart kontenera API. <strong>Nie zamieniaj hasha na jawne hasło w <code>.env</code>.</strong></p>
-<p>Sesja: 8 h, przechowywana w pamięci procesu API; ciasteczko <code>__Host-formflow_jury</code> z <code>Secure</code>, <code>HttpOnly</code>, <code>SameSite=Lax</code>, tylko dla aktualnego hosta, bez domeny i z <code>Path=/</code>. Ograniczenie prób: 10 w 5 minut, w pamięci procesu. Logowanie nie wymaga JavaScript. Dodatkowa ochrona sprawdza nagłówek <code>Origin</code> przy żądaniach modyfikujących.</p>
-<p>Przed wystawieniem publicznym potwierdź, że reverse proxy zapewnia <strong>prawidłowy HTTPS</strong> i przekazuje <code>Host</code> oraz <code>Origin</code> bez zmiany originu. Tailscale Serve pod <code>9466</code> jest na razie <strong>prywatny (tailnet only)</strong>. Nie włączaj Funnel ani publicznego reverse proxy bez odrębnej decyzji. Adres dostępny dla jury po publikacji może być inny niż aktualny adres tailnetu.</p>
-<p><strong>Weryfikacja anonimowa (bez cookie):</strong></p>
-<pre><code class="lang-bash">curl -skI https://HOST/                      # 303 → /login
-curl -skI https://HOST/projekt/              # 303 → /login
-curl -skI https://HOST/documentation/        # 303 → /login
-curl -skI https://HOST/api/openapi.json      # 401 lub 405 przy HEAD; sprawdź GET
-curl -sk https://HOST/api/openapi.json       # JSON code=AUTH_REQUIRED</code></pre>
-<p><code>GET /healthz</code> pozostaje publicznie czytelny, ale nie zawiera ani haseł, ani danych formularzy. W przypadku braku skonfigurowanego hasha wszystkie chronione endpointy zwracają HTTP 503.</p>
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
+  config --format json
+# Upewnij się, że TYLKO gateway ma opublikowany port.</code></pre>
+<p>Dla użytkowników zewnętrznych wymagany jest prawidłowy <strong>HTTPS</strong>; HTTP Basic przesyła hasło w postaci odwracalnego Base64 w nagłówku. Używaj długiego, losowego hasła. Wersja demonstracyjna nie ma natywnego „wyloguj”, per-użytkownikowego audytu ani limitera prób logowania. Do wdrożenia produkcyjnego rozważ centralne SSO / rate limiting.</p>
 <h2 id="2-uruchomienie-kompletnego-stosu-developerskiego">2. Uruchomienie kompletnego stosu developerskiego</h2>
 <pre><code class="lang-bash">docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
   --profile docling --profile pdf up -d --build</code></pre>
 <ul>
 <li><code>compose.yaml</code>: API bez włączonego AI; podstawowe ograniczenia bezpieczeństwa.</li>
 <li><code>compose.dev.yaml</code>: dostęp do OpenRouter + zwiększony limit RAM API; <strong>nie używać jako konfiguracji offline</strong>.</li>
 <li><code>compose.docling.yaml</code>: renderer Office (wewnętrzny port 8001).</li>
 <li><code>compose.pdf.yaml</code>: OCR PDF (wewnętrzny port 8002).</li>
+<li><code>compose.auth.yaml</code>: <strong>obowiązkowy</strong> Caddy Basic Auth, jedyny opublikowany port hosta.</li>
 <li><code>compose.ollama.yaml</code>: opcjonalny lokalny adapter/model; nie jest wymiennikiem gotowym bez pobrania wag i testów.</li>
 <li>Nie uruchamiaj samodzielnego <code>compose.yaml</code>, jeśli oczekujesz pełnej konwersji: <code>readyz</code> zgłosi brak AI.</li>
 </ul>
-<p>API ma bind wyłącznie na <code>127.0.0.1:${FORMFLOW_HOST_PORT:-18171}</code>. Workerów nie publikuj bezpośrednio do Internetu.</p>
+<p>Caddy ma bind wyłącznie na <code>127.0.0.1:${FORMFLOW_HOST_PORT:-18171}</code>. API jest dostępne tylko w sieci Docker. Workerów nie publikuj bezpośrednio do Internetu.</p>
 <h2 id="3-smoke-test">3. Smoke test</h2>
-<pre><code class="lang-bash">curl -fsS http://127.0.0.1:18171/healthz
-curl -fsS http://127.0.0.1:18171/readyz
-curl -fsS http://127.0.0.1:18171/api/v1/capabilities
-curl -fsS http://127.0.0.1:18171/api/v1/demo/convert &gt; /tmp/formflow-demo.json
+<pre><code class="lang-bash"># Każda ścieżka, także /healthz, jest chroniona: oczekiwane HTTP 401.
+curl -si http://127.0.0.1:18171/ | head -n 12
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml ps</code></pre>
-<p><code>/healthz</code> sprawdza żywotność, <code>/readyz</code> wykrywa skonfigurowanego providera, lecz <strong>nie potwierdza kompletnego pipeline’u</strong>. Dodatkowo przetestuj <code>extract-preview</code> na DOCX oraz <code>convert?mode=diagnostic</code> na kontrolnym formularzu. Gdy ekstraktor Office zwraca 502 „Brak poprawnego PDF”, sprawdź czy worker i API pochodzą z tej samej rewizji kodu/obrazu; samo <code>up -d api</code> nie aktualizuje workerów.</p>
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
+  --profile docling --profile pdf ps
+
+# Po skonfigurowaniu HTTPS (hasło wpisuje się na wezwanie curl):
+curl --user jury https://HOST/readyz
+curl --user jury https://HOST/api/v1/capabilities
+curl --user jury https://HOST/api/v1/demo/convert</code></pre>
+<p>Sprawdź pozycje <code>api</code> i <code>gateway</code>: oba kontenery muszą działać. Dodatkowo przetestuj <code>extract-preview</code> na DOCX, konwersję PDF i <code>convert?mode=diagnostic</code> na kontrolnym formularzu. Gdy worker Office zwraca 502 „Brak poprawnego PDF”, sprawdź, czy API i worker są z tej samej rewizji.</p>
 <h2 id="4-dostep-https-i-bezpieczenstwo">4. Dostęp HTTPS i bezpieczeństwo</h2>
 <p>Na serwerze demonstracyjnym port lokalny 18171 jest dostępny prywatnie przez <strong>Tailscale Serve :9466</strong>. Nie należy go mylić z Funnel: dostępna usługa jest przeznaczona dla sieci tailnet. Nie publikuj <code>.env</code>, źródłowych dokumentów ani portów 8001/8002.</p>
-<p>Aplikacja ma jedno konto dostępu jury z sesją i hashem PBKDF2; <strong>nie</strong> ma wielu kont, JWT/RBAC ani audytu per użytkownik. Wysyłanie formularzy do OpenRouter nadal wymaga świadomej zgody w UI.</p>
+<p>Zewnętrzny Caddy stosuje HTTP Basic Auth do całej aplikacji; sam FastAPI nie zarządza użytkownikami, sesjami ani JWT/RBAC. Wysyłanie formularzy do OpenRouter nadal wymaga świadomej zgody w UI.</p>
 <p>Przed publikacją sprawdź prywatność repozytorium, prawa do materiałów COI i zasady użycia modelu.</p>
 <h2 id="5-aktualizacja">5. Aktualizacja</h2>
 <pre><code class="lang-bash">git pull --ff-only origin main
@@ -75,7 +84,7 @@ npm --prefix apps/frontend ci
 npm --prefix apps/frontend run build
 
 docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
   --profile docling --profile pdf up -d --build</code></pre>
 <p>Przy zmianie kontraktu API/ekstraktora <strong>odbuduj również workery</strong>. Wcześniej zachowaj kopię releasu i sprawdź niezależny wynik JSON. Nie nadpisuj produkcji wariantem nieprzetestowanym.</p>
 <h2 id="6-diagnostyka">6. Diagnostyka</h2>
@@ -88,7 +97,7 @@ docker stats --no-stream formflow-ai-api-1 formflow-ai-docling-office-1 formflow
 <p><strong>Wymóg utrzymaniowy:</strong> użytkownik końcowy musi potwierdzić poprawność każdego wygenerowanego formularza. Sam status <code>schema_valid</code> nie jest wystarczającym testem odbiorowym.</p>
 <h2 id="7-zatrzymanie-bez-usuwania-danych">7. Zatrzymanie bez usuwania danych</h2>
 <pre><code class="lang-bash">docker compose -f compose.yaml -f compose.dev.yaml \
-  -f compose.docling.yaml -f compose.pdf.yaml \
+  -f compose.docling.yaml -f compose.pdf.yaml -f compose.auth.yaml \
   --profile docling --profile pdf stop</code></pre>
 <p>Do usunięcia niepotrzebnego starego wpisu Tailscale Serve dla portu 9467 (wymaga uprawnień operatora/root): <code>sudo tailscale serve --https=9467 off</code>. <strong>Nie używaj <code>tailscale serve reset</code></strong>, bo usunie również konfigurację innych usług VPS.</p>
 <div class="api-call">Schemat REST API (OpenAPI JSON): <a href="/api/openapi.json">/api/openapi.json</a></div>

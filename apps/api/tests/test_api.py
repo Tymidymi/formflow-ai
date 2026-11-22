@@ -246,3 +246,22 @@ def test_project_landing_is_compact_jury_link_index():
     assert html.count('class="link-row pending"') == 2
     assert "Prezentacja PDF" in html and "Film demonstracyjny" in html
     assert "Cyfryzacja w trzech krokach" not in html
+
+
+def test_cross_site_post_is_rejected_before_handler():
+    response = client.post(
+        "/api/v1/forms/inspect",
+        files={"file": ("form.pdf", b"%PDF-1.4\n", "application/pdf")},
+        headers={"Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"},
+    )
+    assert response.status_code == 403
+    assert response.json()["code"] == "INVALID_ORIGIN"
+
+
+def test_same_origin_post_is_not_blocked_by_origin_check():
+    response = client.post(
+        "/api/v1/forms/inspect",
+        files={"file": ("form.pdf", b"%PDF-1.4\n", "application/pdf")},
+        headers={"Origin": "http://testserver", "Sec-Fetch-Site": "same-origin"},
+    )
+    assert response.status_code != 403

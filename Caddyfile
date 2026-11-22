@@ -1,0 +1,20 @@
+{
+	admin off
+}
+
+# Caddy is the single authenticated ingress for FormFlow.
+# Passwords live only in data/private/caddy/jury-users.caddy (ignored by Git).
+:8080 {
+	basic_auth bcrypt "FormFlow Jury" {
+		import /etc/caddy/jury-users.caddy
+	}
+
+	reverse_proxy api:8000 {
+		# Do not forward shared credentials into the Python application.
+		header_up -Authorization
+		transport http {
+			dial_timeout 10s
+			response_header_timeout 250s
+		}
+	}
+}

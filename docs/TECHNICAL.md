@@ -15,10 +15,16 @@ Obsługiwane wejścia: `.pdf`, `.doc`, `.docx`, `.ods`, `.xlsx`, `.jpg`, `.jpeg`
                          │ Przeglądarka: HTML, JS, React │
                          │ Wizard / JSON Forms / editor  │
                          └──────────────┬────────────────┘
-                                        │
-                  POST multipart/JSON   ▼
+                                        │ HTTPS/Tailscale Serve
+                                        ▼
                          ┌───────────────────────────────┐
-                         │ FastAPI :8000 (loopback 18171)│
+                         │ Caddy :18171 (HTTP Basic Auth)│
+                         │ jedyny port opublikowany      │
+                         └──────────────┬────────────────┘
+                                        │ Docker bridge (api:8000)
+                                        ▼
+                         ┌───────────────────────────────┐
+                         │ FastAPI :8000 (internal only)  │
                          │ walidacja, timeout, audyt     │
                          └───────┬───────────┬───────────┘
                                  │           │
@@ -145,27 +151,27 @@ Instrukcja wdrożenia (w tym Compose i weryfikacja portów): [DEPLOYMENT.md](DEP
 - **Strona informacyjna:** `/projekt/` zawiera demo, link do kodu, opis rozwiązania i miejsca do uzupełnienia materiałami konkursowymi; pierwotny kreator pozostaje pod `/`.
 
 
-## 10. Kontrola dostępu jury
+## 10. Kontrola dostępu jury (Caddy Basic Auth)
 
-Wariant konkursowy chroni całą usługę przed nieautoryzowanym dostępem
-na poziomie middleware FastAPI (`apps/api/app/jury_auth.py`), przed
-routingiem stron HTML, zasobów statycznych i REST API. Hasło jest
-przechowywane w `.env` jako PBKDF2-SHA256 ze świeżą losową solą
-(`310 000` iteracji). Serwer tworzy krótką sesję w pamięci
-procesu, a przeglądarka przechowuje jedynie losowy token w bezpiecznym
-cookie HTTP-only. Termin ważności wynosi 8 h. Wylogowanie usuwa
-sesję. Globalny ogranicznik prób logowania (10 prób na 5 min) zmniejsza
-ryzyko odgadywania hasła. Żądania modyfikujące z obcego `Origin` są
-odrzucane. Logowanie i dokumentacja nie korzystają z zewnętrznych skryptów.
+Cała powierzchnia HTTP FormFlow — landing, demo, dokumentacja, OpenAPI,
+pliki JS/CSS, endpointy REST oraz liveness — jest chroniona przez bramkę
+**Caddy 2.11.9-alpine**, opartą o oficjalny obraz Docker.
 
-**Wyjątki publiczne:** `/login`, `POST /auth/login`, wyłącznie arkusz
-`/static/login.css` oraz bezpieczny liveness `/healthz`.
-Pozostałe ścieżki, także `/api/openapi.json`, `/static/` oraz
-`/documentation/`, wymagają aktywnej sesji.
+- Caddyfile: `basic_auth bcrypt` na całym `:8080` z kontem `jury`.
+  Hasło generuje oficjalne CLI `caddy hash-password`, a ignorowany plik
+  `data/private/caddy/jury-users.caddy` (0600) przechowuje tylko hash.
+- Konfiguracja `compose.auth.yaml` publikuje **wyłącznie** Caddy na
+  `127.0.0.1:18171`; API działa tylko wewnątrz Docker na `api:8000`.
+  OCR i Office mają oddzielną sieć wewnętrzną, bez portów hosta.
+- Caddy usuwa nagłówek `Authorization` przed przekazaniem żądania API.
+  Backend zachowuje ochronę `Origin` i `Sec-Fetch-Site` dla POST.
+- Przeglądarka używa natywnego okna HTTP Basic, nie cookie sesyjnych.
+  Nie ma własnego modułu `jury_auth.py`, formularza logowania,
+  JWT, bazy kont ani zapisanych haseł jawnych w Git.
+- HTTPS jest dostarczany przez prywatny Tailscale Serve 9466;
+  publiczny dostęp przez Funnel nie jest włączany automatycznie.
 
-Dane dostępowe są generowane przez `scripts/rotate_jury_password.py`
-i przechowywane poza repozytorium; `.env` jest ignorowany przez Git.
-Brak konfiguracji powoduje HTTP 503 (fail closed). Wymagany HTTPS.
-Jest to pojedyncze konto przeznaczone do demonstracji jury, a nie
-pełna platforma zarządzania tożsamością. Ogranicznik i sesje działają
-w pamięci jednego procesu — restart API unieważnia logowanie.
+Jest to proste zabezpieczenie demonstracji z jednym wspólnym kontem.
+Brak natywnego wylogowania, ogranicznika prób logowania i szczegółowego
+audytu użytkowników. Przed szerszą publikacją używać silnego, losowego
+hasła, HTTPS i opcjonalnej ochrony przed nadużyciami.
