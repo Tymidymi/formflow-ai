@@ -4,6 +4,7 @@ import base64
 from io import BytesIO
 import os
 from PIL import Image
+from pypdf import PdfReader, PdfWriter
 import httpx
 from .uploads import RejectedFile
 from .source_fidelity import assess_docx_render, mirrored_source_pages
@@ -41,6 +42,69 @@ async def _request(url, extension, content, *, previews=False):
     if not isinstance(payload, dict):
         raise RejectedFile("Nieprawidłowa odpowiedź modułu odczytu.", 502)
     return payload
+
+
+async def _extract_pdf_chunked(content, *, visual):
+    """Preserve every original page while bounding each PDF worker request.
+
+    Large PDFs are split in memory only. Reassemble original page numbers before
+    the AI inventory: no special cases for form titles and no skipped pages.
+    """
+    try:
+        reader = PdfReader(BytesIO(content), strict=False)
+        if reader.is_encrypted:
+            return await _request(PDF_URL, ".pdf", content, previews=visual)
+        total = len(reader.pages)
+    except Exception:
+        return await _request(PDF_URL, ".pdf", content, previews=visual)
+    if total <= 6:
+        return await _request(PDF_URL, ".pdf", content, previews=visual)
+    if total > 24:
+        raise RejectedFile("Dokument przekracza limit 24 stron.", 413)
+    texts = []
+    images = []
+    page_sources = []
+    ocr_pages = 0
+    truncated = False
+    for start in range(0, total, 6):
+        end = min(start + 6, total)
+        writer = PdfWriter()
+        for index in range(start, end):
+            writer.add_page(reader.pages[index])
+        buffer = BytesIO()
+        writer.write(buffer)
+        part = await _request(PDF_URL, ".pdf", buffer.getvalue(), previews=visual)
+        # The worker must account for EVERY page, never silently drop one.
+        if part.get("page_count") != end - start:
+            raise RejectedFile("Silnik PDF nie zwrócił wszystkich stron.", 502)
+        from .source_pages import split_pages
+        parts = split_pages(part.get("text", ""), [], [])
+        if len(parts) != end - start or [x.number for x in parts] != list(range(1, end - start + 1)):
+            raise RejectedFile("Niekompletne indeksy stron po podziale PDF.", 502)
+        for item in parts:
+            texts.append(f"[Strona {start + item.number}/{total}]\n{item.text}")
+        for entry in part.get("preview_images", []):
+            global_number = start + entry.get("page", 0)
+            if not start < global_number <= end:
+                raise RejectedFile("Niepoprawny numer obrazu strony.", 502)
+            images.append({**entry, "page": global_number})
+        for entry in part.get("page_sources", []):
+            page_sources.append({**entry, "page": start + entry.get("page", 0)})
+        ocr_pages += part.get("ocr_pages") or 0
+        truncated = truncated or bool(part.get("truncated"))
+    if visual and {entry["page"] for entry in images} != set(range(1, total + 1)):
+        raise RejectedFile("Niekompletne obrazy PDF po automatycznym podziale.", 502)
+    return {
+        "engine": "pdf-layout-ocr+in-memory-chunks",
+        "page_count": total,
+        "ocr_pages": ocr_pages,
+        "text": "\n\n".join(texts),
+        "truncated": truncated,
+        "page_sources": page_sources,
+        "preview_images": images,
+        "vision_incomplete": bool(visual and len(images) != total),
+        "automatic_pdf_chunks": (total + 5) // 6,
+    }
 
 
 def image_pdf(content):
@@ -123,7 +187,7 @@ async def extract_with_backend(content, extension, *, vision_mode="auto"):
     )
     # Normalized Office/images always require visual evidence.
     visual = visual or normalization is not None
-    payload = await _request(PDF_URL, ".pdf", content, previews=visual)
+    payload = await _extract_pdf_chunked(content, visual=visual)
     text = payload.get("text")
     if not isinstance(text, str):
         raise RejectedFile("Moduł PDF nie zwrócił tekstu źródłowego.", 502)
@@ -167,6 +231,7 @@ async def extract_with_backend(content, extension, *, vision_mode="auto"):
         images,
         {
             "engine": payload.get("engine", "pdf-layout-ocr"),
+            "automatic_pdf_chunks": payload.get("automatic_pdf_chunks", 1),
             "pages": count,
             "ocr_pages": payload.get("ocr_pages"),
             "page_sources": payload.get("page_sources", []),

@@ -7,6 +7,8 @@ import asyncio
 from collections import Counter
 import math
 import re
+from io import BytesIO
+from PIL import Image
 from .ai_provider import generate, AIProviderError
 from .source_pages import split_pages, blank_hints
 from .source_semantics import (
@@ -214,6 +216,66 @@ def overlap(a, b):
     return area / union
 
 
+def _split_picture(image, text):
+    """Split at a nearly blank horizontal row; return two grounded images and OCR excerpts."""
+    mime, content = image
+    with Image.open(BytesIO(content)) as picture:
+        original = picture.convert("RGB")
+        width, height = original.size
+        if height < 350:
+            raise AIProviderError("Obraz strony jest zbyt mały, by go bezpiecznie podzielić.", code="MODEL_OUTPUT_TRUNCATED")
+        thumb = original.convert("L")
+        thumb.thumbnail((320, 1100))
+        tw, th = thumb.size
+        # Prefer clear whitespace between blocks near the middle of the picture.
+        minimum = max(1, int(th * .38))
+        maximum = min(th - 1, int(th * .62))
+        best = min(range(minimum, maximum), key=lambda y: (
+            sum(v < 215 for v in thumb.crop((int(tw*.08), y, int(tw*.92), y+1)).getdata()),
+            abs(y - th//2),
+        ))
+        seam = max(1, min(height - 1, round(height * best / th)))
+        halves = [original.crop((0, 0, width, seam)), original.crop((0, seam, width, height))]
+        ratio = seam / height
+        lines = text.splitlines()
+        pivot = round(len(lines) * ratio)
+        snippets = ["\n".join(lines[:pivot]), "\n".join(lines[pivot:])]
+        outputs = []
+        for part, excerpt in zip(halves, snippets):
+            buf = BytesIO()
+            part.save(buf, format="JPEG", quality=80, optimize=True)
+            outputs.append((("image/jpeg", buf.getvalue()), excerpt))
+        return ratio, outputs
+
+
+async def _inventory_fragments(page, evidence_text):
+    """Retry a truncated model response on actual image crops, recursively if needed.
+
+    A successful page is never split. On fallback all crops are retained and their
+    coordinates are projected back into the original page, not treated as new pages.
+    """
+    async def analyze(image, text, low, high, depth, prefix):
+        try:
+            candidate, info = await generate(
+                text, [image], prompt=PROMPT, response_schema=INVENTORY_SCHEMA
+            )
+            return [(candidate, info, low, high, prefix)]
+        except AIProviderError as exc:
+            if exc.code != "MODEL_OUTPUT_TRUNCATED" or depth >= 2:
+                raise
+            ratio, halves = _split_picture(image, text)
+            middle = low + (high - low) * ratio
+            output = []
+            for index, ((subimage, subtext), y0, y1) in enumerate(
+                zip(halves, (low, middle), (middle, high))
+            ):
+                output.extend(await analyze(
+                    subimage, subtext, y0, y1, depth + 1, prefix + str(index + 1)
+                ))
+            return output
+    return await analyze(page.image, evidence_text, 0., 1., 0, "")
+
+
 async def extract(
     source,
     images,
@@ -258,16 +320,47 @@ async def extract(
             if cell_hints
             else page.text
         )
-        candidate, info = await generate(
-            evidence_text, [page.image], prompt=PROMPT, response_schema=INVENTORY_SCHEMA
-        )
-        accumulate(info)
+        fragments = await _inventory_fragments(page, evidence_text)
+        # Restore absolute normalized image positions and unique choice references
+        # before the existing source-grounded normalizer processes the fields.
+        all_sections = []
+        for fragment, info, y0, y1, prefix in fragments:
+            accumulate(info)
+            for candidate_page in fragment["pages"]:
+                for section in candidate_page["sections"]:
+                    fields = []
+                    for original in section["fields"]:
+                        field = dict(original)
+                        box = region(field.get("region"))
+                        if box:
+                            field["region"] = [
+                                box[0], y0 + box[1]*(y1-y0),
+                                box[2], y0 + box[3]*(y1-y0)
+                            ]
+                        if prefix:
+                            if field.get("source_choice_ref"):
+                                field["source_choice_ref"] = prefix + "_" + field["source_choice_ref"]
+                            if isinstance(field.get("show_when"), dict):
+                                condition = dict(field["show_when"])
+                                condition["field_ref"] = prefix + "_" + condition["field_ref"]
+                                field["show_when"] = condition
+                        fields.append(field)
+                    all_sections.append({"title": section["title"], "fields": fields})
+        candidate = {
+            "title": fragments[0][0].get("title", "Formularz"),
+            "pages": [{"title": f"Strona {page.number}", "sections": all_sections}],
+        }
         # Qwen's former second pass could turn a complete inventory into all
         # INFO_BLOCKs while claiming to have corrected it. Only deterministic
         # source-grounded checks and corrections may modify this inventory.
         audit = {"issues": [], "changes": []}
         page_title = candidate.get("title")
         issues = []
+        if len(fragments) > 1:
+            issues.append(
+                f"Strona została automatycznie podzielona na {len(fragments)} fragmenty "
+                "z powodu limitu odpowiedzi modelu; wymagana kontrola łączenia."
+            )
         sections = []
         regions = []
         for pg in candidate.get("pages", []):

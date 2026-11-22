@@ -133,7 +133,14 @@ async def generate(
             "Nieprawidłowa strategia wyboru dostawcy modelu.",
             code="MODEL_CONFIG_ERROR",
         )
-    max_tokens = 6500
+    # Higher output budget for dense printed forms. Keep configurable for
+    # providers with different completion limits; bound to avoid huge bills.
+    try:
+        max_tokens = int(os.getenv("OPENROUTER_MAX_TOKENS", "12000"))
+    except ValueError as exc:
+        raise AIProviderError("Nieprawidłowy limit tokenów modelu.", code="MODEL_CONFIG_ERROR") from exc
+    if not 1024 <= max_tokens <= 16384:
+        raise AIProviderError("Limit tokenów poza zakresem 1024–16384.", code="MODEL_CONFIG_ERROR")
     data = {
         "model": model,
         "max_tokens": max_tokens,
